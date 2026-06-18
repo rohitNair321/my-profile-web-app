@@ -1,0 +1,86 @@
+:root {
+  /* Typography */
+  --font-family-base: 'Inter', sans-serif;
+  --font-family-heading: 'Poppins', sans-serif;
+
+  // ── Structure ──────────────────────────────────────────────
+  --topbar-height:           64px;
+  --sidebar-width:           240px;
+  --sidebar-width-collapsed: 72px;
+
+  // ── Motion ─────────────────────────────────────────────────
+  --layout-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // ── Z-index scale ──────────────────────────────────────────
+  // Increment by 10 to leave room for intermediate layers.
+  --backdrop-z: 1040;   // mobile sidebar backdrop
+  --sidebar-z:  1050;   // sidebar panel (above backdrop)
+  --topbar-z:   1060;   // topbar (above sidebar on mobile)
+
+  // ── Spacing scale ─────────────────────────────────────────────
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+  --space-9:  96px;
+  --space-10: 128px;
+  // Legacy aliases kept for backward compat
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  // ── Typography scale ───────────────────────────────────────────
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semi:   600;
+  --font-bold:   700;
+
+  --leading-tight:  1.25;
+  --leading-normal: 1.5;
+  --leading-loose:  1.75;
+
+  // ── Border radius scale ────────────────────────────────────────
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  // ── Shadow scale ───────────────────────────────────────────────
+  --shadow-sm:  0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.10);
+  --shadow-md:  0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,.10), 0 4px 6px rgba(0,0,0,.05);
+  --shadow-xl:  0 20px 25px rgba(0,0,0,.10), 0 10px 10px rgba(0,0,0,.04);
+
+  // ── Motion tokens ──────────────────────────────────────────────
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-inout:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast:   100ms;
+  --duration-normal: 200ms;
+  --duration-slow:   350ms;
+
+  // Legacy aliases
+  --transition-fast:   150ms ease-in;
+  --transition-normal: 250ms ease;
+
+}

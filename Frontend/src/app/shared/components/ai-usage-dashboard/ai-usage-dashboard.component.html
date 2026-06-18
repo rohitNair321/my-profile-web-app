@@ -1,0 +1,464 @@
+<!--
+  AI USAGE DASHBOARD  —  Highcharts + PrimeNG Tables
+  ══════════════════════════════════════════════════════════════
+  Trend chart  → Highcharts column + spline combo
+  Model table  → p-table (sortable)
+  Sessions     → p-table (sortable, paginated)
+  ══════════════════════════════════════════════════════════════
+-->
+
+<div class="aud">
+
+  <!-- ── HEADER ───────────────────────────────────────────────── -->
+  <div class="aud__header">
+    <div class="aud__header-title-block">
+      <div class="aud__eyebrow">
+        <span class="material-icons">auto_awesome</span>
+        OpenAI · o4-mini
+      </div>
+      <h2 class="aud__title">AI Usage Dashboard</h2>
+      <p class="aud__subtitle">Token consumption, cost analytics &amp; session history</p>
+    </div>
+
+    <div class="aud__header-right">
+      <div class="aud__range-group" role="group">
+        @for (r of ranges; track r.value) {
+          <button
+            class="aud__range-btn"
+            [class.aud__range-btn--active]="selectedRange() === r.value"
+            (click)="changeRange(r.value)"
+          >{{ r.label }}</button>
+        }
+      </div>
+      <button class="aud__refresh-btn" (click)="loadUsage()"
+        [class.aud__refresh-btn--spinning]="loading()" aria-label="Refresh">
+        <span class="material-icons">refresh</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── TABS ─────────────────────────────────────────────────── -->
+  <div class="aud__tabs" role="tablist">
+    @for (tab of tabs; track tab.id) {
+      <button class="aud__tab" [class.aud__tab--active]="activeTab() === tab.id"
+        (click)="setTab(tab.id)" role="tab">
+        <span class="material-icons">{{ tab.icon }}</span>{{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- ── LOADING ──────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="aud__skeleton-grid">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="aud__sk-card">
+          <div class="aud__sk-line aud__sk-line--short"></div>
+          <div class="aud__sk-line aud__sk-line--tall"></div>
+          <div class="aud__sk-line aud__sk-line--medium"></div>
+        </div>
+      }
+    </div>
+  }
+
+  @else if (hasError()) {
+    <div class="aud__state">
+      <span class="material-icons aud__state-icon aud__state-icon--error">error_outline</span>
+      <p>Failed to load usage data.</p>
+      <button class="aud__state-btn" (click)="loadUsage()">
+        <span class="material-icons">refresh</span> Retry
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════
+       OVERVIEW TAB
+       ══════════════════════════════════════════════════════════ -->
+  @else if (activeTab() === 'overview' && summary()) {
+
+    <!-- Balance strip -->
+    <div class="aud__balance-strip">
+      <div class="aud__balance-card" style="--d:0ms">
+        <div class="aud__balance-left">
+          <span class="material-icons aud__balance-icon">account_balance_wallet</span>
+          <div>
+            <span class="aud__balance-label">Total Spend (API)</span>
+            @if (balanceLoading()) {
+              <span class="aud__balance-value">Loading…</span>
+            } @else if (balance()) {
+              <span class="aud__balance-value">{{ balance()!.totalUsedUSD | currency:'USD':'symbol':'1.4-4' }}</span>
+              <span class="aud__balance-source">via {{ balance()!.source === 'openai' ? 'OpenAI API' : 'Supabase estimate' }}</span>
+            } @else {
+              <span class="aud__balance-value">—</span>
+            }
+          </div>
+        </div>
+        @if (balance()?.source === 'supabase') {
+          <span class="aud__balance-badge">Estimated</span>
+        }
+      </div>
+
+      @if (allTime()) {
+        <div class="aud__balance-card aud__balance-card--alt" style="--d:60ms">
+          <div class="aud__balance-left">
+            <span class="material-icons aud__balance-icon">all_inclusive</span>
+            <div>
+              <span class="aud__balance-label">All-Time Tokens</span>
+              <span class="aud__balance-value">{{ allTime()!.totalTokens | number }}</span>
+              <span class="aud__balance-source">{{ allTime()!.totalRequests | number }} total requests</span>
+            </div>
+          </div>
+          <span class="aud__balance-cost">{{ allTimeCostFormatted() }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- KPI row -->
+    <div class="aud__kpi-row">
+      <div class="aud__kpi-card aud__kpi-card--hero" style="--d:80ms">
+        <div class="aud__kpi-card-bar"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Estimated Cost</span>
+          <span class="aud__kpi-icon-wrap aud__kpi-icon-wrap--hero"><span class="material-icons">payments</span></span>
+        </div>
+        <div class="aud__kpi-value aud__kpi-value--hero">{{ totalCost() | currency:'USD':'symbol':'1.4-4' }}</div>
+        <div class="aud__kpi-sub">{{ summary()!.totalTokens | number }} tokens · {{ selectedRange() }}</div>
+      </div>
+
+      <div class="aud__kpi-card" style="--d:140ms">
+        <div class="aud__kpi-card-bar aud__kpi-card-bar--2"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Total Tokens</span>
+          <span class="aud__kpi-icon-wrap"><span class="material-icons">token</span></span>
+        </div>
+        <div class="aud__kpi-value">{{ summary()!.totalTokens | number }}</div>
+        <div class="aud__kpi-sub">all requests combined</div>
+      </div>
+
+      <div class="aud__kpi-card" style="--d:200ms">
+        <div class="aud__kpi-card-bar aud__kpi-card-bar--3"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Input Tokens</span>
+          <span class="aud__kpi-icon-wrap aud__kpi-icon-wrap--3"><span class="material-icons">input</span></span>
+        </div>
+        <div class="aud__kpi-value">{{ summary()!.inputTokens | number }}</div>
+        <div class="aud__kpi-sub">
+          <span class="aud__pct-badge">{{ inputPct() }}%</span>
+          {{ inputCost() | currency:'USD':'symbol':'1.4-4' }}
+        </div>
+      </div>
+
+      <div class="aud__kpi-card" style="--d:260ms">
+        <div class="aud__kpi-card-bar aud__kpi-card-bar--4"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Output Tokens</span>
+          <span class="aud__kpi-icon-wrap aud__kpi-icon-wrap--4"><span class="material-icons">output</span></span>
+        </div>
+        <div class="aud__kpi-value">{{ summary()!.outputTokens | number }}</div>
+        <div class="aud__kpi-sub">
+          <span class="aud__pct-badge aud__pct-badge--accent">{{ outputPct() }}%</span>
+          {{ outputCost() | currency:'USD':'symbol':'1.4-4' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Token split bar -->
+    <div class="aud__flow-section" style="--d:320ms">
+      <div class="aud__section-header">
+        <h3 class="aud__section-title"><span class="material-icons">stacked_bar_chart</span>Token Distribution</h3>
+        <span class="aud__section-meta">input vs output</span>
+      </div>
+      <div class="aud__split-bar">
+        <div class="aud__split-bar-input" [style.width.%]="inputPct()">
+          @if (inputPct() > 10) { <span>{{ inputPct() }}% input</span> }
+        </div>
+        <div class="aud__split-bar-output" [style.width.%]="outputPct()">
+          @if (outputPct() > 10) { <span>{{ outputPct() }}% output</span> }
+        </div>
+      </div>
+      <div class="aud__split-legend">
+        <span class="aud__legend-item aud__legend-item--input">
+          <span class="aud__legend-dot"></span>Input — $0.003 / 1K
+        </span>
+        <span class="aud__legend-item aud__legend-item--output">
+          <span class="aud__legend-dot"></span>Output — $0.012 / 1K
+        </span>
+      </div>
+    </div>
+
+    <!-- Trend chart (Highcharts) + Rate card -->
+    <div class="aud__lower-row">
+
+      <!-- ── Highcharts column + spline dual-axis ─────────────── -->
+      <div class="aud__chart-card" style="--d:380ms">
+        <div class="aud__section-header">
+          <h3 class="aud__section-title"><span class="material-icons">show_chart</span>Token Trend</h3>
+          <span class="aud__section-meta">{{ trend().length }} day{{ trend().length === 1 ? '' : 's' }}</span>
+        </div>
+        @if (trendChartOptions()) {
+          <div style="height:200px">
+            <highcharts-chart
+              [options]="trendChartOptions()!"
+              [update]="updateFlag()"
+              [oneToOne]="true"
+              (updateChange)="onChartUpdateChange($event)"
+              style="width:100%;height:100%;display:block"
+            ></highcharts-chart>
+          </div>
+        } @else {
+          <div class="aud__no-data">
+            <span class="material-icons">bar_chart</span>
+            No trend data for this range
+          </div>
+        }
+      </div>
+
+      <!-- Rate card + efficiency (unchanged, not a table) -->
+      <div class="aud__pricing-card" style="--d:440ms">
+        <div class="aud__section-header">
+          <h3 class="aud__section-title"><span class="material-icons">price_check</span>Rate Card</h3>
+          <span class="aud__section-meta">per 1K tokens</span>
+        </div>
+        <div class="aud__rate-table">
+          @for (rate of rateCard; track rate.model) {
+            <div class="aud__rate-row" [class.aud__rate-row--active]="rate.highlight">
+              <div class="aud__rate-left">
+                <span class="aud__rate-dot" [class.aud__rate-dot--active]="rate.highlight"></span>
+                <span class="aud__rate-type">{{ rate.model }}</span>
+              </div>
+              <div class="aud__rate-right">
+                <span class="aud__rate-col"><span class="aud__rate-tiny">in</span>{{ rate.inputRate }}</span>
+                <span class="aud__rate-col"><span class="aud__rate-tiny">out</span>{{ rate.outputRate }}</span>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="aud__efficiency">
+          <div class="aud__efficiency-label">
+            <span class="material-icons">tune</span>Output / Input ratio
+          </div>
+          <div class="aud__efficiency-value">
+            {{ efficiencyRatio() | number:'1.2-2' }}
+            <span class="aud__efficiency-note">{{ efficiencyLabel(efficiencyRatio()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost breakdown -->
+    <div class="aud__cost-footer" style="--d:500ms">
+      <div class="aud__cost-row">
+        <span class="aud__cost-item-label"><span class="aud__cost-dot aud__cost-dot--input"></span>Input cost</span>
+        <span class="aud__cost-item-value">
+          {{ summary()!.inputTokens | number }} × $0.003
+          <strong>= {{ inputCost() | currency:'USD':'symbol':'1.5-5' }}</strong>
+        </span>
+      </div>
+      <div class="aud__cost-divider"></div>
+      <div class="aud__cost-row">
+        <span class="aud__cost-item-label"><span class="aud__cost-dot aud__cost-dot--output"></span>Output cost</span>
+        <span class="aud__cost-item-value">
+          {{ summary()!.outputTokens | number }} × $0.012
+          <strong>= {{ outputCost() | currency:'USD':'symbol':'1.5-5' }}</strong>
+        </span>
+      </div>
+      <div class="aud__cost-divider"></div>
+      <div class="aud__cost-row aud__cost-row--total">
+        <span class="aud__cost-item-label"><span class="material-icons">receipt_long</span>Total estimated cost</span>
+        <span class="aud__cost-item-value aud__cost-item-value--total">{{ totalCost() | currency:'USD':'symbol':'1.5-5' }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════
+       HISTORY TAB — all-time KPIs + PrimeNG model table + role split
+       ══════════════════════════════════════════════════════════ -->
+  @else if (activeTab() === 'history' && allTime()) {
+
+    <div class="aud__kpi-row">
+      <div class="aud__kpi-card aud__kpi-card--hero" style="--d:0ms">
+        <div class="aud__kpi-card-bar"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Lifetime Cost</span>
+          <span class="aud__kpi-icon-wrap aud__kpi-icon-wrap--hero"><span class="material-icons">savings</span></span>
+        </div>
+        <div class="aud__kpi-value aud__kpi-value--hero">{{ allTime()!.totalCost | currency:'USD':'symbol':'1.4-4' }}</div>
+        <div class="aud__kpi-sub">all time · {{ allTime()!.totalRequests | number }} requests</div>
+      </div>
+      <div class="aud__kpi-card" style="--d:60ms">
+        <div class="aud__kpi-card-bar aud__kpi-card-bar--2"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Lifetime Tokens</span>
+          <span class="aud__kpi-icon-wrap"><span class="material-icons">token</span></span>
+        </div>
+        <div class="aud__kpi-value">{{ allTime()!.totalTokens | number }}</div>
+        <div class="aud__kpi-sub">since first request</div>
+      </div>
+      <div class="aud__kpi-card" style="--d:120ms">
+        <div class="aud__kpi-card-bar aud__kpi-card-bar--3"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Avg / Request</span>
+          <span class="aud__kpi-icon-wrap aud__kpi-icon-wrap--3"><span class="material-icons">calculate</span></span>
+        </div>
+        <div class="aud__kpi-value">
+          {{ allTime()!.totalRequests > 0 ? (allTime()!.totalTokens / allTime()!.totalRequests | number:'1.0-0') : '—' }}
+        </div>
+        <div class="aud__kpi-sub">tokens per request</div>
+      </div>
+      <div class="aud__kpi-card" style="--d:180ms">
+        <div class="aud__kpi-card-bar aud__kpi-card-bar--4"></div>
+        <div class="aud__kpi-top">
+          <span class="aud__kpi-label">Avg Cost / Req</span>
+          <span class="aud__kpi-icon-wrap aud__kpi-icon-wrap--4"><span class="material-icons">price_change</span></span>
+        </div>
+        <div class="aud__kpi-value">
+          {{ allTime()!.totalRequests > 0 ? (allTime()!.totalCost / allTime()!.totalRequests | currency:'USD':'symbol':'1.5-5') : '—' }}
+        </div>
+        <div class="aud__kpi-sub">per API call</div>
+      </div>
+    </div>
+
+    <!-- ── By model — PrimeNG p-table ────────────────────────── -->
+    @if (byModel().length > 0) {
+      <div class="aud__section-card" style="--d:240ms">
+        <div class="aud__section-header">
+          <h3 class="aud__section-title"><span class="material-icons">hub</span>By Model</h3>
+          <span class="aud__section-meta">{{ selectedRange() }}</span>
+        </div>
+
+        <p-table
+          [value]="byModel()"
+          sortField="totalTokens"
+          [sortOrder]="-1"
+          styleClass="aud__p-table p-datatable-sm"
+          [tableStyle]="{'min-width':'100%'}"
+          responsiveLayout="stack"
+          breakpoint="640px"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="model">Model <p-sortIcon field="model" /></th>
+              <th pSortableColumn="requests"    style="text-align:right">Requests    <p-sortIcon field="requests" /></th>
+              <th pSortableColumn="totalTokens" style="text-align:right">Tokens      <p-sortIcon field="totalTokens" /></th>
+              <th pSortableColumn="inputTokens" style="text-align:right">Input       <p-sortIcon field="inputTokens" /></th>
+              <th pSortableColumn="outputTokens"style="text-align:right">Output      <p-sortIcon field="outputTokens" /></th>
+              <th pSortableColumn="cost"        style="text-align:right">Est. Cost   <p-sortIcon field="cost" /></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-m>
+            <tr [class.aud__tr--active]="m.model === topModel()?.model">
+              <td>
+                <div class="aud__model-cell">
+                  <span class="aud__model-dot" [class.aud__model-dot--top]="m.model === topModel()?.model"></span>
+                  <span class="aud__model-name">{{ m.model }}</span>
+                  @if (m.model === topModel()?.model) {
+                    <span class="aud__model-badge">active</span>
+                  }
+                </div>
+              </td>
+              <td style="text-align:right">{{ m.requests | number }}</td>
+              <td style="text-align:right">{{ m.totalTokens | number }}</td>
+              <td style="text-align:right">{{ m.inputTokens | number }}</td>
+              <td style="text-align:right">{{ m.outputTokens | number }}</td>
+              <td style="text-align:right" class="aud__td--cost">{{ m.cost | currency:'USD':'symbol':'1.5-5' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6"><div class="aud__no-data"><span class="material-icons">inbox</span> No model data</div></td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+
+    <!-- Admin vs guest split -->
+    @if (byRole()) {
+      <div class="aud__section-card" style="--d:300ms">
+        <div class="aud__section-header">
+          <h3 class="aud__section-title"><span class="material-icons">people</span>Usage by Role</h3>
+          <span class="aud__section-meta">admin vs guest</span>
+        </div>
+        <div class="aud__split-bar aud__split-bar--role">
+          <div class="aud__split-bar-input" [style.width.%]="adminTokenPct()">
+            @if (adminTokenPct() > 10) { <span>{{ adminTokenPct() }}% admin</span> }
+          </div>
+          <div class="aud__split-bar-output" [style.width.%]="guestTokenPct()">
+            @if (guestTokenPct() > 10) { <span>{{ guestTokenPct() }}% guest</span> }
+          </div>
+        </div>
+        <div class="aud__role-grid">
+          <div class="aud__role-card">
+            <div class="aud__role-header"><span class="material-icons">admin_panel_settings</span>Admin</div>
+            <div class="aud__role-stat"><span>{{ byRole()!.admin.totalTokens | number }}</span><span class="aud__role-label">tokens</span></div>
+            <div class="aud__role-stat"><span>{{ byRole()!.admin.requests | number }}</span><span class="aud__role-label">requests</span></div>
+            <div class="aud__role-cost">{{ byRole()!.admin.cost | currency:'USD':'symbol':'1.4-4' }}</div>
+          </div>
+          <div class="aud__role-card aud__role-card--guest">
+            <div class="aud__role-header"><span class="material-icons">person_outline</span>Guest</div>
+            <div class="aud__role-stat"><span>{{ byRole()!.guest.totalTokens | number }}</span><span class="aud__role-label">tokens</span></div>
+            <div class="aud__role-stat"><span>{{ byRole()!.guest.requests | number }}</span><span class="aud__role-label">requests</span></div>
+            <div class="aud__role-cost">{{ byRole()!.guest.cost | currency:'USD':'symbol':'1.4-4' }}</div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════════════════════
+       SESSIONS TAB — PrimeNG p-table with pagination
+       ══════════════════════════════════════════════════════════ -->
+  @else if (activeTab() === 'sessions') {
+    <div class="aud__section-card" style="--d:0ms">
+      <div class="aud__section-header">
+        <h3 class="aud__section-title"><span class="material-icons">list_alt</span>Top Sessions by Cost</h3>
+        <span class="aud__section-meta">{{ rankedSessions().length }} sessions · {{ selectedRange() }}</span>
+      </div>
+
+      <p-table
+        [value]="rankedSessions()"
+        sortField="cost"
+        [sortOrder]="-1"
+        [paginator]="rankedSessions().length > 10"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20]"
+        styleClass="aud__p-table p-datatable-sm"
+        [tableStyle]="{'min-width':'100%'}"
+        responsiveLayout="stack"
+        breakpoint="640px"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width:48px">#</th>
+            <th>Session ID</th>
+            <th pSortableColumn="date">Date <p-sortIcon field="date" /></th>
+            <th pSortableColumn="model">Model <p-sortIcon field="model" /></th>
+            <th pSortableColumn="requests"    style="text-align:right">Requests   <p-sortIcon field="requests" /></th>
+            <th pSortableColumn="totalTokens" style="text-align:right">Tokens     <p-sortIcon field="totalTokens" /></th>
+            <th pSortableColumn="cost"        style="text-align:right">Est. Cost  <p-sortIcon field="cost" /></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-s>
+          <tr>
+            <td>
+              <span class="aud__rank" [class.aud__rank--top]="s.rank <= 3">{{ s.rank }}</span>
+            </td>
+            <td>
+              <span class="aud__session-id" [pTooltip]="s.sessionId" tooltipPosition="top">
+                {{ shortId(s.sessionId) }}
+              </span>
+            </td>
+            <td>{{ formatDateLong(s.date) }}</td>
+            <td><span class="aud__model-tag">{{ s.model }}</span></td>
+            <td style="text-align:right">{{ s.requests }}</td>
+            <td style="text-align:right">{{ s.totalTokens | number }}</td>
+            <td style="text-align:right" class="aud__td--cost">{{ s.cost | currency:'USD':'symbol':'1.5-5' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7">
+            <div class="aud__no-data"><span class="material-icons">inbox</span> No sessions in this range</div>
+          </td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+
+</div>

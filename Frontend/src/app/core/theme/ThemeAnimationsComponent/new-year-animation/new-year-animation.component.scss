@@ -1,0 +1,122 @@
+.ny-wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* FIREWORKS */
+.firework {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  box-shadow: 0 0 #fff, 0 0 #fff, 0 0 #fff; /* Dynamic box shadow expansion in animation */
+  animation: explode 4s infinite;
+  
+  &:nth-child(1) { top: 20%; left: 30%; animation-delay: 0s; color: var(--primary); }
+  &:nth-child(2) { top: 10%; left: 70%; animation-delay: 1.2s; color: var(--accent); }
+  &:nth-child(3) { top: 40%; left: 50%; animation-delay: 2.5s; color: var(--highlight); }
+}
+
+@keyframes explode {
+  0% { transform: translateY(100vh); width: 4px; opacity: 1; }
+  50% { transform: translateY(0); width: 4px; opacity: 1; }
+  55% {
+    box-shadow: 
+      0 -40px 0 2px, 30px -20px 0 2px, 30px 20px 0 2px, 
+      0 40px 0 2px, -30px 20px 0 2px, -30px -20px 0 2px;
+    opacity: 1;
+    width: 0;
+  }
+  100% { opacity: 0; }
+}
+
+/* CONFETTI */
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 10px;
+  opacity: 0.7;
+  animation: fall 5s linear infinite;
+}
+
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(720deg); }
+}
+
+.ny-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 45rem;
+  pointer-events: auto;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.countdown-toast {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: bold;
+  box-shadow: 0 10px 20px var(--primary-glow);
+  animation: pulse 2s infinite;
+}
+
+.ny-wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  opacity: 0.7;
+  border-radius: 2px;
+  animation: fall 4s linear infinite;
+}
+
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(720deg); }
+}
+
+.firework {
+  position: absolute;
+  top: 50%;
+  left: 30%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  box-shadow: 0 0 #fff, 0 0 #fff, 0 0 #fff; /* Shadow will be animated */
+  animation: firework-boom 3s infinite;
+}
+
+@keyframes firework-boom {
+  0% { transform: translateY(50vh); opacity: 1; }
+  50% { transform: translateY(0); opacity: 1; }
+  51% {
+    box-shadow: 
+      0 -40px var(--primary), 30px -20px var(--accent), 
+      30px 20px var(--primary), 0 40px var(--accent), 
+      -30px 20px var(--primary), -30px -20px var(--accent);
+    opacity: 1;
+  }
+  100% { opacity: 0; }
+}

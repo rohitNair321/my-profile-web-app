@@ -1,0 +1,106 @@
+<div class="posts-page">
+
+  <!-- Header -->
+  <div class="posts-header">
+    <h1 class="posts-header__title">Posts</h1>
+    <p class="posts-header__subtitle">Thoughts on Angular, Node.js, and building things that matter.</p>
+
+    <!-- Search -->
+    <div class="posts-search">
+      <i class="material-icons posts-search__icon">search</i>
+      <input
+        class="posts-search__input"
+        type="text"
+        placeholder="Search posts..."
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+      />
+      @if (searchQuery) {
+        <button class="posts-search__clear" (click)="onClearFilters()">
+          <i class="material-icons">close</i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Tag Filters -->
+  @if (allTags().length) {
+    <div class="posts-tags">
+      <button
+        class="posts-tags__chip"
+        [class.posts-tags__chip--active]="selectedTag === ''"
+        (click)="onTagFilter('')"
+      >All</button>
+      @for (tag of allTags(); track tag) {
+        <button
+          class="posts-tags__chip"
+          [class.posts-tags__chip--active]="selectedTag === tag"
+          (click)="onTagFilter(tag)"
+        >{{ tag }}</button>
+      }
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="posts-loading">
+      <div class="spinner"></div>
+      <p>Loading posts…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error() && !isLoading()) {
+    <div class="posts-error">
+      <i class="material-icons">error_outline</i>
+      <p>{{ error() }}</p>
+      <button (click)="loadPosts()">Retry</button>
+    </div>
+  }
+
+  <!-- Grid -->
+  @if (!isLoading() && !error()) {
+    @if (posts().length === 0) {
+      <div class="posts-empty">
+        <i class="material-icons">article</i>
+        <p>No posts yet. Check back soon!</p>
+      </div>
+    } @else {
+      <div class="posts-grid">
+        @for (post of posts(); track post.id) {
+          <app-post-card [post]="post" />
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="posts-pagination">
+          <button
+            class="posts-pagination__btn"
+            [disabled]="currentPage() === 1"
+            (click)="onPageChange(currentPage() - 1)"
+          >
+            <i class="material-icons">chevron_left</i>
+          </button>
+
+          @for (page of pageNumbers; track page) {
+            <button
+              class="posts-pagination__btn"
+              [class.posts-pagination__btn--active]="currentPage() === page"
+              (click)="onPageChange(page)"
+            >{{ page }}</button>
+          }
+
+          <button
+            class="posts-pagination__btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="onPageChange(currentPage() + 1)"
+          >
+            <i class="material-icons">chevron_right</i>
+          </button>
+        </div>
+      }
+    }
+  }
+
+</div>

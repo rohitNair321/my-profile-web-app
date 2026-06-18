@@ -1,0 +1,860 @@
+/* =============================================================
+   ANALYTICS DASHBOARD  —  Highcharts + PrimeNG Table
+   =============================================================
+   COLOR TOKEN MAP
+   ─────────────────────────────────────────────────────────────
+   --background   --surface    --surface-alt  --border
+   --primary      --accent     --primary-glow --text-primary
+   --text-secondary  --text-muted  --error  --logo-shadow
+   ============================================================= */
+
+$radius-card : 16px;
+$radius-badge : 99px;
+$radius-btn : 10px;
+$transition : 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+$card-shadow : 0 2px 12px var(--logo-shadow, rgba(0, 0, 0, 0.08));
+$card-hover-sh : 0 6px 24px var(--primary-glow, rgba(0, 0, 0, 0.14));
+
+/* =============================================================
+      ROOT
+      ============================================================= */
+.ad {
+  padding: 1.5rem 1.25rem 3rem;
+  background: var(--background);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* =============================================================
+      HEADER
+      ============================================================= */
+.ad__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.ad__header-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--primary);
+  margin-bottom: 0.4rem;
+
+  .material-icons {
+    font-size: 1rem;
+  }
+}
+
+.ad__title {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.2rem;
+  letter-spacing: -0.5px;
+}
+
+.ad__subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ad__header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.ad__range-group {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.ad__range-btn {
+  padding: 0.4rem 0.85rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background $transition, color $transition;
+
+  &--active {
+    background: var(--primary);
+    color: var(--background);
+  }
+
+  &:not(&--active):hover {
+    background: var(--surface-alt);
+    color: var(--text-primary);
+  }
+}
+
+.ad__custom-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ad__apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: var(--background);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity $transition;
+
+  .material-icons {
+    font-size: 0.95rem;
+  }
+
+  &:hover {
+    opacity: 0.88;
+  }
+}
+
+.ad__refresh-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background $transition, color $transition;
+
+  .material-icons {
+    font-size: 1.2rem;
+  }
+
+  &:hover {
+    background: var(--primary-glow);
+    color: var(--primary);
+  }
+
+  &--spinning .material-icons {
+    animation: ad-spin 0.9s linear infinite;
+  }
+
+  @keyframes ad-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* =============================================================
+      SKELETONS
+      ============================================================= */
+.ad__skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.ad__skeleton-card {
+  background: var(--surface);
+  border-radius: $radius-card;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+}
+
+%sk-shimmer {
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+      var(--surface-alt) 25%,
+      color-mix(in oklab, var(--surface-alt) 60%, var(--background)) 50%,
+      var(--surface-alt) 75%);
+  background-size: 200% 100%;
+  animation: ad-shimmer 1.4s ease infinite;
+}
+
+.ad__skeleton-line {
+  @extend %sk-shimmer;
+  height: 12px;
+  width: 100%;
+
+  &--short {
+    width: 50%;
+  }
+
+  &--tall {
+    height: 36px;
+    width: 70%;
+  }
+
+  &--medium {
+    height: 12px;
+    width: 65%;
+  }
+}
+
+.ad__skeleton-chart {
+  height: 280px;
+  border-radius: $radius-card;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  @extend %sk-shimmer;
+}
+
+@keyframes ad-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* =============================================================
+      STATE PANELS
+      ============================================================= */
+.ad__state-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-card;
+  text-align: center;
+
+  &--error .ad__state-icon {
+    color: var(--error);
+  }
+}
+
+.ad__state-icon {
+  font-size: 3rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.ad__state-message {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ad__state-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6rem 1.4rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary);
+  color: var(--background);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity $transition;
+
+  .material-icons {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    opacity: 0.88;
+  }
+}
+
+/* =============================================================
+      BODY
+      ============================================================= */
+.ad__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* =============================================================
+      METRIC CARDS
+      ============================================================= */
+.ad__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.ad__metric-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-card;
+  padding: 1.35rem 1.25rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: $card-shadow;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: ad-card-in 0.4s ease forwards var(--card-delay, 0ms);
+  transition: box-shadow $transition, transform $transition;
+
+  &:hover {
+    box-shadow: $card-hover-sh;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes ad-card-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ad__metric-card-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: $radius-card 0 0 $radius-card;
+}
+
+.ad__metric-card--1 .ad__metric-card-accent {
+  background: var(--primary);
+}
+
+.ad__metric-card--2 .ad__metric-card-accent {
+  background: var(--accent);
+}
+
+.ad__metric-card--3 .ad__metric-card-accent {
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+}
+
+.ad__metric-card--4 .ad__metric-card-accent {
+  background: var(--error);
+}
+
+.ad__metric-card--1::after,
+.ad__metric-card--2::after,
+.ad__metric-card--3::after,
+.ad__metric-card--4::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.06;
+}
+
+.ad__metric-card--1::after {
+  background: var(--primary);
+}
+
+.ad__metric-card--2::after {
+  background: var(--accent);
+}
+
+.ad__metric-card--3::after {
+  background: var(--primary);
+}
+
+.ad__metric-card--4::after {
+  background: var(--error);
+}
+
+.ad__metric-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.ad__metric-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+
+.ad__metric-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface-alt);
+  color: var(--primary);
+
+  .material-icons {
+    font-size: 1.1rem;
+  }
+}
+
+.ad__metric-card--2 .ad__metric-icon-wrap {
+  color: var(--accent);
+}
+
+.ad__metric-card--4 .ad__metric-icon-wrap {
+  color: var(--error);
+}
+
+.ad__metric-value {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.ad__metric-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.ad__metric-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: $radius-badge;
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.ad__metric-bar {
+  height: 3px;
+  border-radius: $radius-badge;
+  background: var(--surface-alt);
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.ad__metric-bar-fill {
+  height: 100%;
+  border-radius: $radius-badge;
+  background: var(--primary);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+
+  &--warn {
+    background: var(--error);
+  }
+}
+
+/* =============================================================
+      CHART SECTIONS
+      ============================================================= */
+.ad__charts-row {
+  display: grid;
+  gap: 1rem;
+
+  &--single {
+    grid-template-columns: 1fr;
+  }
+
+  &--two {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+.ad__chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-card;
+  padding: 1.35rem 1.25rem 1.25rem;
+  box-shadow: $card-shadow;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: ad-card-in 0.4s ease forwards var(--card-delay, 0ms);
+  transition: box-shadow $transition;
+
+  &:hover {
+    box-shadow: $card-hover-sh;
+  }
+}
+
+.ad__chart-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ad__chart-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.2rem;
+}
+
+.ad__chart-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ad__chart-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: $radius-badge;
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  .material-icons {
+    font-size: 0.85rem;
+  }
+}
+
+.ad__chart-header-icon {
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+// ── Chart container height strategy ──────────────────────────
+// KEY FIX: chart wrappers are `height: auto` so Highcharts drives
+// their own height via `chart.height` in Options.
+// The pie chart uses chart.height:320 (explicit px) so it gets
+// full space for the donut + legend without any CSS override.
+// Line/bar/column charts use chart.height:'100%' with a min-height
+// on the wrapper so they have a sensible floor on mobile.
+.ad__chart-wrap {
+  position: relative;
+  // height: auto — Highcharts controls its own height
+  height: auto;
+  min-height: 260px; // floor for line/bar charts on mobile
+
+  &--tall {
+    min-height: 300px;
+  }
+
+  // The Highcharts container div needs block display
+  highcharts-chart {
+    display: block;
+  }
+}
+
+// Pie / donut charts must NOT have a min-height CSS constraint
+// because the chart.height:320 in TS already sets a fixed pixel height.
+// Apply this class to the pie card's .ad__chart-wrap in the HTML.
+.ad__chart-wrap--pie {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+/* =============================================================
+      TABLE SECTION
+      ============================================================= */
+.ad__table-section {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: ad-card-in 0.4s ease forwards var(--card-delay, 0ms);
+}
+
+// ── PrimeNG p-table theme override ────────────────────────────
+::ng-deep .ad__p-table {
+
+  .p-datatable-thead>tr>th {
+    background: var(--surface-alt) !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border) !important;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .p-sortable-column .p-sortable-column-icon {
+    color: var(--text-muted) !important;
+  }
+
+  .p-sortable-column.p-highlight {
+    color: var(--primary) !important;
+  }
+
+  .p-sortable-column.p-highlight .p-sortable-column-icon {
+    color: var(--primary) !important;
+  }
+
+  .p-datatable-tbody>tr {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+    transition: background $transition;
+
+    &:hover {
+      background: var(--surface-alt) !important;
+    }
+
+    >td {
+      border-color: var(--border) !important;
+      padding: 0.8rem 0.85rem;
+      font-size: 0.845rem;
+    }
+  }
+
+  .p-paginator {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text-secondary) !important;
+
+    .p-paginator-element {
+      color: var(--text-secondary) !important;
+      border-radius: 8px !important;
+
+      &:hover {
+        background: var(--surface-alt) !important;
+      }
+
+      &.p-highlight {
+        background: var(--primary) !important;
+        color: var(--background) !important;
+      }
+    }
+  }
+
+  .p-datatable-tbody>tr>td::before {
+    color: var(--text-muted) !important;
+    font-weight: 700;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+  }
+}
+
+// ── Custom table cell styles ──────────────────────────────────
+.ad__rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+
+  &--top {
+    background: color-mix(in oklab, var(--primary) 14%, transparent);
+    color: var(--primary);
+  }
+}
+
+.ad__page-title {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.ad__page-path {
+  display: block;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ad__views-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: $radius-badge;
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.ad__td--duration {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.ad__share-bar {
+  height: 5px;
+  border-radius: $radius-badge;
+  background: var(--surface-alt);
+  overflow: hidden;
+  margin-bottom: 3px;
+}
+
+.ad__share-bar-fill {
+  height: 100%;
+  border-radius: $radius-badge;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s;
+}
+
+.ad__share-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.ad__table-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+
+  .material-icons {
+    opacity: 0.45;
+  }
+}
+
+/* =============================================================
+      RESPONSIVE
+      ============================================================= */
+
+// ── Small phones ≤ 480px ──────────────────────────────────────
+@media (max-width: 480px) {
+  .ad {
+    padding: 1rem 0.875rem 2rem;
+    gap: 1.25rem;
+  }
+
+  .ad__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ad__header-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ad__range-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ad__range-btn {
+    text-align: center;
+    padding: 0.45rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .ad__metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ad__metric-value {
+    font-size: 1.5rem;
+  }
+
+  .ad__charts-row--two {
+    grid-template-columns: 1fr;
+  }
+
+  // FIX: do NOT override height on pie wraps on mobile —
+  // the pie chart drives its own height (320px) from TS options.
+  // Only set a mobile floor for non-pie (line/bar/column) charts.
+  .ad__chart-wrap:not(.ad__chart-wrap--pie) {
+    min-height: 220px;
+  }
+}
+
+// ── Tablets 481–768px ─────────────────────────────────────────
+@media (min-width: 481px) and (max-width: 768px) {
+  .ad {
+    padding: 1.25rem 1rem 2.5rem;
+  }
+
+  .ad__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ad__metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ad__charts-row--two {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Wide screens ≥ 1400px ─────────────────────────────────────
+@media (min-width: 1400px) {
+  .ad {
+    padding: 2rem 2rem 3rem;
+  }
+
+  .ad__charts-row--two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// ── Reduced motion ────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+
+  .ad__metric-card,
+  .ad__chart-card,
+  .ad__table-section {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .ad__skeleton-line,
+  .ad__skeleton-chart {
+    animation: none;
+  }
+
+  .ad__refresh-btn--spinning .material-icons {
+    animation: none;
+  }
+}

@@ -1,0 +1,14 @@
+<div class="alert-stack" role="region" aria-label="Notifications" aria-live="polite">
+  @for (alert of alertService.alerts(); track alert.id) {
+    <div class="alert-container" [ngClass]="alert.type" role="alert">
+      <div class="alert-content">
+        <i class="material-icons">{{ iconFor(alert.type) }}</i>
+        <span class="message">{{ alert.message }}</span>
+      </div>
+      <button class="close-btn" (click)="alertService.dismiss(alert.id)" aria-label="Dismiss">
+        <i class="material-icons">close</i>
+      </button>
+      <div class="progress-bar"></div>
+    </div>
+  }
+</div>

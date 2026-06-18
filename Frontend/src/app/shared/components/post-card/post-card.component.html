@@ -1,0 +1,49 @@
+<article class="post-card" [routerLink]="['/posts', post.slug]">
+  <!-- Cover Image -->
+  <div class="post-card__cover">
+    @if (post.cover_image_url) {
+      <img [src]="post.cover_image_url" [alt]="post.title" loading="lazy" />
+    } @else {
+      <div class="post-card__cover-placeholder">
+        <i class="material-icons">article</i>
+      </div>
+    }
+    @if (post.is_featured) {
+      <span class="post-card__featured-badge">Featured</span>
+    }
+  </div>
+
+  <!-- Content -->
+  <div class="post-card__body">
+    <!-- Tags -->
+    @if (post.tags && post.tags.length) {
+      <div class="post-card__tags">
+        @for (tag of post.tags.slice(0, 3); track tag) {
+          <span class="post-card__tag">{{ tag }}</span>
+        }
+      </div>
+    }
+
+    <!-- Title -->
+    <h3 class="post-card__title">{{ post.title }}</h3>
+
+    <!-- Excerpt -->
+    @if (post.excerpt) {
+      <p class="post-card__excerpt">{{ post.excerpt }}</p>
+    }
+
+    <!-- Meta: date + read time -->
+    <div class="post-card__meta">
+      @if (formattedDate) {
+        <span class="post-card__date">
+          <i class="material-icons">calendar_today</i>
+          {{ formattedDate }}
+        </span>
+      }
+      <span class="post-card__read-time">
+        <i class="material-icons">schedule</i>
+        {{ readLabel }}
+      </span>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,380 @@
+/* =============================================================
+   SIDEBAR COMPONENT
+   =============================================================
+   BEM blocks:  .sidebar   (left nav panel)
+                .settings-trigger  (floating ⚙ button)
+                .settings-panel    (right preferences panel)
+
+   COLOR TOKEN MAP (API → CSS var, same as navigation)
+   ─────────────────────────────────────────────────────────────
+   background        → --background
+   surface           → --surface
+   surface-alt       → --surface-alt
+   text-primary      → --text-primary
+   text-secondary    → --text-secondary
+   text-muted        → --text-muted
+   primary           → --primary
+   accent            → --accent
+   primary-glow      → --primary-glow
+   border            → --border
+   error             → --error
+   logo-primary      → --logo-primary
+   logo-secondary    → --logo-secondary
+   logo-border       → --logo-border
+   logo-border-hover → --logo-border-hover
+   logo-shadow       → --logo-shadow
+   ─────────────────────────────────────────────────────────────
+   Layout tokens (--sidebar-width, --topbar-height, etc.) come
+   from the global _layout-tokens.scss, NOT from :root here.
+   ============================================================= */
+
+// ── Host fills the sidebar grid cell exactly ─────────────────
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* =============================================================
+   LEFT SIDEBAR PANEL
+   ============================================================= */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: var(--sidebar-width, 240px);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--background) 100%);
+  // Default: always anchored to the LEFT — border on the right edge
+  border-right: 1px solid var(--border);
+  border-left: none;
+  transition: width var(--layout-transition, 0.25s ease);
+  overflow: hidden;
+
+  // Right-position variant — only applied when sidebarPosition === 'right'
+  // Flips the visible border to the left edge
+  &--right {
+    border-right: none;
+    border-left: 1px solid var(--border);
+  }
+
+  // Collapsed state — icon-only width
+  &--collapsed {
+    width: var(--sidebar-width-collapsed, 72px);
+  }
+}
+
+// ── Sidebar Header ────────────────────────────────────────────
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: var(--topbar-height, 64px);
+  padding: 0 0.85rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+// Brand link
+.sidebar__brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+
+  &:hover { opacity: 0.8; }
+}
+
+// Collapse toggle button
+.sidebar__collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.35rem;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+  transition: color var(--global-transition-speed),
+              background var(--global-transition-speed);
+
+  .material-icons { font-size: 1.35rem; }
+
+  &:hover {
+    color: var(--primary);
+    background: var(--primary-glow);
+  }
+}
+
+// ── Menu ──────────────────────────────────────────────────────
+.sidebar__menu {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.75rem 0.6rem;
+
+  // Custom thin scrollbar using token colours
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+}
+
+.sidebar__menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar__item {
+  width: 100%;
+}
+
+// Shared link/button style — covers Types A B C D trigger rows
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  color: var(--text-primary);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.925rem;
+  font-weight: 500;
+  transition: background var(--global-transition-speed),
+              color var(--global-transition-speed);
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--primary-glow);
+    color: var(--primary);
+
+    .sidebar__icon { color: var(--primary); }
+  }
+
+  // Active state set by routerLinkActive="active-item"
+  &.active-item {
+    background: var(--primary);
+    color: var(--background);
+
+    .sidebar__icon { color: var(--background); }
+  }
+
+  // Footer variants
+  &--footer {
+    background: none;
+    color: var(--text-secondary);
+
+    &:hover {
+      background: var(--primary-glow);
+      color: var(--primary);
+    }
+  }
+
+  &--danger:hover {
+    background: color-mix(in oklab, var(--error) 12%, transparent);
+    color: var(--error) !important;
+    .sidebar__icon { color: var(--error) !important; }
+  }
+
+  // Collapsed: center icons, hide everything else
+  .sidebar--collapsed & {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+}
+
+// ── Icons & labels ────────────────────────────────────────────
+.sidebar__icon {
+  font-size: 1.35rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: color var(--global-transition-speed);
+}
+
+.sidebar__label {
+  font-size: 0.925rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__chevron {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+
+  .sidebar__item--expanded & {
+    transform: rotate(180deg);
+  }
+}
+
+// Hide label, chevron, submenu when collapsed
+.sidebar--collapsed {
+  .sidebar__label,
+  .sidebar__chevron,
+  .sidebar__submenu { display: none !important; }
+}
+
+// ── Submenu ───────────────────────────────────────────────────
+.sidebar__submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.2rem 0 0.4rem 1.4rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+
+.sidebar__sub-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 6%, transparent);
+  }
+
+  &.active-sub {
+    color: var(--primary);
+    font-weight: 600;
+    background: color-mix(in oklab, var(--primary) 8%, transparent);
+  }
+}
+
+.sidebar__sub-icon {
+  font-size: 1.05rem;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+// ── Footer ────────────────────────────────────────────────────
+.sidebar__footer {
+  flex-shrink: 0;
+  padding: 0.6rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+// ── Logo (shared tokens with navigation) ─────────────────────
+.logo-initials {
+  font-family: var(--font-family-heading, 'Montserrat', sans-serif);
+  font-weight: 900;
+  font-size: 1.8rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--logo-primary) 0%, var(--logo-secondary) 100%);
+  border: 2.5px solid var(--logo-border);
+  box-shadow: 0 4px 15px 0 var(--logo-shadow),
+              0 1.5px 0 var(--background) inset;
+  letter-spacing: -3px;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: box-shadow 0.25s ease-out, border-color 0.25s ease-out;
+
+  &:hover {
+    box-shadow: 0 7px 22px 0 var(--logo-shadow);
+    border-color: var(--logo-border-hover);
+  }
+}
+
+.rn-r {
+  color: var(--logo-primary);
+  font-size: 1.8rem;
+  position: relative;
+  z-index: 2;
+  letter-spacing: 0;
+  text-shadow: 0 0 6px var(--primary-glow);
+}
+
+.rn-n {
+  color: var(--logo-secondary);
+  font-size: 1.6rem;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0;
+  text-shadow: 0 0 6px var(--primary-glow);
+}
+
+.logo-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+}
+
+.logo-rohit     { color: var(--text-primary); }
+.logo-portfolio { color: var(--text-secondary); }
+
+
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
+
+// Mobile: sidebar becomes off-canvas (app-shell handles transform + position)
+// Reinforce left anchor so no external style can push it right.
+@media (max-width: 900px) {
+  .sidebar {
+    // Always full expanded width on mobile — no collapsed icon-only state
+    width: var(--sidebar-width, 240px) !important;
+    // Solid background — overlay must be fully opaque, not a transparent gradient
+    background: var(--surface) !important;
+    // Belt-and-suspenders: keep border on the right edge (left-anchored panel)
+    border-right: 1px solid var(--border) !important;
+    border-left: none !important;
+
+    &__header {
+      padding: 0 1rem;
+    }
+  }
+
+  // Settings panel goes full-width on small screens
+  .settings-panel {
+    width: 100%;
+    border-left: none;
+  }
+}
+
+@media (max-width: 425px) {
+  .sidebar__menu {
+    padding: 0.5rem 0.4rem;
+  }
+}
+
+/* =============================================================
+   REDUCED MOTION
+   ============================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .settings-panel { animation: none; transition: none; }
+}

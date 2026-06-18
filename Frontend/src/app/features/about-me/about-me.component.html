@@ -1,0 +1,92 @@
+<div class="bento-container">
+  
+  <main class="bento-grid">
+
+    <section class="grid-cell hero-cell surface shadow-card">
+      <div class="cell-content">
+        <div class="badge-row">
+          <span class="badge badge-primary">{{'PORTFOLIO'}}</span>
+          <span class="badge badge-outline">{{'ISSUE #28'}}</span>
+        </div>
+        <div class="profile-header">
+          <img [src]="profileData()?.avatar_url" alt="{{'Rohit'}}" class="profile-avatar border-primary">
+          <div class="profile-titles">
+            <span class="card-label">{{"Hello, I'm"}}</span>
+            <h1 class="display-name">{{'Rohit'}}</h1>
+            <p class="subtitle text-secondary">{{'Systems Engineer & Full Stack Architect'}}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-cell tech-cell surface-alt shadow-card">
+      <div class="cell-content">
+        <h3 class="cell-heading text-primary">{{'Toolkit'}}</h3>
+        <div class="tech-list">
+          <div class="tech-item">
+            <span class="tech-icon">🅰️</span>
+            <span class="tech-name">Angular</span>
+          </div>
+          <div class="tech-item">
+            <span class="tech-icon">TS</span>
+            <span class="tech-name">TypeScript</span>
+          </div>
+          <div class="tech-item">
+            <span class="tech-icon">⬢</span>
+            <span class="tech-name">Node.js</span>
+          </div>
+          <div class="tech-item">
+            <span class="tech-icon">Rx</span>
+            <span class="tech-name">RxJS</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-cell story-cell surface shadow-card">
+      <div class="cell-content">
+        <h2 class="section-title text-primary">{{'Building at Scale'}}</h2>
+        <p class="story-paragraph text-secondary">
+          {{ "Every great system begins with a single question: How can we make this resilient enough to outlast the current trend? In my career as a Full Stack Architect, I've learned that " }}
+          <strong class="text-primary">{{ 'code is temporary, but structure is permanent' }}</strong>{{ '.' }}
+        </p>
+      </div>
+    </section>
+
+    <section class="grid-cell image-cell shadow-card">
+      <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?fit=crop&w=800&q=80" alt="{{'Workspace'}}">
+    </section>
+
+    <section class="grid-cell stats-cell neutral-100 shadow-card">
+      <div class="cell-content stats-row">
+        <div class="stat-block">
+          <span class="stat-number text-primary">{{'5+'}}</span>
+          <span class="stat-label text-muted">{{'Years Experience'}}</span>
+        </div>
+        <div class="stat-divider border"></div>
+        <div class="stat-block">
+          <span class="stat-number text-primary">{{'50+'}}</span>
+          <span class="stat-label text-muted">{{'Projects Delivered'}}</span>
+        </div>
+        <div class="stat-divider border"></div>
+        <div class="stat-block">
+          <span class="stat-number success">{{'100%'}}</span>
+          <span class="stat-label text-muted">{{'Commitment'}}</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <section class="cta-banner surface shadow-card border-accent">
+    <div class="cta-content">
+      <h3 class="cta-title text-primary">{{'Ready to Build Something Amazing?'}}</h3>
+      <p class="cta-desc text-secondary">{{"Currently accepting new freelance projects and full-time opportunities."}}</p>
+    </div>
+    <button class="btn-primary" (click)="openContactDialog()">
+      <span class="btn-text">{{'Get in Touch'}}</span>
+      <span class="btn-icon">→</span>
+    </button>
+  </section>
+
+</div>

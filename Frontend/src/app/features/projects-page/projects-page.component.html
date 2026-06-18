@@ -1,0 +1,205 @@
+<!--
+  PROJECTS PAGE
+  ══════════════════════════════════════════════════════════════
+  API MAPPING
+  ─────────────────────────────────────────────────────────────
+  experiences[]
+    ├─ company          → company chip on each card
+    ├─ role             → role label in card meta
+    ├─ startDate        → experience period
+    ├─ endDate / present→ experience period
+    └─ projects[]
+         ├─ title       → card heading
+         ├─ description → card body
+         ├─ technologies[]  → tech badges
+         ├─ projectProgress → status badge (in-progress / completed)
+         └─ url         → optional live link
+
+  ADDITIONAL DATA DISPLAYED (beyond original design)
+  ─────────────────────────────────────────────────────────────
+  ✦ Company name  — contextualises who the project was built for
+  ✦ Role title    — shows the developer's position on the project
+  ✦ Status badge  — completed vs in-progress at a glance
+  ✦ Experience period — when the work happened
+  ✦ Tech count    — quick stat summary in the card header
+  ✦ Project URL   — live link when available
+  ══════════════════════════════════════════════════════════════
+-->
+
+<section class="pp">
+
+  <!-- ── PAGE HEADER ─────────────────────────────────────────── -->
+  <div class="pp__header">
+    <div class="pp__header-text">
+      <div class="pp__eyebrow">
+        <span class="material-icons">work_history</span>
+        Portfolio
+      </div>
+      <h1 class="pp__title">Projects</h1>
+      <p class="pp__subtitle">
+        {{ totalProjects() }} projects across {{ experiences().length }} companies
+      </p>
+    </div>
+
+    <div class="pp__header-actions">
+      <!-- Filter pills -->
+      <div class="pp__filters" role="group" aria-label="Filter by status">
+        @for (f of filters; track f.value) {
+          <button
+            class="pp__filter-btn"
+            [class.pp__filter-btn--active]="activeFilter() === f.value"
+            (click)="setFilter(f.value)"
+            [attr.aria-pressed]="activeFilter() === f.value"
+          >
+            {{ f.label }}
+            <span class="pp__filter-count">{{ filterCount(f.value) }}</span>
+          </button>
+        }
+      </div>
+      <a routerLink="/" class="pp__back-btn">
+        <span class="material-icons">arrow_back</span>
+        Home
+      </a>
+    </div>
+  </div>
+
+  <!-- ── LOADING SKELETONS ────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="pp__grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="pp__skeleton">
+          <div class="pp__sk-line pp__sk-line--short"></div>
+          <div class="pp__sk-line pp__sk-line--heading"></div>
+          <div class="pp__sk-line"></div>
+          <div class="pp__sk-line pp__sk-line--medium"></div>
+          <div class="pp__sk-tags">
+            <div class="pp__sk-tag"></div>
+            <div class="pp__sk-tag"></div>
+            <div class="pp__sk-tag"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── PROJECT CARDS ────────────────────────────────────────── -->
+  @else if (filteredProjects().length > 0) {
+    <div class="pp__grid">
+      @for (item of filteredProjects(); track item.project.title; let i = $index) {
+        <article
+          class="pp__card"
+          [class.pp__card--completed]="item.project.projectProgress === 'completed'"
+          [class.pp__card--inprogress]="item.project.projectProgress === 'in-progress'"
+          [style.--entry-delay]="(i * 55) + 'ms'"
+        >
+          <!-- Left status bar -->
+          <div class="pp__card-bar"></div>
+
+          <!-- Card header -->
+          <div class="pp__card-head">
+            <div class="pp__card-head-left">
+              <!-- Company chip -->
+              <div class="pp__company-chip">
+                <span class="material-icons pp__company-icon">business</span>
+                <span class="pp__company-name">{{ item.experience.company }}</span>
+              </div>
+              <!-- Status badge -->
+              <span
+                class="pp__status"
+                [class.pp__status--done]="item.project.projectProgress === 'completed'"
+                [class.pp__status--wip]="item.project.projectProgress === 'in-progress'"
+              >
+                <span class="pp__status-dot"></span>
+                {{ item.project.projectProgress === 'completed' ? 'Completed' : 'In Progress' }}
+              </span>
+            </div>
+
+            <!-- Tech count pill -->
+            <span class="pp__tech-count" title="Technologies used">
+              <span class="material-icons">code</span>
+              {{ item.project.technologies.length || 0 }}
+            </span>
+          </div>
+
+          <!-- Title -->
+          <h2 class="pp__card-title">{{ item.project.title }}</h2>
+
+          <!-- Role + period meta -->
+          <div class="pp__card-meta">
+            <span class="pp__meta-item">
+              <span class="material-icons">badge</span>
+              {{ item.experience.role }}
+            </span>
+            <span class="pp__meta-sep">·</span>
+            <span class="pp__meta-item">
+              <span class="material-icons">schedule</span>
+              {{ formatPeriod(item.experience.startDate, item.experience.endDate ?? '', item.experience.present ?? false) }}
+            </span>
+          </div>
+
+          <!-- Description -->
+          <p class="pp__card-desc">
+            {{ item.project.description | slice:0:180 }}{{ item.project.description.length > 180 ? '…' : '' }}
+          </p>
+
+          <!-- Tech badges -->
+          <div class="pp__tech-list" aria-label="Technologies">
+            @for (tech of item.project.technologies || []; track tech) {
+              <span class="pp__tech-badge" [ngClass]="techClass(tech)">{{ tech }}</span>
+            }
+          </div>
+
+          <!-- Card footer actions -->
+          <div class="pp__card-foot">
+            <button
+              class="pp__btn pp__btn--primary"
+              type="button"
+              (click)="openDetail(item)"
+              [attr.aria-label]="'Read more about ' + item.project.title"
+            >
+              <span class="material-icons">open_in_new</span>
+              Read More
+            </button>
+
+            @if (item.project.url && item.project.url !== 'NA' && item.project.url !== '') {
+              <a
+                class="pp__btn pp__btn--ghost"
+                [href]="item.project.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'View ' + item.project.title + ' live'"
+              >
+                <span class="material-icons">launch</span>
+                Live Demo
+              </a>
+            }
+          </div>
+
+        </article>
+      }
+    </div>
+  }
+
+  <!-- ── EMPTY STATE ───────────────────────────────────────────── -->
+  @else {
+    <div class="pp__empty">
+      <span class="material-icons pp__empty-icon">folder_open</span>
+      <p class="pp__empty-text">No projects match the current filter.</p>
+      <button class="pp__btn pp__btn--primary" (click)="setFilter('all')">
+        Show All
+      </button>
+    </div>
+  }
+
+</section>
+
+<!-- ── PROJECT DETAIL DRAWER ──────────────────────────────────
+     Rendered outside <section> so it sits at the viewport level.
+     selectedItem drives open/close; allProjectsList enables
+     prev/next navigation without leaving the page.
+     ──────────────────────────────────────────────────────────── -->
+<app-project-detail-drawer
+  [selectedItem]="selectedItem()"
+  [allItems]="allProjectsList()"
+  (closed)="onDrawerClosed()"
+></app-project-detail-drawer>

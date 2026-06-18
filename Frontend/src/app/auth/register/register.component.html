@@ -1,0 +1,116 @@
+<div class="auth-page">
+  <div class="auth-card register-card">
+    
+    <div class="auth-branding">
+      <div class="logo-initials">
+        <span class="rn-r">R</span><span class="rn-n">N</span>
+      </div>
+      <div class="auth-header">
+        <h1>Create Account</h1>
+        <p>Join the community and build your portfolio</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+      
+      <div class="form-row">
+        <div class="form-field" [class.invalid]="name?.invalid && name?.touched">
+          <label for="name">Full Name</label>
+          <div class="input-wrapper">
+            <i class="material-icons">person_outline</i>
+            <input id="name" type="text" formControlName="name" placeholder="Rohit Nair" />
+          </div>
+          @if (name?.errors && name?.touched) {
+            <div class="field-error">
+              @if (name?.errors?.['required']) { <small>Name is required</small> }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form-field" [class.invalid]="email?.invalid && email?.touched">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <i class="material-icons">mail_outline</i>
+          <input id="email" type="email" formControlName="email" placeholder="name@example.com" />
+        </div>
+        @if (email?.errors && email?.touched) {
+          <div class="field-error">
+            @if (email?.errors?.['required']) { <small>Email is required</small> }
+            @if (email?.errors?.['email']) { <small>Invalid email format</small> }
+          </div>
+        }
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field" [class.invalid]="password?.invalid && password?.touched">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <i class="material-icons">lock_open</i>
+            <input id="password" type="password" formControlName="password" placeholder="••••••••" />
+          </div>
+        </div>
+
+        <div class="form-field" [class.invalid]="confirmPassword?.touched && form.hasError('passwordMismatch')">
+          <label for="confirmPassword">Confirm</label>
+          <div class="input-wrapper">
+            <i class="material-icons">done_all</i>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" placeholder="••••••••" />
+          </div>
+        </div>
+      </div>
+
+      @if (confirmPassword?.touched && form.hasError('passwordMismatch')) {
+        <div class="field-error password-mismatch">
+          <small>Passwords do not match</small>
+        </div>
+      }
+
+      <div class="form-meta terms-container" [class.invalid]="acceptTerms?.invalid && acceptTerms?.touched">
+        <label class="remember-me">
+          <input type="checkbox" formControlName="acceptTerms" />
+          <span class="custom-checkbox"></span>
+          <span class="terms-text">
+            I agree to the <a href="javascript:void(0)" class="forgot-link">Terms & Conditions</a>
+          </span>
+        </label>
+      </div>
+
+      @if (error()) {
+        <div class="field-error" style="text-align: center; margin-bottom: 1rem;">
+          {{ error() }}
+        </div>
+      }
+
+      <button type="submit" class="btn-primary-auth" [disabled]="isLoading() || form.invalid">
+        @if (!isLoading()) {
+          <div>Create Account</div>
+        } @else {
+          <div class="spinner-container">
+            <span class="auth-spinner"></span>
+            <span>Creating...</span>
+          </div>
+        }
+      </button>
+
+      <div class="divider">
+        <span>or register with</span>
+      </div>
+
+      <div class="social-grid">
+        <button type="button" class="btn-social" (click)="onLoginWithGoogle()">
+          <img src="assets/icons/google.svg" alt="">
+          <span>Google</span>
+        </button>
+        <button type="button" class="btn-social" (click)="onLoginWithFacebook()">
+          <img src="assets/icons/facebook.svg" alt="">
+          <span>Facebook</span>
+        </button>
+      </div>
+
+      <p class="auth-footer-text">
+        Already have an account? <a routerLink="/login">Sign In</a>
+      </p>
+    </form>
+  </div>
+</div>

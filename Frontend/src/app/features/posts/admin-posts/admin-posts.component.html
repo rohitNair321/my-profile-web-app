@@ -1,0 +1,177 @@
+<div class="admin-posts">
+
+  <!-- Page Header -->
+  <div class="admin-posts__header">
+    <div>
+      <h1 class="admin-posts__title">Posts</h1>
+      <p class="admin-posts__subtitle">Manage your blog posts and LinkedIn cross-posts.</p>
+    </div>
+    <a [routerLink]="['/admin/posts/new']" class="btn-create">
+      <i class="material-icons">add</i>
+      New Post
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="admin-posts__filters">
+    <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+      <option value="">All Statuses</option>
+      <option value="draft">Draft</option>
+      <option value="published">Published</option>
+      <option value="archived">Archived</option>
+    </select>
+    <span class="admin-posts__count">{{ total() }} post{{ total() !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="admin-posts__loading">
+      <div class="spinner"></div>
+      <p>Loading posts…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error() && !isLoading()) {
+    <div class="admin-posts__error">
+      <i class="material-icons">error_outline</i>
+      <p>{{ error() }}</p>
+      <button (click)="loadPosts()">Retry</button>
+    </div>
+  }
+
+  <!-- Posts Table -->
+  @if (!isLoading() && !error()) {
+    @if (posts().length === 0) {
+      <div class="admin-posts__empty">
+        <i class="material-icons">article</i>
+        <p>No posts found. <a [routerLink]="['/admin/posts/new']">Create your first post</a>.</p>
+      </div>
+    } @else {
+      <div class="posts-table-wrap">
+        <table class="posts-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Tags</th>
+              <th>Published</th>
+              <th>Views</th>
+              <th>Impressions</th>
+              <th>Featured</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (post of posts(); track post.id) {
+              <tr>
+                <td class="posts-table__title-cell">
+                  <div class="post-title-group">
+                    <span class="post-title">{{ post.title }}</span>
+                    <span class="post-slug">{{ post.slug }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge" [class]="statusClass(post.status)">{{ post.status }}</span>
+                </td>
+                <td>
+                  <div class="tag-list">
+                    @for (tag of post.tags.slice(0, 2); track tag) {
+                      <span class="mini-tag">{{ tag }}</span>
+                    }
+                    @if (post.tags.length > 2) {
+                      <span class="mini-tag mini-tag--more">+{{ post.tags.length - 2 }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="posts-table__date">{{ formatDate(post.published_at) }}</td>
+                <td class="posts-table__number">{{ post.views }}</td>
+                <td class="posts-table__number">
+                  @if (editingImpressions === post.id) {
+                    <div class="impressions-edit">
+                      <input
+                        type="number"
+                        [(ngModel)]="impressionsInput"
+                        class="impressions-input"
+                        min="0"
+                      />
+                      <button class="icon-btn icon-btn--success" (click)="saveImpressions(post.id)" title="Save">
+                        <i class="material-icons">check</i>
+                      </button>
+                      <button class="icon-btn" (click)="cancelEditImpressions()" title="Cancel">
+                        <i class="material-icons">close</i>
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="impressions-value" (click)="startEditImpressions(post)" title="Click to edit">
+                      {{ post.impressions | number }}
+                      <i class="material-icons">edit</i>
+                    </span>
+                  }
+                </td>
+                <td>
+                  <button
+                    class="icon-btn"
+                    [class.icon-btn--active]="post.is_featured"
+                    (click)="toggleFeatured(post)"
+                    [title]="post.is_featured ? 'Remove from featured' : 'Mark as featured'"
+                  >
+                    <i class="material-icons">{{ post.is_featured ? 'star' : 'star_border' }}</i>
+                  </button>
+                </td>
+                <td>
+                  <div class="action-group">
+                    @if (post.status === 'published') {
+                      <a [routerLink]="['/posts', post.slug]" target="_blank" class="icon-btn" title="View">
+                        <i class="material-icons">visibility</i>
+                      </a>
+                    }
+                    <a [routerLink]="['/admin/posts', post.id, 'edit']" class="icon-btn" title="Edit">
+                      <i class="material-icons">edit</i>
+                    </a>
+                    <button
+                      class="icon-btn icon-btn--danger"
+                      [disabled]="deletingId === post.id"
+                      (click)="deletePost(post.id, post.title)"
+                      title="Delete"
+                    >
+                      <i class="material-icons">delete</i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="posts-pagination">
+          <button
+            class="pag-btn"
+            [disabled]="currentPage() === 1"
+            (click)="onPageChange(currentPage() - 1)"
+          >
+            <i class="material-icons">chevron_left</i>
+          </button>
+          @for (page of pageNumbers; track page) {
+            <button
+              class="pag-btn"
+              [class.pag-btn--active]="currentPage() === page"
+              (click)="onPageChange(page)"
+            >{{ page }}</button>
+          }
+          <button
+            class="pag-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="onPageChange(currentPage() + 1)"
+          >
+            <i class="material-icons">chevron_right</i>
+          </button>
+        </div>
+      }
+    }
+  }
+
+</div>

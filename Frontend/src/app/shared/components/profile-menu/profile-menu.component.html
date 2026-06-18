@@ -1,0 +1,14 @@
+<button type="button" class="avatar-btn" aria-haspopup="menu" (click)="menu.toggle($event)">
+
+    <img *ngIf="profileData()?.avatar_url; else initials" [src]="profileData()?.avatar_url" alt="Profile avatar" />
+
+    <ng-template #initials>
+        <span class="avatar-initials">
+            {{ user.name.charAt(0) || 'U' }}
+        </span>
+    </ng-template>
+</button>
+
+<p-menu #menu [popup]="true" [model]="profileMenuItems" 
+  appendTo="body" styleClass="profile-menu-panel">
+</p-menu>

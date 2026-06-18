@@ -1,0 +1,81 @@
+<footer class="modern-footer">
+  <div class="container">
+    <!-- Main Footer Content -->
+    <div class="footer-main">
+      <!-- Brand & Social Section -->
+      <div class="footer-brand">
+        <h3 class="brand-name">{{ profileData()?.full_name || 'ROHIT PORTFOLIO' }}</h3>
+        <p class="brand-bio">
+          {{ 'Building exceptional digital experiences with modern web technologies.' }}
+        </p>
+        <div class="social-links">
+          <a class="social-icon" aria-label="LinkedIn" (click)="openLink($event, profileData()?.linkedin)">
+            <i class="material-icons">linkedin</i>
+          </a>
+          <a class="social-icon" aria-label="GitHub" (click)="openLink($event, profileData()?.github)">
+            <i class="material-icons">code</i>
+          </a>
+          <a class="social-icon" aria-label="Email" [href]="'mailto:' + profileData()?.email">
+            <i class="material-icons">email</i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="footer-links">
+        <div class="links-column">
+          <h4 class="column-title">Navigation</h4>
+          <ul class="links-list">
+            @for (item of menuItems; track item) {
+              @if (!item.isHide) {
+                <li>
+                  <a [href]="item.href" class="footer-link" (click)="scrollToSection($event, item.href!)">
+                    {{ item.label }}
+                  </a>
+                </li>
+              }
+            }
+          </ul>
+        </div>
+
+        <div class="links-column">
+          <h4 class="column-title">Services</h4>
+          <ul class="links-list">
+            <li><span class="footer-link">Web Development</span></li>
+            <li><span class="footer-link">UI/UX Design</span></li>
+            <li><span class="footer-link">API Integration</span></li>
+            <li><span class="footer-link">Consultation</span></li>
+          </ul>
+        </div>
+
+        <div class="links-column">
+          <h4 class="column-title">Resources</h4>
+          <ul class="links-list">
+            <li><a href="#" class="footer-link">Privacy Policy</a></li>
+            <li><a href="#" class="footer-link">Terms of Service</a></li>
+            <li><a href="#" class="footer-link">Documentation</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <div class="bottom-content">
+        <div class="copyright">
+          © {{ currentYear }} {{ profileData()?.full_name || 'Rohit Portfolio' }}. All rights reserved.
+        </div>
+        <div class="tech-stack">
+          <span>Built with</span>
+          <span class="tech-badge">Angular</span>
+          <span class="tech-badge">TypeScript</span>
+          <span class="tech-badge">SCSS</span>
+        </div>
+        <button class="back-to-top" aria-label="Back to top" (click)="scrollToSection($event, '#home')">
+          <i class="material-icons">arrow_upward</i>
+          <span>Top</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>

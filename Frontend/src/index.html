@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Rohit Nair — Full Stack Developer</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Rohit Nair — Full Stack Developer specialising in Angular and Node.js. Based in Pune, India.">
+  <meta name="keywords" content="Rohit Nair, Full Stack Developer, Angular, Node.js, TypeScript, Pune, India, mintpixel">
+  <meta name="author" content="Rohit Nair">
+  <meta name="robots" content="index, follow">
+  <meta property="og:site_name" content="Rohit Nair Portfolio">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Rohit Nair — Full Stack Developer">
+  <meta property="og:description" content="Full Stack Developer specialising in Angular and Node.js. View projects and get in touch.">
+  <meta property="og:url" content="https://www.mintpixel.in">
+  <meta property="og:image" content="https://www.mintpixel.in/assets/og-home.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rohit Nair — Full Stack Developer">
+  <meta name="twitter:description" content="Full Stack Developer specialising in Angular and Node.js.">
+  <meta name="theme-color" content="#0d1117">
+  <link rel="canonical" href="https://www.mintpixel.in/">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Rohit Nair",
+    "url": "https://www.mintpixel.in",
+    "jobTitle": "Full Stack Developer",
+    "sameAs": ["https://github.com/rohitNair321"],
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Pune",
+      "addressCountry": "IN"
+    }
+  }
+  </script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <app-root>
+    <div class="initial-loader">
+      <div class="spinner-wrapper">
+        <div class="custom-spinner"></div>
+        <div class="loading-text">Initializing Application...</div>
+      </div>
+    </div>
+  </app-root>
+  <style>
+    /* Inline styles so they load instantly with the HTML */
+    .initial-loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0f172a; /* Matches your Login Dark Slate */
+      z-index: 9999;
+    }
+
+    .spinner-wrapper {
+      text-align: center;
+    }
+
+    .custom-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-left-color: #6366f1; /* Indigo from your Login design */
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    .loading-text {
+      color: #94a3b8;
+      font-family: sans-serif;
+      font-weight: 500;
+      letter-spacing: 1px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</body>
+</html>

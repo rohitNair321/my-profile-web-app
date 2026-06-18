@@ -1,0 +1,383 @@
+// $themes: (
+//   // THEME 1 — WARM EARTH (LIGHT)
+//   theme-one: (
+//     /* Logo */
+//     logo-bg-gradient-start: #FFF0E1,
+//     logo-bg-gradient-end: #FFDAB9,
+//     logo-letter-r: #A0522D,
+//     logo-letter-n: #8B4513,
+//     logo-border: #E8A87C,
+//     logo-border-hover: #E29578,
+//     logo-shadow: rgba(200, 120, 80, 0.18),
+//     logo-text-shadow: rgba(255, 255, 255, 0.6)),
+
+//   // THEME 1 DARK — WARM EARTH (DARK)
+//   theme-one-dark: (),
+
+//   // THEME 2 — MODERN BLUE (LIGHT)
+//   theme-two: (
+//     /* Backgrounds */
+//     background: #F9FBFD,
+//     surface: #FFFFFF,
+//     surface-alt: #F7FAFC,
+
+//     /* Text */
+//     text-primary: #1A202C,
+//     text-secondary: #4A5568,
+//     text-muted: #718096,
+
+//     /* Brand */
+//     primary: #4361EE,
+//     accent: #7B61FF,
+//     primary-glow: rgba(99, 130, 255, 0.15),
+
+//     /* Borders */
+//     border: #E3E8EF,
+
+//     /* Status */
+//     success: #38A169,
+//     warning: #DD6B20,
+//     error: #E53E3E,
+
+//     /* Neutral */
+//     neutral-50: #F7FAFC,
+//     neutral-100: #EDF2F7,
+
+//     /* Logo */
+//     logo-bg-gradient-start: #F0F4FF,
+//     logo-bg-gradient-end: #E6EDFF,
+//     logo-primary: #4361EE,
+//     logo-secondary: #7B61FF,
+//     logo-border: #D6E0FF,
+//     logo-border-hover: #A3B8FF,
+//     logo-shadow: rgba(99, 130, 255, 0.15)),
+
+//   // THEME 2 DARK — MODERN BLUE (DARK)
+//   theme-two-dark: (background: #121826,
+//     surface: #1D2433,
+//     surface-alt: #161E2E,
+
+//     text-primary: #E2E8F0,
+//     text-secondary: #A0AEC0,
+//     text-muted: #718096,
+
+//     primary: #5B75F6,
+//     accent: #9D8AFF,
+//     primary-glow: rgba(91, 117, 246, 0.35),
+
+//     border: #2D3748,
+
+//     success: #38A169,
+//     warning: #DD6B20,
+//     error: #E53E3E,
+
+//     neutral-50: #1A202C,
+//     neutral-100: #2D3748,
+
+//     logo-bg-gradient-start: #161E2E,
+//     logo-bg-gradient-end: #1A243D,
+//     logo-primary: #7B90FF,
+//     logo-secondary: #9D8AFF,
+//     logo-border: rgba(123, 145, 255, 0.24),
+//     logo-border-hover: rgba(123, 145, 255, 0.4),
+//     logo-shadow: rgba(25, 40, 80, 0.5)),
+
+//   // THEME 3 DARK — INDIGO TEAL (DARK)
+//   theme-three-dark: (background: #0F1120,
+//     surface: #1A1D33,
+//     surface-alt: #16182D,
+
+//     text-primary: #F0F2FF,
+//     text-secondary: #A1A8C7,
+//     text-muted: #6B7290,
+
+//     primary: #6C63FF,
+//     accent: #4ECDC4,
+//     primary-glow: rgba(108, 99, 255, 0.4),
+
+//     border: #2D3250,
+
+//     success: #38A169,
+//     warning: #DD6B20,
+//     error: #E53E3E,
+
+//     highlight: #FF8E8E,
+
+//     neutral-50: #1A202C,
+//     neutral-100: #2D3748,
+
+//     logo-bg-gradient-start: #16182D,
+//     logo-bg-gradient-end: #1C1F3D,
+//     logo-primary: #6C63FF,
+//     logo-secondary: #FF8E8E,
+//     logo-border: rgba(108, 99, 255, 0.3),
+//     logo-border-hover: rgba(108, 99, 255, 0.5),
+//     logo-shadow: rgba(15, 17, 32, 0.7)),
+
+//   // THEME 3 — INDIGO TEAL (LIGHT)
+//   theme-three: (
+//     /* Backgrounds */
+//     background: #F8FAFF,
+//     surface: #FFFFFF,
+//     surface-alt: #F7FAFC,
+
+//     /* Text */
+//     text-primary: #1A202C,
+//     text-secondary: #4A5568,
+//     text-muted: #718096,
+
+//     /* Brand */
+//     primary: #4A3FDB,
+//     accent: #3F8A8F,
+//     primary-glow: rgba(74, 63, 219, 0.15),
+
+//     /* Borders */
+//     border: #E2E8F0,
+
+//     /* Status */
+//     success: #38A169,
+//     warning: #DD6B20,
+//     error: #E53E3E,
+
+//     /* Accent (highlight / destructive) */
+//     highlight: #FF6B6B,
+
+//     /* Neutral */
+//     neutral-50: #F7FAFC,
+//     neutral-100: #EDF2F7,
+
+//     /* Logo */
+//     logo-bg-gradient-start: #F0F4FF,
+//     logo-bg-gradient-end: #E6EDFF,
+//     logo-primary: #4A3FDB,
+//     logo-secondary: #FF6B6B,
+//     logo-border: #D6E0FF,
+//     logo-border-hover: #A3B8FF,
+//     logo-shadow: rgba(74, 63, 219, 0.15)),
+
+//   // THEME 4 DARK — PLUM MINT (DARK)
+//   theme-four-dark: (background: #16121A,
+//     surface: #201C24,
+//     surface-alt: #1D1820,
+
+//     text-primary: #F0EAF2,
+//     text-secondary: #B5A9BC,
+//     text-muted: #8A7F90,
+
+//     primary: #A47DA9,
+//     accent: #6FD1C8,
+//     primary-glow: rgba(164, 125, 169, 0.4),
+
+//     border: #383240,
+
+//     success: #6FD1C8,
+//     warning: #E9A639,
+//     error: #D84C73,
+
+//     highlight: #E99E6D,
+
+//     neutral-50: #1F1B22,
+//     neutral-100: #2A2430,
+
+//     logo-bg-gradient-start: #1D1820,
+//     logo-bg-gradient-end: #24202A,
+//     logo-primary: #A47DA9,
+//     logo-secondary: #6FD1C8,
+//     logo-border: rgba(164, 125, 169, 0.3),
+//     logo-border-hover: rgba(164, 125, 169, 0.5),
+//     logo-shadow: rgba(22, 18, 26, 0.7)),
+
+//   // THEME 4 — PLUM MINT (LIGHT)
+//   theme-four: (
+//     /* Backgrounds */
+//     background: #FDFAFC,
+//     surface: #FFFFFF,
+//     surface-alt: #FAF7FA,
+
+//     /* Text */
+//     text-primary: #2E2630,
+//     text-secondary: #6D5E71,
+//     text-muted: #9E94A0,
+
+//     /* Brand */
+//     primary: #5D3A5F,
+//     accent: #4FA49C,
+//     primary-glow: rgba(93, 58, 95, 0.12),
+
+//     /* Borders */
+//     border: #EDE7ED,
+
+//     /* Status */
+//     success: #4FA49C,
+//     warning: #E9A639,
+//     error: #D84C73,
+
+//     /* Highlight / Accent */
+//     highlight: #D17B46,
+
+//     /* Neutral */
+//     neutral-50: #FAF7FA,
+//     neutral-100: #F3EFF3,
+
+//     /* Logo */
+//     logo-bg-gradient-start: #FBF5FA,
+//     logo-bg-gradient-end: #F7EDF5,
+//     logo-primary: #5D3A5F,
+//     logo-secondary: #4FA49C,
+//     logo-border: #E5D3E0,
+//     logo-border-hover: #D2B8CE,
+//     logo-shadow: rgba(93, 58, 95, 0.12)),
+
+//   // THEME 5 — NEON TRON (LIGHT)
+//   theme-tron: (
+//     /* Backgrounds */
+//     background: #F3F9FB,
+//     surface: #FFFFFF,
+//     surface-alt: #E9F3F7,
+
+//     /* Text */
+//     text-primary: #1C2B32,
+//     text-secondary: #4B6A75,
+//     text-muted: #7B9AA6,
+
+//     /* HERO BRAND (Blue / Teal) */
+//     primary: #2FB8C6,
+//     /* Hero cyan */
+//     primary-glow: rgba(47, 184, 198, 0.18),
+
+//     /* VILLAIN ACCENT (Red / Crimson) */
+//     accent: #C63A4B,
+//     /* Controlled TRON red */
+//     highlight: #C63A4B,
+
+//     /* Borders */
+//     border: #D4E6EC,
+
+//     /* Status */
+//     success: #2FB88A,
+//     warning: #E6A23C,
+//     error: #C63A4B,
+//     /* Villain color = error */
+
+//     /* Logo */
+//     logo-primary: #2FB8C6,
+//     logo-secondary: #C63A4B,
+//     logo-border: #CFE4EA,
+//     logo-border-hover: #B9D9E3,
+//     logo-shadow: rgba(47, 184, 198, 0.18)),
+
+//   // THEME 5 DARK — NEON TRON (DARK)
+//   theme-tron-dark: (
+//     /* Backgrounds */
+//     background: #070B0E,
+//     /* Near-black grid */
+//     surface: #0E1A20,
+//     surface-alt: #132830,
+
+//     /* Text */
+//     text-primary: #E6F6FA,
+//     text-secondary: #A8C9D4,
+//     text-muted: #6E98A3,
+
+//     /* HERO BLUE */
+//     primary: #3AD0DE,
+//     primary-glow: rgba(58, 208, 222, 0.4),
+
+//     /* VILLAIN RED */
+//     accent: #FF3B4F,
+//     /* TRON villain red */
+//     highlight: #FF3B4F,
+
+//     /* Borders */
+//     border: rgba(58, 208, 222, 0.22),
+
+//     /* Status */
+//     success: #3DDC97,
+//     warning: #F4B860,
+//     error: #FF3B4F,
+
+//     /* Logo */
+//     logo-primary: #3AD0DE,
+//     logo-secondary: #FF3B4F,
+//     logo-border: rgba(58, 208, 222, 0.35),
+//     logo-border-hover: rgba(255, 59, 79, 0.6),
+//     logo-shadow: rgba(0, 0, 0, 0.7)),
+
+//   // THEME — CHRISTMAS (LIGHT)
+//   theme-christmas: (
+//     /* Backgrounds: Added a touch of 'Frost' */
+//     background: #F8FBFA,
+//     surface: #FFFFFF,
+//     surface-alt: #F0F7F4,
+
+//     /* Text: Deep Forest shades for readability */
+//     text-primary: #12261B,
+//     text-secondary: #2D523E,
+//     text-muted: #5C8A73,
+
+//     /* Brand: Vibrant Berry Red & Deep Pine Green */
+//     primary: #D32F2F,
+//     accent: #1B5E20,
+//     primary-glow: rgba(211, 47, 47, 0.15),
+
+//     /* Borders */
+//     border: #E0EDE5,
+
+//     /* Status: Metallic Gold and Deep Red */
+//     success: #2E7D32,
+//     warning: #FBC02D, // Warm Gold
+//     error: #C62828,
+
+//     /* Highlight: Champagne Gold */
+//     highlight: #FFD700,
+
+//     /* Logo */
+//     logo-primary: #D32F2F,
+//     logo-secondary: #1B5E20,
+//     logo-border: #E0EDE5,
+//     logo-border-hover: #81C784,
+//     logo-shadow: rgba(27, 94, 32, 0.15),
+
+//     /* Badges */
+//     badge-angular-bg: rgba(211, 47, 47, 0.1),
+//     badge-angular-text: #D32F2F),
+
+//   // THEME — CHRISTMAS (DARK)
+//   theme-christmas-dark: (
+//     /* Backgrounds: Deep Midnight Forest */
+//     background: #050F0A,
+//     surface: #0A1E14,
+//     surface-alt: #122D1F,
+
+//     /* Text */
+//     text-primary: #F0F7F4,
+//     text-secondary: #B2D8C5,
+//     text-muted: #7DA891,
+
+//     /* Brand: Brighter Red for Dark Mode visibility */
+//     primary: #FF5252,
+//     accent: #4CAF50,
+//     primary-glow: rgba(255, 82, 82, 0.3),
+
+//     /* Borders */
+//     border: rgba(255, 255, 255, 0.1),
+
+//     /* Status */
+//     success: #4CAF50,
+//     warning: #FFD700,
+//     error: #FF5252,
+
+//     /* Highlight */
+//     highlight: #FFD700,
+
+//     /* Logo */
+//     logo-primary: #FF5252,
+//     logo-secondary: #4CAF50,
+//     logo-border: rgba(255, 255, 255, 0.15),
+//     logo-border-hover: rgba(255, 255, 255, 0.3),
+//     logo-shadow: rgba(0, 0, 0, 0.5),
+
+//     /* Badges */
+//     badge-angular-bg: rgba(255, 82, 82, 0.15),
+//     badge-angular-text: #FF8A80)
+// );

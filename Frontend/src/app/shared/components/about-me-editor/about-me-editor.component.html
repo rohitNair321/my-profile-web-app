@@ -1,0 +1,154 @@
+<!--
+  ABOUT ME EDITOR
+  ══════════════════════════════════════════════════════════════
+  Fields:  Heading · Role · Location · Short Bio · Detailed Bio
+  Actions: Save (emits to parent / calls service) · Reset
+  States:  Loading · Saved · Dirty (unsaved changes indicator)
+  ══════════════════════════════════════════════════════════════
+-->
+<section class="ame">
+
+  <!-- ── HEADER ───────────────────────────────────────────────── -->
+  <header class="ame__header">
+    <div class="ame__header-left">
+      <div class="ame__eyebrow">
+        <span class="material-icons">edit_note</span>
+        Profile Editor
+      </div>
+      <h2 class="ame__title">About Me</h2>
+      <p class="ame__subtitle">Update the content shown on your portfolio's about section.</p>
+    </div>
+
+    <!-- Save / Reset actions -->
+    <div class="ame__header-actions">
+      @if (isDirty()) {
+      <span class="ame__dirty-badge">
+        <span class="ame__dirty-dot"></span>
+        Unsaved changes
+      </span>
+      }
+
+      <button class="ame__btn ame__btn--ghost" (click)="reset()" [disabled]="!isDirty() || saving()"
+        title="Discard changes">
+        <span class="material-icons">undo</span>
+        Reset
+      </button>
+
+      <button class="ame__btn ame__btn--primary" (click)="save()" [disabled]="!isDirty() || saving()">
+        @if (saving()) {
+        <span class="ame__spinner"></span>
+        Saving…
+        } @else if (savedOk()) {
+        <span class="material-icons">check_circle</span>
+        Saved
+        } @else {
+        <span class="material-icons">save</span>
+        Save Changes
+        }
+      </button>
+    </div>
+  </header>
+
+  <!-- ── LOADING ──────────────────────────────────────────────── -->
+  @if (isLoading()) {
+  <div class="ame__loading">
+    <span class="ame__loading-spinner"></span>
+    <span>Loading profile…</span>
+  </div>
+  } @else {
+
+  <!-- ── FORM BODY ─────────────────────────────────────────── -->
+  <div class="ame__body">
+
+    <!-- Row 1: Heading · Role · Location -->
+    <div class="ame__row ame__row--three">
+
+      <div class="ame__field">
+        <label class="ame__label" for="ame-heading">
+          <span class="material-icons ame__label-icon">title</span>
+          Section Heading
+        </label>
+        <input id="ame-heading" type="text" class="ame__input" [ngModel]="heading()"
+          (ngModelChange)="updateField('heading', $event)" placeholder="e.g. About Me"
+          [class.ame__input--changed]="heading() !== original().heading" />
+      </div>
+
+      <div class="ame__field">
+        <label class="ame__label" for="ame-role">
+          <span class="material-icons ame__label-icon">badge</span>
+          Job Title / Role
+        </label>
+        <input id="ame-role" type="text" class="ame__input" [ngModel]="role()"
+          (ngModelChange)="updateField('role', $event)" placeholder="e.g. Frontend Developer"
+          [class.ame__input--changed]="role() !== original().role" />
+      </div>
+
+      <div class="ame__field">
+        <label class="ame__label" for="ame-location">
+          <span class="material-icons ame__label-icon">location_on</span>
+          Location
+        </label>
+        <input id="ame-location" type="text" class="ame__input" [ngModel]="location()"
+          (ngModelChange)="updateField('location', $event)" placeholder="e.g. Hinjewadi, Pune"
+          [class.ame__input--changed]="location() !== original().location" />
+      </div>
+
+    </div>
+
+    <!-- Short Bio -->
+    <div class="ame__field">
+      <label class="ame__label" for="ame-short-bio">
+        <span class="material-icons ame__label-icon">short_text</span>
+        Short Bio
+        <span class="ame__label-hint">One-line intro shown in the hero section</span>
+      </label>
+      <input id="ame-short-bio" type="text" class="ame__input" [ngModel]="shortBio()"
+        (ngModelChange)="updateField('shortBio', $event)"
+        placeholder="e.g. Passionate engineer building beautiful web experiences"
+        [class.ame__input--changed]="shortBio() !== original().shortBio" />
+      <span class="ame__char-count" [class.ame__char-count--warn]="shortBio().length > 120">
+        {{ shortBio().length }} / 120
+      </span>
+    </div>
+
+    <!-- Detailed Bio -->
+    <div class="ame__field">
+      <label class="ame__label" for="ame-long-bio">
+        <span class="material-icons ame__label-icon">notes</span>
+        Detailed Bio
+        <span class="ame__label-hint">Full story shown in the About section</span>
+      </label>
+      <textarea id="ame-long-bio" class="ame__textarea" rows="6" [ngModel]="longBio()"
+        (ngModelChange)="updateField('longBio', $event)" placeholder="Tell your story — skills, interests, journey…"
+        [class.ame__input--changed]="longBio() !== original().longBio"></textarea>
+      <span class="ame__char-count">
+        {{ longBio().length }} characters
+      </span>
+    </div>
+
+    <!-- Live preview strip -->
+    <div class="ame__preview">
+      <div class="ame__preview-label">
+        <span class="material-icons">preview</span>
+        Live Preview
+      </div>
+      <div class="ame__preview-card">
+        <div class="ame__preview-heading">{{ heading() || 'About Me' }}</div>
+        <div class="ame__preview-meta">
+          @if (role()) { <span><span class="material-icons">badge</span>{{ role() }}</span> }
+          @if (location()) { <span><span class="material-icons">location_on</span>{{ location() }}</span> }
+        </div>
+        @if (shortBio()) {
+        <p class="ame__preview-short">{{ shortBio() }}</p>
+        }
+        @if (longBio()) {
+        <p class="ame__preview-long">{{ longBio() }}</p>
+        }
+      </div>
+    </div>
+
+  </div>
+
+  }
+
+</section>

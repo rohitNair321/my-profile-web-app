@@ -1,0 +1,314 @@
+<!-- ═══════════════════════════════════════════════════════════
+     ANALYTICS DASHBOARD
+     Charts  → Highcharts via highcharts-angular
+     Table   → PrimeNG p-table (sortable, paginated, responsive)
+     ═══════════════════════════════════════════════════════════ -->
+     <div class="ad">
+
+      <!-- ── HEADER ───────────────────────────────────────────────── -->
+      <header class="ad__header">
+        <div class="ad__header-title-block">
+          <div class="ad__header-eyebrow">
+            <span class="material-icons ad__header-icon">analytics</span>
+            <span>Google Analytics</span>
+          </div>
+          <h1 class="ad__title">Portfolio Dashboard</h1>
+          <p class="ad__subtitle">Visitor insights &amp; performance metrics</p>
+        </div>
+    
+        <div class="ad__header-controls">
+          <div class="ad__range-group" role="group" aria-label="Time range">
+            @for (opt of timeRangeOptions; track opt.value) {
+            <button class="ad__range-btn" [class.ad__range-btn--active]="selectedTimeRange() === opt.value"
+              (click)="changeTimeRange(opt.value)" [attr.aria-pressed]="selectedTimeRange() === opt.value">{{ opt.label
+              }}</button>
+            }
+          </div>
+    
+          @if (selectedTimeRange() === 'custom') {
+          <div class="ad__custom-range">
+            <p-calendar [(ngModel)]="customDateRange" selectionMode="range" [readonlyInput]="true"
+              placeholder="Select date range" dateFormat="M dd, yy"></p-calendar>
+            <button class="ad__apply-btn" (click)="applyCustomRange()">
+              <span class="material-icons">check</span> Apply
+            </button>
+          </div>
+          }
+    
+          <button class="ad__refresh-btn" (click)="refresh()" [class.ad__refresh-btn--spinning]="loading()"
+            pTooltip="Refresh data" tooltipPosition="left" aria-label="Refresh">
+            <span class="material-icons">refresh</span>
+          </button>
+        </div>
+      </header>
+    
+      <!-- ── LOADING ──────────────────────────────────────────────── -->
+      @if (loading()) {
+      <div class="ad__skeleton-grid">
+        @for (i of [1,2,3,4]; track i) {
+        <div class="ad__skeleton-card">
+          <div class="ad__skeleton-line ad__skeleton-line--short"></div>
+          <div class="ad__skeleton-line ad__skeleton-line--tall"></div>
+          <div class="ad__skeleton-line ad__skeleton-line--medium"></div>
+        </div>
+        }
+      </div>
+      <div class="ad__skeleton-chart"></div>
+      }
+    
+      <!-- ── ERROR ────────────────────────────────────────────────── -->
+      @else if (error()) {
+      <div class="ad__state-panel ad__state-panel--error">
+        <span class="material-icons ad__state-icon">error_outline</span>
+        <p class="ad__state-message">{{ error() }}</p>
+        <button class="ad__state-btn" (click)="refresh()">
+          <span class="material-icons">refresh</span> Retry
+        </button>
+      </div>
+      }
+    
+      <!-- ── DATA ─────────────────────────────────────────────────── -->
+      @else if (dashboardData()) {
+      <div class="ad__body">
+    
+        <!-- ── METRIC CARDS ──────────────────────────────────────── -->
+        <section class="ad__metrics" aria-label="Key metrics">
+    
+          <div class="ad__metric-card ad__metric-card--1" style="--card-delay:0ms">
+            <div class="ad__metric-card-accent"></div>
+            <div class="ad__metric-top">
+              <span class="ad__metric-label">Total Users</span>
+              <span class="ad__metric-icon-wrap"><span class="material-icons">group</span></span>
+            </div>
+            <div class="ad__metric-value">{{ formatNumber(dashboardData()?.visitorStats?.totalUsers || 0) }}</div>
+            <div class="ad__metric-sub">
+              <span class="ad__metric-badge">{{ formatNumber(dashboardData()?.visitorStats?.newUsers || 0) }} new</span>
+              this period
+            </div>
+            <div class="ad__metric-bar">
+              <div class="ad__metric-bar-fill" [style.width.%]="newUserPercent()"></div>
+            </div>
+          </div>
+    
+          <div class="ad__metric-card ad__metric-card--2" style="--card-delay:60ms">
+            <div class="ad__metric-card-accent"></div>
+            <div class="ad__metric-top">
+              <span class="ad__metric-label">Page Views</span>
+              <span class="ad__metric-icon-wrap"><span class="material-icons">visibility</span></span>
+            </div>
+            <div class="ad__metric-value">{{ formatNumber(totalPageViews()) }}</div>
+            <div class="ad__metric-sub">across all pages</div>
+            <div class="ad__metric-bar">
+              <div class="ad__metric-bar-fill" style="width:72%"></div>
+            </div>
+          </div>
+    
+          <div class="ad__metric-card ad__metric-card--3" style="--card-delay:120ms">
+            <div class="ad__metric-card-accent"></div>
+            <div class="ad__metric-top">
+              <span class="ad__metric-label">Sessions</span>
+              <span class="ad__metric-icon-wrap"><span class="material-icons">timeline</span></span>
+            </div>
+            <div class="ad__metric-value">{{ formatNumber(dashboardData()?.visitorStats?.sessions || 0) }}</div>
+            <div class="ad__metric-sub">
+              <span class="ad__metric-badge">{{ formatDuration(dashboardData()?.visitorStats?.avgSessionDuration || 0)
+                }}</span>
+              avg duration
+            </div>
+            <div class="ad__metric-bar">
+              <div class="ad__metric-bar-fill" style="width:58%"></div>
+            </div>
+          </div>
+    
+          <div class="ad__metric-card ad__metric-card--4" style="--card-delay:180ms">
+            <div class="ad__metric-card-accent"></div>
+            <div class="ad__metric-top">
+              <span class="ad__metric-label">Bounce Rate</span>
+              <span class="ad__metric-icon-wrap"><span class="material-icons">trending_down</span></span>
+            </div>
+            <div class="ad__metric-value">{{ formatPercent(dashboardData()?.visitorStats?.bounceRate || 0) }}</div>
+            <div class="ad__metric-sub">visitor engagement</div>
+            <div class="ad__metric-bar">
+              <div class="ad__metric-bar-fill ad__metric-bar-fill--warn"
+                [style.width.%]="(dashboardData()?.visitorStats?.bounceRate || 0) * 100">
+              </div>
+            </div>
+          </div>
+    
+        </section>
+    
+        <!-- ── CHART 1: Page Views & Sessions (area spline, full width) ── -->
+        <section class="ad__charts-row ad__charts-row--single">
+          <div class="ad__chart-card" style="--card-delay:240ms">
+            <div class="ad__chart-card-header">
+              <div>
+                <h2 class="ad__chart-title">Page Views &amp; Sessions</h2>
+                <p class="ad__chart-desc">Daily breakdown of site traffic</p>
+              </div>
+              <span class="ad__chart-badge"><span class="material-icons">show_chart</span> Live</span>
+            </div>
+            <div class="ad__chart-wrap ad__chart-wrap--tall">
+              @if (pageViewsOptions()) {
+              <highcharts-chart [options]="pageViewsOptions()!" [update]="updateFlag()" [oneToOne]="true"
+                (updateChange)="onChartUpdateChange($event)"
+                style="width:100%;height:100%;display:block"></highcharts-chart>
+              }
+            </div>
+          </div>
+        </section>
+    
+        <!-- ── CHARTS 2 + 3: Devices (donut) + Traffic Sources (column) ── -->
+        <section class="ad__charts-row ad__charts-row--two">
+          <div class="ad__chart-card" style="--card-delay:300ms">
+            <div class="ad__chart-card-header">
+              <div>
+                <h2 class="ad__chart-title">Devices</h2>
+                <p class="ad__chart-desc">Visitor device breakdown</p>
+              </div>
+              <span class="material-icons ad__chart-header-icon">devices</span>
+            </div>
+            <!-- ad__chart-wrap--pie: disables CSS min-height so the chart's
+                 own chart.height:320 from TS options is the sole size driver -->
+            <div class="ad__chart-wrap ad__chart-wrap--pie">
+              @if (devicesOptions()) {
+              <highcharts-chart [options]="devicesOptions()!" [update]="updateFlag()" [oneToOne]="true"
+                (updateChange)="onChartUpdateChange($event)"
+                style="width:100%;display:block"></highcharts-chart>
+              }
+            </div>
+          </div>
+    
+          <div class="ad__chart-card" style="--card-delay:360ms">
+            <div class="ad__chart-card-header">
+              <div>
+                <h2 class="ad__chart-title">Traffic Sources</h2>
+                <p class="ad__chart-desc">Where visitors come from</p>
+              </div>
+              <span class="material-icons ad__chart-header-icon">travel_explore</span>
+            </div>
+            <div class="ad__chart-wrap">
+              @if (trafficOptions()) {
+              <highcharts-chart [options]="trafficOptions()!" [update]="updateFlag()" [oneToOne]="true"
+                (updateChange)="onChartUpdateChange($event)"
+                style="width:100%;height:100%;display:block"></highcharts-chart>
+              }
+            </div>
+          </div>
+        </section>
+    
+        <!-- ── CHART 4: Geographic Distribution (horizontal bar, full width) ── -->
+        <section class="ad__charts-row ad__charts-row--single">
+          <div class="ad__chart-card" style="--card-delay:420ms">
+            <div class="ad__chart-card-header">
+              <div>
+                <h2 class="ad__chart-title">Geographic Distribution</h2>
+                <p class="ad__chart-desc">Top 10 countries by users</p>
+              </div>
+              <span class="material-icons ad__chart-header-icon">public</span>
+            </div>
+            <div class="ad__chart-wrap ad__chart-wrap--tall">
+              @if (geoOptions()) {
+              <highcharts-chart [options]="geoOptions()!" [update]="updateFlag()" [oneToOne]="true"
+                (updateChange)="onChartUpdateChange($event)"
+                style="width:100%;height:100%;display:block"></highcharts-chart>
+              }
+            </div>
+          </div>
+        </section>
+    
+        <!-- ── TOP PAGES — PrimeNG p-table ──────────────────────── -->
+        <section class="ad__table-section" style="--card-delay:480ms">
+          <div class="ad__chart-card">
+            <div class="ad__chart-card-header">
+              <div>
+                <h2 class="ad__chart-title">Top Pages</h2>
+                <p class="ad__chart-desc">Most visited pages on your portfolio</p>
+              </div>
+              <span class="material-icons ad__chart-header-icon">list_alt</span>
+            </div>
+    
+            <p-table [value]="topPageRows()" [sortField]="'pageViews'" [sortOrder]="-1"
+              [paginator]="topPageRows().length > 10" [rows]="10" [rowsPerPageOptions]="[5, 10, 20]"
+              styleClass="ad__p-table p-datatable-sm" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack"
+              breakpoint="640px">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:48px">#</th>
+                  <th pSortableColumn="title">
+                    Page <p-sortIcon field="title" />
+                  </th>
+                  <th pSortableColumn="pageViews" style="text-align:right">
+                    Views <p-sortIcon field="pageViews" />
+                  </th>
+                  <th pSortableColumn="avgDuration" style="text-align:right">
+                    Avg Duration <p-sortIcon field="avgDuration" />
+                  </th>
+                  <th style="width:140px">Share</th>
+                </tr>
+              </ng-template>
+    
+              <ng-template pTemplate="body" let-row>
+                <tr>
+                  <!-- Rank -->
+                  <td>
+                    <span class="ad__rank" [class.ad__rank--top]="row.rank <= 3">
+                      {{ row.rank }}
+                    </span>
+                  </td>
+    
+                  <!-- Page title + path -->
+                  <td>
+                    <span class="ad__page-title">{{ row.title }}</span>
+                    <span class="ad__page-path">{{ row.path }}</span>
+                  </td>
+    
+                  <!-- Views badge -->
+                  <td style="text-align:right">
+                    <span class="ad__views-badge">{{ formatNumber(row.pageViews) }}</span>
+                  </td>
+    
+                  <!-- Duration -->
+                  <td style="text-align:right" class="ad__td--duration">
+                    {{ formatDuration(row.avgDuration) }}
+                  </td>
+    
+                  <!-- Share progress bar (inline, no canvas) -->
+                  <td>
+                    <div class="ad__share-bar">
+                      <div class="ad__share-bar-fill" [style.width.%]="row.share"></div>
+                    </div>
+                    <span class="ad__share-label">{{ row.share }}%</span>
+                  </td>
+                </tr>
+              </ng-template>
+    
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">
+                    <div class="ad__table-empty">
+                      <span class="material-icons">inbox</span>
+                      <span>No page data available</span>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+    
+            </p-table>
+          </div>
+        </section>
+    
+      </div>
+      }
+    
+      <!-- ── EMPTY ─────────────────────────────────────────────────── -->
+      @else {
+      <div class="ad__state-panel">
+        <span class="material-icons ad__state-icon">bar_chart</span>
+        <p class="ad__state-message">No analytics data available</p>
+        <button class="ad__state-btn" (click)="refresh()">
+          <span class="material-icons">download</span> Load Data
+        </button>
+      </div>
+      }
+    
+    </div>

@@ -1,0 +1,193 @@
+<!--
+  SIDEBAR COMPONENT
+  ═══════════════════════════════════════════════════════════════
+  Two independent panels, both driven by appConfig tokens:
+
+  LEFT PANEL (.sidebar)
+  ┌──────────────────────┐
+  │ [header: logo+close] │  ← hidden when logoLocationHeader=true
+  ├──────────────────────┤
+  │ [menu items]         │  ← collapses to icon-only
+  ├──────────────────────┤
+  │ [footer: theme+exit] │
+  └──────────────────────┘
+
+  RIGHT PANEL (.settings-panel) — off-canvas, toggled by ⚙ trigger
+  ┌──────────────────────┐
+  │ [header: title+✕]   │
+  ├──────────────────────┤
+  │ Navigation type      │  sidebar ↔ navbar radio
+  ├──────────────────────┤
+  │ Brand location       │  header ↔ sidebar radio
+  ├──────────────────────┤
+  │ Theme picker         │  grid of theme cards
+  └──────────────────────┘
+
+  MENU ITEM DECISION TREE (matches navigation.component.html)
+  ─────────────────────────────────────────────────────────────
+  Type D  item.subMenu?.length       → collapsible group
+  Type C  item.action                → button (Resume)
+  Type B  item.routerLink + isHide   → routerLink (admin-gated)
+  Type A  item.href                  → anchor + scrollToSection
+  ═══════════════════════════════════════════════════════════════
+-->
+
+<!-- ══════════════════════════════════════════════════════
+     LEFT SIDEBAR PANEL
+     ══════════════════════════════════════════════════════ -->
+<aside class="sidebar" [class.sidebar--collapsed]="appConfig.appConfiguration.collapsed"
+  [attr.data-mobile]="appConfig.appConfiguration.isMobile">
+
+  <!-- HEADER: logo + collapse button -->
+  <div class="sidebar__header">
+
+    @if (!appConfig.appConfiguration.logoLocationHeader) {
+    <a routerLink="/app/home" class="sidebar__brand">
+      <span class="logo-initials">
+        <span class="rn-r">R</span><span class="rn-n">N</span>
+      </span>
+      @if (!appConfig.appConfiguration.collapsed) {
+      <span class="logo-name ms-2">
+        <span class="logo-rohit">Rohit</span>
+        <span class="logo-portfolio ms-1">Portfolio</span>
+      </span>
+      }
+    </a>
+    }
+
+    <!-- Collapse toggle — icon-only when collapsed, X when expanded -->
+    <button class="sidebar__collapse-btn" [class.ms-auto]="!appConfig.appConfiguration.logoLocationHeader"
+      (click)="toggleSidebarCollapse()"
+      [title]="appConfig.appConfiguration.collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <span class="material-icons">
+        {{ appConfig.appConfiguration.collapsed ? 'menu' : 'menu_open' }}
+      </span>
+    </button>
+
+  </div>
+
+  <!-- MENU -->
+  <nav class="sidebar__menu" aria-label="Sidebar navigation">
+    <ul class="sidebar__menu-list list-unstyled mb-0">
+
+      @for (item of menuItems; track item.key || item.label) {
+      <li class="sidebar__item" [class.sidebar__item--has-sub]="item.subMenu?.length"
+        [class.sidebar__item--expanded]="item.expanded">
+
+        <!-- Type D: subMenu group -->
+        @if (item.subMenu?.length) {
+        <button class="sidebar__link" (click)="item.expanded = !item.expanded">
+          <span class="material-icons sidebar__icon">{{ item.icon }}</span>
+          @if (!appConfig.appConfiguration.collapsed) {
+          <span class="sidebar__label">{{ item.label }}</span>
+          <span class="material-icons sidebar__chevron ms-auto">
+            {{ item.expanded ? 'expand_less' : 'expand_more' }}
+          </span>
+          }
+        </button>
+
+        @if (item.expanded && !appConfig.appConfiguration.collapsed) {
+        <ul class="sidebar__submenu list-unstyled mb-0">
+          @for (sub of item.subMenu; track sub.label) {
+          <li>
+            @if (sub.routerLink) {
+            <a [routerLink]="sub.routerLink" class="sidebar__sub-link" routerLinkActive="active-sub">
+              <span class="material-icons sidebar__sub-icon">{{ sub.icon }}</span>
+              <span>{{ sub.label }}</span>
+            </a>
+            }
+            @if (sub.href) {
+            <a [href]="sub.href" class="sidebar__sub-link" (click)="scrollToSection($event, sub.href)">
+              <span class="material-icons sidebar__sub-icon">{{ sub.icon }}</span>
+              <span>{{ sub.label }}</span>
+            </a>
+            }
+          </li>
+          }
+        </ul>
+        }
+
+        <!-- Type C: action items (Resume) -->
+        } @else if (item.action) {
+        <button class="sidebar__link" (click)="onMenuItemClick(item)" [title]="item.tooltip ?? ''">
+          <span class="material-icons sidebar__icon">{{ item.icon }}</span>
+          @if (!appConfig.appConfiguration.collapsed) {
+          <span class="sidebar__label">{{ item.label }}</span>
+          }
+        </button>
+
+        <!-- Type B: routerLink items — gated by isHide -->
+        } @else if (item.routerLink && item.isHide) {
+        <a [routerLink]="item.routerLink" class="sidebar__link" routerLinkActive="active-item">
+          @if (item.key === 'notifications') {
+          <p-overlaybadge [value]="notifications()?.unreadCount ?? 0" badgeSize="small" severity="info">
+            <span class="material-icons sidebar__icon" style="font-size: 2rem">notifications</span>
+          </p-overlaybadge>
+
+          } @else {
+          <span class="material-icons sidebar__icon">{{ item.icon || 'circle' }}</span>
+          }
+          @if (!appConfig.appConfiguration.collapsed) {
+          <span class="sidebar__label">{{ item.label }}</span>
+          }
+        </a>
+
+        <!-- Type A: href scroll-links (always visible) -->
+        } @else if (item.href) {
+        <a [href]="item.href" class="sidebar__link" (click)="scrollToSection($event, item.href)">
+          <span class="material-icons sidebar__icon">{{ item.icon }}</span>
+          @if (!appConfig.appConfiguration.collapsed) {
+          <span class="sidebar__label">{{ item.label }}</span>
+          }
+        </a>
+        }
+
+      </li>
+      }
+
+    </ul>
+  </nav>
+
+  <!-- FOOTER: theme toggle + logout -->
+  <div class="sidebar__footer">
+    <button class="sidebar__link sidebar__link--footer w-100" (click)="themeService.toggleDarkMode()">
+      <span class="material-icons sidebar__icon">
+        {{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}
+      </span>
+      @if (!appConfig.appConfiguration.collapsed) {
+      <span class="sidebar__label">
+        {{ themeService.isDark() ? 'Light Mode' : 'Dark Mode' }}
+      </span>
+      }
+    </button>
+
+    @if (appService.role() === 'ADMIN') {
+      <a routerLink="/admin/posts" class="sidebar__link sidebar__link--footer" routerLinkActive="active-item" title="Manage Posts">
+        <span class="material-icons sidebar__icon">edit_note</span>
+        @if (!appConfig.appConfiguration.collapsed) {
+          <span class="sidebar__label">Manage Posts</span>
+        }
+      </a>
+    }
+
+    @if (appService.role() !== 'ADMIN') {
+    <button  class="sidebar__link sidebar__link--footer sidebar__link--danger w-100" title="Admin Login" (click)="navigateToLogin()">
+      <span class="material-icons sidebar__icon">login</span>
+      @if (!appConfig.appConfiguration.collapsed) {
+        <span class="sidebar__label">Admin Login</span>
+      }
+    </button>
+    }
+  </div>
+
+</aside>
+
+
+<!-- ══════════════════════════════════════════════════════
+     NOTE: The settings trigger (⚙) and the right-side
+     preferences panel are rendered in main-layout.component.html
+     as viewport-level fixed overlays — outside the grid and
+     outside this component's off-canvas stacking context.
+     This component emits (settingsPanelChange) when the
+     internal state needs to toggle.
+     ══════════════════════════════════════════════════════ -->

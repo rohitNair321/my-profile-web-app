@@ -1,0 +1,298 @@
+<!-- Loading edit post -->
+@if (isLoading()) {
+  <div class="editor-loading">
+    <div class="spinner"></div>
+    <p>Loading post…</p>
+  </div>
+}
+
+@if (!isLoading()) {
+  <div class="post-editor">
+
+    <!-- Top Bar -->
+    <div class="editor-topbar">
+      <div class="editor-topbar__left">
+        <a [routerLink]="['/admin/posts']" class="back-link">
+          <i class="material-icons">arrow_back</i>
+          Posts
+        </a>
+        <h1 class="editor-topbar__title">{{ isEditMode() ? 'Edit Post' : 'New Post' }}</h1>
+      </div>
+      <div class="editor-topbar__actions">
+        <!-- Status badge -->
+        <select
+          class="status-select"
+          [value]="form.get('status')?.value"
+          (change)="form.get('status')?.setValue($any($event.target).value)"
+        >
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+          <option value="archived">Archived</option>
+        </select>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="save(false)"
+          [disabled]="isSaving()"
+        >
+          <i class="material-icons">save</i>
+          {{ isSaving() ? 'Saving…' : 'Save Draft' }}
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="save(true)"
+          [disabled]="isSaving()"
+        >
+          <i class="material-icons">publish</i>
+          Publish
+        </button>
+
+        <button
+          type="button"
+          class="btn-icon"
+          (click)="showPreview.set(!showPreview())"
+          [title]="showPreview() ? 'Hide preview' : 'Show preview'"
+        >
+          <i class="material-icons">{{ showPreview() ? 'visibility_off' : 'visibility' }}</i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error banner -->
+    @if (error()) {
+      <div class="editor-error">
+        <i class="material-icons">error_outline</i>
+        {{ error() }}
+      </div>
+    }
+
+    <!-- Tab Nav -->
+    <div class="editor-tabs">
+      <button
+        class="editor-tab"
+        [class.editor-tab--active]="activeTab() === 'editor'"
+        (click)="activeTab.set('editor')"
+      >
+        <i class="material-icons">edit</i> Content
+      </button>
+      <button
+        class="editor-tab"
+        [class.editor-tab--active]="activeTab() === 'seo'"
+        (click)="activeTab.set('seo')"
+      >
+        <i class="material-icons">search</i> SEO & Meta
+      </button>
+    </div>
+
+    <!-- Main editor body -->
+    <form [formGroup]="form" class="editor-body">
+
+      <!-- ─── CONTENT TAB ─────────────────────────────────── -->
+      @if (activeTab() === 'editor') {
+        <div class="editor-layout" [class.editor-layout--split]="showPreview()">
+
+          <!-- Editor pane -->
+          <div class="editor-pane">
+
+            <!-- Title -->
+            <input
+              formControlName="title"
+              type="text"
+              class="editor-title-input"
+              [class.editor-title-input--error]="titleError"
+              placeholder="Post title…"
+            />
+            @if (titleError) {
+              <p class="field-error">Title is required (min 3 characters)</p>
+            }
+
+            <!-- Read time indicator -->
+            <div class="editor-meta-bar">
+              <span class="meta-chip">
+                <i class="material-icons">schedule</i>
+                ~{{ estimatedReadTime }} min read
+              </span>
+              @if (form.get('status')?.value === 'draft') {
+                <span class="meta-chip meta-chip--draft">Draft</span>
+              }
+            </div>
+
+            <!-- Quill Editor -->
+            <div class="quill-wrapper" [class.quill-wrapper--error]="contentError">
+              <app-quill-editor
+                formControlName="content"
+                [modules]="quillModules"
+                placeholder="Start writing your post…"
+                (contentChanged)="onEditorChanged($event)"
+              ></app-quill-editor>
+            </div>
+            @if (contentError) {
+              <p class="field-error">Content is required</p>
+            }
+
+          </div><!-- /editor-pane -->
+
+          <!-- Preview pane -->
+          @if (showPreview()) {
+            <div class="preview-pane">
+              <div class="preview-pane__header">
+                <i class="material-icons">visibility</i>
+                Live Preview
+              </div>
+              <div class="preview-pane__content">
+                <h1 class="preview-title">{{ form.get('title')?.value || 'Untitled' }}</h1>
+                @if (form.get('cover_image_url')?.value) {
+                  <img [src]="form.get('cover_image_url')?.value" alt="Cover" class="preview-cover" />
+                }
+                <div class="preview-body ql-snow ql-editor" [innerHTML]="safePreviewContent"></div>
+              </div>
+            </div>
+          }
+
+        </div><!-- /editor-layout -->
+      }
+
+      <!-- ─── SEO & META TAB ──────────────────────────────── -->
+      @if (activeTab() === 'seo') {
+        <div class="seo-panel">
+
+          <div class="seo-grid">
+            <!-- Left column: post meta -->
+            <div class="seo-section">
+              <h3 class="seo-section__title">Post Settings</h3>
+
+              <div class="field">
+                <label class="field__label">Excerpt <span class="field__hint">(preview text)</span></label>
+                <textarea
+                  formControlName="excerpt"
+                  class="field__textarea"
+                  rows="3"
+                  placeholder="Short description shown on listing pages…"
+                ></textarea>
+              </div>
+
+              <div class="field">
+                <label class="field__label">Week Number <span class="field__hint">(optional series)</span></label>
+                <input formControlName="week_number" type="number" class="field__input" min="1" placeholder="e.g. 4" />
+              </div>
+
+              <div class="field">
+                <label class="field__label">LinkedIn URL <span class="field__hint">(original post)</span></label>
+                <input formControlName="linkedin_url" type="url" class="field__input" placeholder="https://linkedin.com/posts/…" />
+              </div>
+
+              <div class="field">
+                <label class="field__label">Tags</label>
+                <div class="tags-input-wrap">
+                  <div class="tags-list">
+                    @for (tag of tags; track tag) {
+                      <span class="tag-chip">
+                        {{ tag }}
+                        <button type="button" (click)="removeTag(tag)">
+                          <i class="material-icons">close</i>
+                        </button>
+                      </span>
+                    }
+                  </div>
+                  <input
+                    type="text"
+                    class="tags-input"
+                    [(ngModel)]="tagInput"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="Add tag and press Enter…"
+                    (keydown)="onTagKeydown($event)"
+                  />
+                </div>
+              </div>
+
+              <!-- Featured + Cover in same section -->
+              <div class="field">
+                <label class="field__label">Cover Image URL</label>
+                <input formControlName="cover_image_url" type="url" class="field__input" placeholder="https://…" />
+              </div>
+
+              <div class="field">
+                <label class="field__label">Upload Cover Image</label>
+                <div class="cover-upload">
+                  <label class="cover-upload__btn">
+                    <i class="material-icons">upload</i>
+                    Choose file
+                    <input type="file" accept="image/*" (change)="onCoverFileChange($event)" hidden />
+                  </label>
+                  @if (pendingCoverFile()) {
+                    <span class="cover-upload__filename">{{ pendingCoverFile()!.name }}</span>
+                    <button type="button" class="btn-upload" (click)="uploadCoverImage()" [disabled]="isUploadingCover()">
+                      {{ isUploadingCover() ? 'Uploading…' : 'Upload' }}
+                    </button>
+                  }
+                </div>
+                @if (form.get('cover_image_url')?.value) {
+                  <div class="cover-preview">
+                    <img [src]="form.get('cover_image_url')?.value" alt="Cover preview" />
+                    <button type="button" class="cover-preview__remove" (click)="removeCover()">
+                      <i class="material-icons">close</i>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <div class="field field--checkbox">
+                <label class="checkbox-label">
+                  <input formControlName="is_featured" type="checkbox" />
+                  <span>Feature on homepage</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Right column: SEO -->
+            <div class="seo-section">
+              <h3 class="seo-section__title">SEO / Open Graph</h3>
+
+              <div class="field">
+                <label class="field__label">SEO Title <span class="field__hint">(overrides post title in &lt;title&gt;)</span></label>
+                <input formControlName="seo_title" type="text" class="field__input" placeholder="Same as title if blank" />
+              </div>
+
+              <div class="field">
+                <label class="field__label">
+                  Meta Description
+                  <span class="field__hint">(150-160 chars ideal)</span>
+                </label>
+                <textarea
+                  formControlName="seo_description"
+                  class="field__textarea"
+                  rows="3"
+                  placeholder="What appears in Google search results…"
+                ></textarea>
+                <span class="char-count">{{ (form.get('seo_description')?.value || '').length }} / 160</span>
+              </div>
+
+              <div class="field">
+                <label class="field__label">OG Image URL <span class="field__hint">(LinkedIn/Twitter preview)</span></label>
+                <input formControlName="og_image_url" type="url" class="field__input" placeholder="Defaults to cover image" />
+              </div>
+
+              <!-- Preview card -->
+              <div class="seo-preview-card">
+                <div class="seo-preview-card__label">Google Preview</div>
+                <div class="seo-preview-card__url">mintpixel.in › posts</div>
+                <div class="seo-preview-card__title">
+                  {{ form.get('seo_title')?.value || form.get('title')?.value || 'Your post title' }}
+                </div>
+                <div class="seo-preview-card__desc">
+                  {{ form.get('seo_description')?.value || form.get('excerpt')?.value || 'Your meta description will appear here.' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      }<!-- /seo tab -->
+
+    </form><!-- /form -->
+
+  </div><!-- /post-editor -->
+}

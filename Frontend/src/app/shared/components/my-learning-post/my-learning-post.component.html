@@ -1,0 +1,27 @@
+<section class="mlp">
+  <header class="mlp__header">
+    <div>
+      <h2 class="mlp__title">My Learning Posts</h2>
+      <p class="mlp__subtitle">Track learning notes and progress updates.</p>
+    </div>
+    <span class="mlp__count">{{ totalPosts() }} posts</span>
+  </header>
+
+  <div class="mlp__list">
+    @for (post of posts(); track post.id) {
+      <article class="mlp__card">
+        <div class="mlp__meta">
+          <span class="mlp__level">{{ post.level }}</span>
+          <span class="mlp__date">{{ post.date }}</span>
+        </div>
+        <h3 class="mlp__post-title">{{ post.title }}</h3>
+        <p class="mlp__summary">{{ post.summary }}</p>
+        <div class="mlp__tags">
+          @for (tag of post.tags; track tag) {
+            <span class="mlp__tag">{{ tag }}</span>
+          }
+        </div>
+      </article>
+    }
+  </div>
+</section>

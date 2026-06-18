@@ -1,0 +1,65 @@
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-branding">
+      <div class="logo-initials">
+        <span class="rn-r">R</span><span class="rn-n">N</span>
+      </div>
+      <div class="auth-header">
+        <h1>Welcome</h1>
+        <p>Login to manage your professional portfolio or click Continue as Guest to explore the site</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+      
+      <div class="form-field" [class.invalid]="email?.invalid && email?.touched">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <i class="material-icons">mail_outline</i>
+          <input id="email" type="email" formControlName="email" placeholder="name@example.com" />
+        </div>
+        
+        @if (email?.errors && email?.touched) {
+          <div class="field-error">
+            @if (email?.errors?.['required']) {
+              <span>Email is required</span>
+            }
+            @if (email?.errors?.['email']) {
+              <span>Please enter a valid email</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-field" [class.invalid]="password?.invalid && password?.touched">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <i class="material-icons">lock_open</i>
+          <input id="password" type="password" formControlName="password" placeholder="••••••••" />
+        </div>
+
+        @if (password?.errors && password?.touched) {
+          <div class="field-error">
+            @if (password?.errors?.['required']) {
+              <span>Password is required</span>
+            }
+          </div>
+        }
+      </div>
+
+      <button type="submit" class="btn-primary-auth" [disabled]="isloading()">
+        <div class="spinner-container">
+          <span>Admin Login</span>
+        </div>
+      </button>
+
+      <div class="guest-container" style="margin-top: 1.5rem; text-align: center;">
+        <button type="button" class="btn-guest-link" (click)="cancelLogin()">
+          <span>Cancel</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

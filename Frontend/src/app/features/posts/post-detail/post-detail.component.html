@@ -1,0 +1,109 @@
+<!-- Loading -->
+@if (isLoading()) {
+  <div class="post-detail-loading">
+    <div class="spinner"></div>
+    <p>Loading post…</p>
+  </div>
+}
+
+<!-- Error -->
+@if (error() && !isLoading()) {
+  <div class="post-detail-error">
+    <i class="material-icons">error_outline</i>
+    <h2>{{ error() }}</h2>
+    <a [routerLink]="['/posts']" class="btn-back">← Back to Posts</a>
+  </div>
+}
+
+<!-- Post Content -->
+@if (post() && !isLoading()) {
+  <article class="post-detail">
+
+    <!-- Back -->
+    <div class="post-detail__back">
+      <a [routerLink]="['/posts']" class="back-link">
+        <i class="material-icons">arrow_back</i>
+        All Posts
+      </a>
+    </div>
+
+    <!-- Header -->
+    <header class="post-detail__header">
+      <!-- Tags -->
+      @if (post()!.tags && post()!.tags.length) {
+        <div class="post-detail__tags">
+          @for (tag of post()!.tags; track tag) {
+            <span class="post-tag">{{ tag }}</span>
+          }
+        </div>
+      }
+
+      <h1 class="post-detail__title">{{ post()!.title }}</h1>
+
+      @if (post()!.excerpt) {
+        <p class="post-detail__excerpt">{{ post()!.excerpt }}</p>
+      }
+
+      <!-- Meta row -->
+      <div class="post-detail__meta">
+        <span class="meta-item">
+          <i class="material-icons">calendar_today</i>
+          {{ formattedDate }}
+        </span>
+        <span class="meta-item">
+          <i class="material-icons">schedule</i>
+          {{ post()!.read_time }} min read
+        </span>
+        @if (post()!.views) {
+          <span class="meta-item">
+            <i class="material-icons">visibility</i>
+            {{ post()!.views }} views
+          </span>
+        }
+      </div>
+
+      <!-- LinkedIn link -->
+      @if (post()!.linkedin_url) {
+        <a [href]="post()!.linkedin_url" target="_blank" rel="noopener noreferrer" class="linkedin-link">
+          <i class="fab fa-linkedin"></i>
+          View on LinkedIn
+        </a>
+      }
+    </header>
+
+    <!-- Cover Image -->
+    @if (post()!.cover_image_url) {
+      <div class="post-detail__cover">
+        <img [src]="post()!.cover_image_url" [alt]="post()!.title" loading="eager" />
+      </div>
+    }
+
+    <!-- Content -->
+    <div class="post-detail__content ql-snow ql-editor" [innerHTML]="safeContent"></div>
+
+    <!-- Share -->
+    <div class="post-detail__share">
+      <span class="share-label">Share this post</span>
+      <div class="share-buttons">
+        <button class="share-btn share-btn--linkedin" (click)="shareOnLinkedIn()">
+          <i class="fab fa-linkedin"></i> LinkedIn
+        </button>
+        <button class="share-btn share-btn--twitter" (click)="shareOnTwitter()">
+          <i class="fab fa-x-twitter"></i> X (Twitter)
+        </button>
+        <button class="share-btn share-btn--copy" (click)="copyLink()">
+          <i class="material-icons">link</i> Copy Link
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer Nav -->
+    <div class="post-detail__footer">
+      <a [routerLink]="['/posts']" class="btn-back-footer">
+        <i class="material-icons">arrow_back</i>
+        Back to all posts
+      </a>
+    </div>
+
+  </article>
+}

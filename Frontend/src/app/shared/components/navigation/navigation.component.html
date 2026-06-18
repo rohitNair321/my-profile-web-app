@@ -1,0 +1,297 @@
+<!--
+  NAVIGATION COMPONENT
+  ═══════════════════════════════════════════════════════════════
+  MENU ITEM RENDERING LOGIC — decision tree per item type
+  ─────────────────────────────────────────────────────────────
+  Type A — href nav links    : href ✅ | key ✅ | routerLink ✗ | action ✗
+           (Home, About, Projects, Contact)
+           Render: <a [href]> with scrollToSection
+
+  Type B — routerLink items  : routerLink ✅ | key ✅ | isHide ✅ | action ✗
+           (Notifications — only when showNotifications=true)
+           Render: <a [routerLink]> — special badge for 'notifications' key
+
+  Type C — action items      : action ✅ | key ✅
+           (Resume download)
+           Render: <button (click)="onMenuItemClick()">
+
+  Type D — subMenu items     : subMenu.length > 0
+           Render: dropdown wrapper regardless of href/routerLink
+  ─────────────────────────────────────────────────────────────
+  Guard summary (desktop + mobile share same logic):
+    subMenu  → Type D  (checked first, short-circuits A/B/C)
+    action   → Type C
+    routerLink + isHide → Type B  (also catches notifications key)
+    href     → Type A  (no isHide guard — these are always visible)
+  ═══════════════════════════════════════════════════════════════
+-->
+
+<nav class="nav-bar" [class.nav-bar--navbar]="config?.appConfiguration?.type === 'navbar'"
+  [class.nav-bar--sidebar]="config?.appConfiguration?.type === 'sidebar'"
+  [attr.data-collapsed]="config?.appConfiguration?.collapsed">
+
+  <!-- ════════════════════════════════════════════════════
+       INNER CONTAINER — single flex row, always present
+       ════════════════════════════════════════════════════ -->
+  <div class="nav-bar__inner container-fluid d-flex align-items-center gap-2 px-3 px-md-4">
+
+    <!-- ① SIDEBAR TOGGLE — sidebar mode only ───────────── -->
+    @if (config?.appConfiguration?.type === 'sidebar') {
+    <button class="nav-bar__icon-btn nav-bar__hamburger flex-shrink-0" (click)="toggleMenu()"
+      [attr.aria-expanded]="!config?.appConfiguration?.collapsed" aria-label="Toggle sidebar">
+      <span class="material-icons">
+        {{ config?.appConfiguration?.collapsed ? 'menu' : 'menu_open' }}
+      </span>
+    </button>
+    }
+
+    <!-- ② BRAND — always visible ───────────────────────── -->
+    <a routerLink="/home" class="nav-bar__brand flex-shrink-0 animate-nav-slide-in text-decoration-none">
+      <span class="logo-initials animate-nav-fade-in">
+        <span class="rn-r">R</span><span class="rn-n">N</span>
+      </span>
+      @if (config?.appConfiguration?.logoLocationHeader || isMobile || config?.appConfiguration?.type === 'navbar') {
+      <span class="logo-name ms-2">
+        <span class="logo-rohit">Rohit</span>
+        <span class="logo-portfolio ms-1">Portfolio</span>
+      </span>
+      }
+    </a>
+
+    <!-- ③ DESKTOP MENU — navbar mode, non-mobile only ──── -->
+    @if (!isMobile && config?.appConfiguration?.type === 'navbar') {
+    <div class="nav-bar__desktop-menu ms-auto d-flex align-items-center gap-3 animate-nav-fade-in">
+
+      <ul class="nav-bar__menu-list d-flex align-items-center gap-3 list-unstyled mb-0">
+        @for (item of menuItems; track item) {
+
+        <!-- Type D: subMenu dropdown (checked first) -->
+        @if (item.subMenu?.length) {
+        <li class="nav-dropdown">
+          <a class="nav-bar__link dropdown-trigger d-flex align-items-center gap-1">
+            {{ item.label }}
+            <span class="material-icons" style="font-size:1rem">expand_more</span>
+          </a>
+          <div class="dropdown-content">
+            @for (sub of item.subMenu; track sub) {
+            @if (sub.routerLink) {
+            <a [routerLink]="sub.routerLink" routerLinkActive="active-sub">{{ sub.label }}</a>
+            }
+            @if (sub.href) {
+            <a [href]="sub.href" (click)="scrollToSection($event, sub.href)">{{ sub.label }}</a>
+            }
+            }
+          </div>
+        </li>
+
+        <!-- Type C: action items (Resume etc.) -->
+        } @else if (item.action) {
+        <li>
+          <button class="nav-bar__icon-btn" (click)="onMenuItemClick(item)" [title]="item.tooltip ?? ''">
+            <span class="material-icons">{{ item.icon }}</span>
+          </button>
+        </li>
+
+        <!-- Type B: routerLink items — gated by isHide -->
+        } @else if (item.routerLink && item.isHide) {
+        <li>
+          @if (item.key === 'notifications') {
+          <!-- Notifications gets a badge -->
+          <a [routerLink]="item.routerLink" class="nav-bar__icon-btn" routerLinkActive="active">
+            <p-overlaybadge [value]="notifications()?.unreadCount ?? 0" badgeSize="small" severity="info">
+              <span class="material-icons sidebar__icon" style="font-size: 2rem">notifications</span>
+            </p-overlaybadge>
+          </a>
+          } @else {
+          <a [routerLink]="item.routerLink" class="nav-bar__link" routerLinkActive="active">
+            {{ item.label }}
+          </a>
+          }
+        </li>
+
+        <!-- Type A: href scroll-links (Home, About, Projects, Contact) -->
+        <!-- No isHide guard — these are always public-facing links -->
+        } @else if (item.href) {
+        <li>
+          <a [href]="item.href" class="nav-bar__link" (click)="scrollToSection($event, item.href)">
+            {{ item.label }}
+          </a>
+        </li>
+        }
+
+        }
+      </ul>
+
+      <!-- Divider -->
+      <div class="nav-bar__divider"></div>
+
+      <!-- Theme toggle -->
+      <button class="nav-bar__icon-btn" (click)="themeService.toggleDarkMode()" title="Toggle theme">
+        <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
+      </button>
+
+      <!-- Logout — non-admin only -->
+      @if (appService.role() === 'ADMIN') {
+      <!-- <button class="nav-bar__icon-btn btn-logout" title="Logout" (click)="logout()">
+        <span class="material-icons">logout</span>
+      </button> -->
+      } @else {
+      <button class="nav-bar__btn-login" title="Admin Login" (click)="navigateToLogin()">
+        <span class="material-icons me-1">login</span>
+      </button>
+      }
+
+      <!-- Profile -->
+      @if (config?.appConfiguration?.showUserProfileView) {
+      <app-profile-menu></app-profile-menu>
+      }
+
+    </div>
+    }
+
+    <!-- ④ + ⑤  RIGHT SIDE — navbar mobile: burger THEN profile ─
+         Order: [brand] ......ms-auto...... [theme] [☰] [profile]
+         Burger comes before profile for thumb-reach accessibility. -->
+    @if (isMobile && config?.appConfiguration?.type === 'navbar') {
+    <div class="ms-auto d-flex align-items-center gap-2">
+
+      <!-- Theme toggle -->
+      <button class="nav-bar__icon-btn" (click)="themeService.toggleDarkMode()" title="Toggle theme">
+        <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
+      </button>
+
+      <!-- Hamburger — before profile -->
+      <button class="nav-bar__icon-btn nav-bar__hamburger flex-shrink-0" (click)="toggleMenu()"
+        [attr.aria-expanded]="isMenuOpen" aria-label="Toggle navigation">
+        <span class="material-icons">{{ isMenuOpen ? 'close' : 'menu' }}</span>
+      </button>
+
+      <!-- Profile — rightmost, always last -->
+      @if (config?.appConfiguration?.showUserProfileView) {
+      <app-profile-menu></app-profile-menu>
+      }
+
+    </div>
+    }
+
+    <!-- ④ PROFILE + THEME — sidebar mode all screen sizes ──── -->
+    @if (config?.appConfiguration?.type === 'sidebar') {
+    <div class="ms-auto d-flex align-items-center gap-2">
+      @if (config?.appConfiguration?.showUserProfileView) {
+      <app-profile-menu></app-profile-menu>
+      }
+    </div>
+    }
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════
+       MOBILE DROPDOWN — navbar mode, slides down from topbar
+       ══════════════════════════════════════════════════════ -->
+  @if (isMobile && isMenuOpen && config?.appConfiguration?.type === 'navbar') {
+  <div class="nav-bar__mobile-menu" role="dialog" aria-modal="false" aria-label="Mobile navigation">
+    <div class="nav-bar__mobile-inner">
+
+      <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
+        @for (item of menuItems; track item) {
+        <li class="mobile-nav-group" [class.is-expanded]="item.expanded">
+
+          <!-- Type D: subMenu -->
+          @if (item.subMenu?.length) {
+          <a class="nav-bar__mobile-link" (click)="item.expanded = !item.expanded">
+            <span class="link-content d-flex align-items-center gap-3">
+              <span class="material-icons">{{ item.icon || 'folder' }}</span>
+              <span>{{ item.label }}</span>
+            </span>
+            <span class="material-icons ms-auto">
+              {{ item.expanded ? 'expand_less' : 'expand_more' }}
+            </span>
+          </a>
+          @if (item.expanded) {
+          <ul class="mobile-submenu list-unstyled mb-0">
+            @for (sub of item.subMenu; track sub) {
+            <li>
+              @if (sub.routerLink) {
+              <a [routerLink]="sub.routerLink" (click)="isMenuOpen = false"
+                class="sub-link d-flex align-items-center gap-2">
+                <span class="material-icons">{{ sub.icon }}</span>{{ sub.label }}
+              </a>
+              }
+              @if (sub.href) {
+              <a [href]="sub.href" (click)="onMobileItemClick($event, sub)"
+                class="sub-link d-flex align-items-center gap-2">
+                <span class="material-icons">{{ sub.icon }}</span>{{ sub.label }}
+              </a>
+              }
+            </li>
+            }
+          </ul>
+          }
+
+          <!-- Type C: action items -->
+          } @else if (item.action) {
+          <button class="nav-bar__mobile-link w-100 text-start border-0 bg-transparent" (click)="onMenuItemClick(item)">
+            <span class="link-content d-flex align-items-center gap-3">
+              <span class="material-icons">{{ item.icon }}</span>
+              <span>{{ item.label }}</span>
+            </span>
+          </button>
+
+          <!-- Type B: routerLink items — gated by isHide -->
+          } @else if (item.routerLink && item.isHide) {
+          <a class="nav-bar__mobile-link" [routerLink]="item.routerLink" (click)="onMobileItemClick($event, item)">
+            <span class="link-content d-flex align-items-center gap-3">
+              @if (item.key === 'notifications') {
+              <p-overlaybadge [value]="notifications()?.unreadCount ?? 0" badgeSize="small" severity="info">
+                <span class="material-icons sidebar__icon" style="font-size: 2rem">notifications</span>
+              </p-overlaybadge>
+              } @else {
+              <span class="material-icons">{{ item.icon || 'circle' }}</span>
+              }
+              <span>{{ item.label }}</span>
+            </span>
+          </a>
+
+          <!-- Type A: href scroll-links — always visible, no isHide guard -->
+          } @else if (item.href) {
+          <a class="nav-bar__mobile-link" [href]="item.href" (click)="onMobileItemClick($event, item)">
+            <span class="link-content d-flex align-items-center gap-3">
+              <span class="material-icons">{{ item.icon || 'circle' }}</span>
+              <span>{{ item.label }}</span>
+            </span>
+          </a>
+          }
+
+        </li>
+        }
+      </ul>
+
+      <!-- Bottom actions -->
+      <div class="nav-bar__mobile-actions mt-auto pt-3">
+        <button class="mobile-theme-toggle w-100 d-flex align-items-center gap-3"
+          (click)="themeService.toggleDarkMode()">
+          <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
+          {{ themeService.isDark() ? 'Switch to Light' : 'Switch to Dark' }}
+        </button>
+
+        @if (appService.role() === 'GUEST') {
+        <!-- <button class="mobile-theme-toggle btn-logout w-100 d-flex align-items-center gap-3 mt-2" (click)="logout()">
+          <span class="material-icons">logout</span>
+          Logout
+        </button> -->
+        <button class="mobile-theme-toggle btn-login w-100 d-flex align-items-center gap-3 mt-2"
+          (click)="navigateToLogin()">
+          <span class="material-icons">login</span>
+          Admin Login
+        </button>
+        } @else {
+        
+        }
+      </div>
+
+    </div>
+  </div>
+  }
+
+</nav>

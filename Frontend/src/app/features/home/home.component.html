@@ -1,0 +1,366 @@
+@if (homeData) {
+  <div class="home-page-container" @pageAnimations>
+
+    <!-- HERO SECTION - Modern Split Layout -->
+    <section id="home" class="hero-section animate-section">
+      <div class="hero-bg-pattern"></div>
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <div class="hero-badge">
+              <span class="badge-dot"></span>
+              <span class="badge-text">{{ profileData()?.open_to_work ? 'OPEN FOR WORK' : 'AVAILABLE FOR HIRE' }}</span>
+            </div>
+            
+            <h1 class="hero-title">
+              <span class="title-greeting">Hi, I'm</span>
+              <span class="title-name">{{ homeData?.full_name }}</span>
+            </h1>
+            
+            <p class="hero-description">
+              {{ homeData?.short_bio || 'Building exceptional digital experiences with modern web technologies. Specialized in creating scalable, performant applications.' }}
+            </p>
+            
+            <div class="hero-stats">
+              <div class="stat">
+                <span class="stat-number">{{ experienceYears }}+</span>
+                <span class="stat-label">Years Experience</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat">
+                <span class="stat-number">{{ totalProjects }}+</span>
+                <span class="stat-label">Projects Delivered</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat">
+                <span class="stat-number">100%</span>
+                <span class="stat-label">Client Satisfaction</span>
+              </div>
+            </div>
+            
+            <div class="hero-actions">
+              <button class="btn-primary" (click)="scrollToSection($event, '#projects')">
+                <span>View Projects</span>
+                <i class="material-icons">arrow_forward</i>
+              </button>
+              <button class="btn-secondary" (click)="scrollToSection($event, '#contact')">
+                <span>Contact Me</span>
+                <i class="material-icons">mail_outline</i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="hero-visual">
+            <div class="hero-image-wrapper">
+              <div class="image-glow"></div>
+              <img [src]="homeData?.avatar_url" [alt]="homeData?.full_name || 'Rohit Nair — Full Stack Developer'" loading="eager" class="hero-image">
+              <div class="hero-tagline">
+                <span>{{ (homeData?.experiences?.[0]?.role || 'Developer') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION - Minimal & Impactful -->
+    <section id="about" class="about-section animate-section">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-content">
+            <div class="section-header">
+              <span class="section-badge">About Me</span>
+              <h2 class="section-title">Crafting Code,<br>Building Experiences</h2>
+            </div>
+            
+            <div class="about-text" [innerHTML]="safeDescription"></div>
+            
+            <div class="about-skills">
+              <h3 class="skills-title">Core Expertise</h3>
+              <div class="skills-cloud">
+                @if ((homeData?.skills?.length ?? 0) > 0) {
+                  @for (skill of homeData.skills; track skill) {
+                    <span class="skill-tag">{{ skill }}</span>
+                  }
+                } @else {
+                  <span class="skill-tag">Angular</span>
+                  <span class="skill-tag">TypeScript</span>
+                  <span class="skill-tag">Node.js</span>
+                  <span class="skill-tag">RxJS</span>
+                  <span class="skill-tag">REST APIs</span>
+                }
+              </div>
+            </div>
+            
+            <div class="about-actions">
+              <button class="btn-outline" (click)="downloadResume(profileData()?.resume_url)">
+                <i class="material-icons">file_download</i>
+                <span>Download Resume</span>
+              </button>
+              <!-- <button class="btn-link" (click)="aboutMe()">
+                <span>More About Me</span>
+                <i class="material-icons">arrow_forward</i>
+              </button> -->
+            </div>
+          </div>
+          
+          <div class="about-highlights">
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <i class="material-icons">rocket_launch</i>
+              </div>
+              <h4>Fast & Scalable</h4>
+              <p>Optimized performance with modern architecture patterns</p>
+            </div>
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <i class="material-icons">design_services</i>
+              </div>
+              <h4>Pixel Perfect</h4>
+              <p>Attention to detail with responsive, accessible designs</p>
+            </div>
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <i class="material-icons">code</i>
+              </div>
+              <h4>Clean Code</h4>
+              <p>Maintainable, tested, and documented solutions</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS SECTION - Modern Card Grid -->
+    <section id="projects" class="projects-section animate-section">
+      <div class="container">
+        <div class="section-header centered">
+          <span class="section-badge">Portfolio</span>
+          <h2 class="section-title">Featured Projects</h2>
+          <p class="section-subtitle">Selected work that showcases my expertise and creativity</p>
+        </div>
+
+        <div class="projects-grid">
+          @for (project of homeData?.experiences?.[0]?.projects || []; track project; let i = $index) {
+            @if (i < 6) {
+              <div class="project-card" [class.project-card--featured]="i === 0">
+                <div class="project-card-inner">
+                  <div class="project-image-wrapper">
+                    <img [src]="project.image || 'assets/images/placeholder.jpg'" [alt]="project.title || 'Project screenshot'" loading="lazy" class="project-image">
+                    <div class="project-overlay">
+                      <button class="project-quick-view" (click)="openProject(project)">
+                        <i class="material-icons">visibility</i>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="project-content">
+                    <div class="project-meta">
+                      <span class="project-status" [class.status-completed]="project?.projectProgress === 'completed'" [class.status-progress]="project?.projectProgress === 'in-progress'">
+                        <span class="status-dot"></span>
+                        {{ project?.projectProgress === 'completed' ? 'Completed' : 'In Progress' }}
+                      </span>
+                      <span class="project-category">{{ project.category || 'Web App' }}</span>
+                    </div>
+                    
+                    <h3 class="project-title">{{ project.title }}</h3>
+                    <p class="project-description">{{ project.description | slice:0:120 }}{{ project.description.length > 120 ? '...' : '' }}</p>
+                    
+                    <div class="project-tech-stack">
+                      @for (tech of project.technologies | slice:0:4; track tech) {
+                        <span class="tech-pill">{{ tech }}</span>
+                      }
+                      @if (project.technologies.length > 4) {
+                        <span class="tech-pill more">+{{ project.technologies.length - 4 }}</span>
+                      }
+                    </div>
+                    
+                    <button class="project-link-btn" (click)="openProject(project)">
+                      <span>View Case Study</span>
+                      <i class="material-icons">arrow_forward</i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+        
+        <div class="projects-footer">
+          <button class="btn-primary btn-large" (click)="goToProjects()">
+            <span>View All Projects</span>
+            <i class="material-icons">grid_view</i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION - Split Modern Form -->
+    <section id="contact" class="contact-section animate-section">
+      <div class="container">
+        <div class="contact-container">
+          <div class="contact-info">
+            <div class="section-header">
+              <span class="section-badge">Get In Touch</span>
+              <h2 class="section-title">Let's Work<br>Together</h2>
+            </div>
+            
+            <p class="contact-description">
+              Have a project in mind? I'd love to hear about it. Whether it's a full-scale application or a small feature enhancement, I'm ready to help bring your ideas to life.
+            </p>
+            
+            <div class="contact-details">
+              <div class="contact-detail-item">
+                <div class="detail-icon">
+                  <i class="material-icons">location_on</i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Location</span>
+                  <span class="detail-value">{{ homeData?.location || 'Remote / Worldwide' }}</span>
+                </div>
+              </div>
+              
+              <div class="contact-detail-item">
+                <div class="detail-icon">
+                  <i class="material-icons">email</i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Email</span>
+                  <a [href]="'mailto:' + homeData?.email" class="detail-value detail-link">{{ homeData?.email }}</a>
+                </div>
+              </div>
+              
+              <div class="contact-detail-item">
+                <div class="detail-icon">
+                  <i class="material-icons">schedule</i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Availability</span>
+                  <span class="detail-value">{{ profileData()?.open_to_work ? 'Available for opportunities' : 'Currently booked until March 2026' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="contact-form-wrapper">
+            @if (contactSent) {
+              <div class="contact-success-state">
+                <i class="material-icons" style="font-size:3rem;color:var(--success)">check_circle</i>
+                <h3>Message sent!</h3>
+                <p>Thank you for reaching out. I'll get back to you within 24 hours.</p>
+                <button class="btn-outline" (click)="contactSent = false">Send another message</button>
+              </div>
+            }
+            @if (!contactSent) {
+            <form [formGroup]="contactForm" (ngSubmit)="onSubmitContact()" class="contact-form-modern">
+              <div class="form-header">
+                <h3>Send a Message</h3>
+                <p>I'll get back to you within 24 hours</p>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="contact-firstName" class="form-label">First Name</label>
+                  <input id="contact-firstName" formControlName="firstName" type="text" class="form-input" placeholder="John" [class.error]="firstName?.invalid && firstName?.touched" aria-required="true">
+                  @if (firstName?.invalid && firstName?.touched) {
+                    <span class="error-message" role="alert">First name is required</span>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label for="contact-lastName" class="form-label">Last Name</label>
+                  <input id="contact-lastName" formControlName="lastName" type="text" class="form-input" placeholder="Doe" [class.error]="lastName?.invalid && lastName?.touched" aria-required="true">
+                  @if (lastName?.invalid && lastName?.touched) {
+                    <span class="error-message" role="alert">Last name is required</span>
+                  }
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="contact-email" class="form-label">Email Address</label>
+                <input id="contact-email" formControlName="email" type="email" class="form-input" placeholder="hello@example.com" [class.error]="email?.invalid && email?.touched" aria-required="true">
+                @if (email?.invalid && email?.touched) {
+                  <span class="error-message" role="alert">Please enter a valid email address</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="contact-subject" class="form-label">Subject</label>
+                <input id="contact-subject" formControlName="subject" type="text" class="form-input" placeholder="Project Inquiry" [class.error]="subject?.invalid && subject?.touched" aria-required="true">
+                @if (subject?.invalid && subject?.touched) {
+                  <span class="error-message" role="alert">Subject is required</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="contact-message" class="form-label">Message</label>
+                <textarea id="contact-message" formControlName="message" rows="5" class="form-textarea" placeholder="Tell me about your project..." [class.error]="message?.invalid && message?.touched" aria-required="true"></textarea>
+                @if (message?.invalid && message?.touched) {
+                  <span class="error-message" role="alert">Message is required (max 500 characters)</span>
+                }
+                <span class="char-count">{{ message?.value?.length || 0 }}/500</span>
+              </div>
+              
+              <button type="submit" class="btn-primary btn-full" [disabled]="contactForm.invalid || send">
+                <span>{{ send ? 'Sending...' : 'Send Message' }}</span>
+                <i class="material-icons">{{ send ? 'hourglass_empty' : 'send' }}</i>
+              </button>
+            </form>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECT DIALOG - Modern Minimal -->
+    <p-dialog [(visible)]="showProjectDialog" [modal]="true" 
+      [header]="selectedProject?.title" 
+      [draggable]="false" 
+      [resizable]="false"
+      styleClass="modern-dialog responsive-dialog">
+        @if (selectedProject) {
+          <div class="dialog-content-modern">
+            <div class="dialog-image-area">
+              <img [src]="selectedProject.image" [alt]="selectedProject?.title || 'Project screenshot'" loading="lazy" class="dialog-image">
+              <div class="dialog-status-badge" [class.status-completed]="selectedProject?.projectProgress === 'completed'" [class.status-progress]="selectedProject?.projectProgress === 'in-progress'">
+                <span class="status-dot"></span>
+                {{ selectedProject?.projectProgress === 'completed' ? 'Completed' : 'In Progress' }}
+              </div>
+            </div>
+            
+            <div class="dialog-body">
+              <h3 class="dialog-title">{{ selectedProject.title }}</h3>
+              <p class="dialog-description">{{ selectedProject.description }}</p>
+              
+              <div class="dialog-section">
+                <h4 class="dialog-section-title">Technologies Used</h4>
+                <div class="tech-list-modern">
+                  @for (tech of selectedProject.technologies; track $index) {
+                    <span class="tech-chip">{{ tech }}</span>
+                  }
+                </div>
+              </div>
+              
+              @if (selectedProject.highlights?.length) {
+                <div class="dialog-section">
+                  <h4 class="dialog-section-title">Key Features</h4>
+                  <ul class="features-list">
+                    @for (highlight of selectedProject.highlights; track $index) {
+                      <li>{{ highlight }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+              
+              <div class="dialog-actions-modern">
+                <button class="btn-secondary-small" (click)="showProjectDialog = false">
+                  <i class="material-icons">close</i>
+                  <span>Close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+    </p-dialog>
+  </div>
+}

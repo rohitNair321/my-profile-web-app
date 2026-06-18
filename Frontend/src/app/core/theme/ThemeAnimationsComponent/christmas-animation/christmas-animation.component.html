@@ -1,0 +1,36 @@
+@if (isChristmas()) {
+  <div class="christmas-wrapper" [class.animations-disabled]="!showAnimations()">
+    
+    <button class="snow-toggle" (click)="toggleAnimations()" [title]="showAnimations() ? 'Disable FX' : 'Enable FX'">
+      @if (showAnimations()) {
+        <span>❄️</span>
+      } @else {
+        <span>✨</span>
+      }
+    </button>
+
+    @if (showAnimations()) {
+      <div class="sleigh-path">
+        <div class="sleigh-wrap">
+          <div class="sleigh">🛷</div>
+          <div class="reindeer">🦌🦌</div>
+        </div>
+      </div>
+
+      <div class="hanging-lights">
+        @for (item of bulbs; track $index) {
+          <span class="bulb"></span>
+        }
+      </div>
+
+      <div class="snow-layer near"></div>
+      <div class="snow-layer far"></div>
+    }
+
+    <div class="gift-container">
+      <div class="gift gift-primary"></div>
+      <div class="gift gift-accent"></div>
+      <div class="gift gift-warn"></div>
+    </div>
+  </div>
+}

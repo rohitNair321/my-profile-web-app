@@ -1,0 +1,177 @@
+<!--
+  PROJECT DETAIL DRAWER
+  ══════════════════════════════════════════════════════════════
+  Approach: slide-over panel (right drawer on desktop, full-screen
+  bottom sheet on mobile). Keeps the user on the projects page
+  so they can close and open another project without navigating.
+
+  DATA SHOWN
+  ─────────────────────────────────────────────────────────────
+  ✦ Project title + status badge
+  ✦ Company + role + period
+  ✦ Full description (no truncation)
+  ✦ All technologies as coloured badges
+  ✦ Project progress indicator
+  ✦ Live demo link (when available)
+  ✦ Navigation: prev / next project arrows
+  ══════════════════════════════════════════════════════════════
+-->
+
+@if (isOpen()) {
+  <!-- ── BACKDROP ─────────────────────────────────────────────── -->
+  <div
+    class="pd-backdrop"
+    (click)="close()"
+    aria-hidden="true"
+  ></div>
+
+  <!-- ── DRAWER PANEL ─────────────────────────────────────────── -->
+  <aside
+    class="pd"
+    role="dialog"
+    [attr.aria-label]="item()?.project?.title"
+    aria-modal="true"
+  >
+
+    <!-- HEADER -->
+    <div class="pd__header">
+      <div class="pd__header-left">
+        <!-- Company chip -->
+        <div class="pd__company-chip">
+          <span class="material-icons">business</span>
+          {{ item()?.experience?.company }}
+        </div>
+        <!-- Status -->
+        <span
+          class="pd__status"
+          [class.pd__status--done]="item()?.project?.projectProgress === 'completed'"
+          [class.pd__status--wip]="item()?.project?.projectProgress === 'in-progress'"
+        >
+          <span class="pd__status-dot"></span>
+          {{ item()?.project?.projectProgress === 'completed' ? 'Completed' : 'In Progress' }}
+        </span>
+      </div>
+
+      <!-- Close + nav -->
+      <div class="pd__header-actions">
+        <button
+          class="pd__nav-btn"
+          (click)="prev()"
+          [disabled]="!hasPrev()"
+          title="Previous project"
+          aria-label="Previous project"
+        >
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button
+          class="pd__nav-btn"
+          (click)="next()"
+          [disabled]="!hasNext()"
+          title="Next project"
+          aria-label="Next project"
+        >
+          <span class="material-icons">chevron_right</span>
+        </button>
+        <button
+          class="pd__close-btn"
+          (click)="close()"
+          title="Close"
+          aria-label="Close project detail"
+        >
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SCROLLABLE BODY -->
+    <div class="pd__body">
+
+      <!-- Project title -->
+      <h2 class="pd__title">{{ item()?.project?.title }}</h2>
+
+      <!-- Meta strip -->
+      <div class="pd__meta-strip">
+        <div class="pd__meta-item">
+          <span class="material-icons">badge</span>
+          <span>{{ item()?.experience?.role }}</span>
+        </div>
+        <span class="pd__meta-sep">·</span>
+        <div class="pd__meta-item">
+          <span class="material-icons">schedule</span>
+          <span>{{ period() }}</span>
+        </div>
+        <span class="pd__meta-sep">·</span>
+        <div class="pd__meta-item">
+          <span class="material-icons">code</span>
+          <span>{{ item()?.project?.technologies?.length || 0 }} technologies</span>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="pd__divider"></div>
+
+      <!-- Description section -->
+      <section class="pd__section">
+        <h3 class="pd__section-title">
+          <span class="material-icons">description</span>
+          About this project
+        </h3>
+        <p class="pd__description">{{ item()?.project?.description }}</p>
+      </section>
+
+      <!-- Technologies section -->
+      <section class="pd__section">
+        <h3 class="pd__section-title">
+          <span class="material-icons">layers</span>
+          Technologies used
+        </h3>
+        <div class="pd__tech-list">
+          @for (tech of item()?.project?.technologies || []; track tech) {
+            <span class="pd__tech-badge" [ngClass]="techClass(tech)">
+              {{ tech }}
+            </span>
+          }
+        </div>
+      </section>
+
+      <!-- Experience context section -->
+      <section class="pd__section">
+        <h3 class="pd__section-title">
+          <span class="material-icons">work_history</span>
+          Role context
+        </h3>
+        <div class="pd__context-card">
+          <div class="pd__context-header">
+            <span class="pd__context-company">{{ item()?.experience?.company }}</span>
+            <span class="pd__context-period">{{ period() }}</span>
+          </div>
+          <p class="pd__context-role">{{ item()?.experience?.role }}</p>
+          @if (item()?.experience?.description) {
+            <p class="pd__context-desc">{{ item()?.experience?.description }}</p>
+          }
+        </div>
+      </section>
+
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div class="pd__footer">
+      @if (item()?.project?.url && item()?.project?.url !== 'NA' && item()?.project?.url !== '') {
+        <a
+          class="pd__btn pd__btn--primary"
+          [href]="item()?.project?.url"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span class="material-icons">launch</span>
+          View Live Demo
+        </a>
+      }
+      <button class="pd__btn pd__btn--ghost" (click)="close()">
+        <span class="material-icons">arrow_back</span>
+        Back to Projects
+      </button>
+    </div>
+
+  </aside>
+}

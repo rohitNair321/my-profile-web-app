@@ -1,0 +1,230 @@
+<!--
+  CHAT-BOT COMPONENT
+  ══════════════════════════════════════════════════════════════
+  Structure:
+  ┌─────────────────────────────────────┐
+  │  .cb-fab  (floating action button)  │
+  │  .cb-welcome  (greeting bubble)     │
+  │  .cb-window                         │
+  │   ├─ .cb-window__header             │
+  │   ├─ .cb-history  (slide panel)     │
+  │   │   ├─ session list               │
+  │   │   └─ clear-all button           │
+  │   ├─ .cb-messages                   │
+  │   │   └─ .cb-msg  (each bubble)     │
+  │   └─ .cb-composer                   │
+  │       ├─ model selector             │
+  │       └─ input + send               │
+  └─────────────────────────────────────┘
+
+  Position driven by [position] input:
+    bottom-right (default) | bottom-left | top-right | top-left
+
+  Mobile: window is full-screen sheet (CSS handles it)
+  Desktop: 380 × 560 px anchored to chosen corner
+  ══════════════════════════════════════════════════════════════
+-->
+
+<!-- ── Root container — positions everything in the chosen corner ── -->
+<div class="cb" [class.cb--left]="isLeft()" [class.cb--top]="isTop()" [class.cb--open]="isOpen()">
+
+  <!-- ── Welcome bubble ──────────────────────────────────────── -->
+  @if (showWelcome() && !isOpen()) {
+  <div class="cb-welcome" role="status" aria-live="polite">
+    <span class="cb-welcome__emoji">👋</span>
+    <span class="cb-welcome__text">Hi! I'm FolioAI — need help?</span>
+  </div>
+  }
+
+  <!-- ── Chat window ─────────────────────────────────────────── -->
+  @if (isOpen()) {
+  <div class="cb-window" role="dialog" aria-label="Chat with FolioAI assistant">
+
+    <!-- HEADER -->
+    <div class="cb-window__header">
+      <div class="cb-window__header-brand">
+        <span class="cb-window__avatar" aria-hidden="true">
+          <span class="material-icons">smart_toy</span>
+        </span>
+        <div class="cb-window__header-text">
+          <span class="cb-window__title">{{ title }}</span>
+          <span class="cb-window__status">
+            <span class="cb-window__status-dot" aria-hidden="true"></span>
+            Online
+          </span>
+        </div>
+      </div>
+
+      <div class="cb-window__header-actions">
+        <!-- History toggle -->
+        <button class="cb-icon-btn" (click)="toggleHistory()" [class.cb-icon-btn--active]="showHistory()"
+          title="Chat history" aria-label="Toggle chat history">
+          <span class="material-icons">history</span>
+        </button>
+
+        <!-- New chat -->
+        <button class="cb-icon-btn" (click)="startNewChat()" title="New conversation"
+          aria-label="Start new conversation">
+          <span class="material-icons">add_comment</span>
+        </button>
+
+        <!-- Close -->
+        <button class="cb-icon-btn cb-icon-btn--close" (click)="toggleChat()" title="Close" aria-label="Close chat">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- HISTORY SLIDE-DOWN PANEL -->
+    @if (showHistory()) {
+    <div class="cb-history" role="region" aria-label="Conversation history">
+
+      <div class="cb-history__header">
+        <span class="cb-history__title">
+          <span class="material-icons">history</span>
+          History
+        </span>
+        <button class="cb-history__clear-btn" (click)="clearAllHistory()" title="Delete all history"
+          aria-label="Delete all conversation history">
+          <span class="material-icons">delete_sweep</span>
+          Clear all
+        </button>
+      </div>
+
+      <ul class="cb-history__list" role="list">
+        @if (sessions().length === 0) {
+        <li class="cb-history__empty">No conversations yet</li>
+        }
+        @for (session of sessions(); track trackById($index, session)) {
+        <li class="cb-history__item" [class.cb-history__item--active]="session.id === activeSessionId()"
+          role="listitem">
+          <button class="cb-history__item-btn" (click)="selectSession(session.id)"
+            [attr.aria-current]="session.id === activeSessionId() ? 'true' : null">
+            <span class="material-icons cb-history__item-icon">chat_bubble_outline</span>
+            <span class="cb-history__item-body">
+              <span class="cb-history__item-title">{{ session.title }}</span>
+              <span class="cb-history__item-meta">
+                {{ session.messages.length }} msg{{ session.messages.length === 1 ? '' : 's' }}
+                · {{ session.updatedAt | date:'MMM d, h:mm a' }}
+              </span>
+            </span>
+          </button>
+          <button class="cb-history__item-delete" (click)="deleteSession(session.id, $event)"
+            title="Delete conversation" aria-label="Delete this conversation">
+            <span class="material-icons">delete_outline</span>
+          </button>
+        </li>
+        }
+      </ul>
+
+    </div>
+    }
+
+    <!-- MESSAGE FEED -->
+    <div class="cb-messages" role="log" aria-live="polite" aria-label="Messages">
+
+      @if (activeMessages().length === 0) {
+      <div class="cb-messages__empty">
+        <span class="material-icons cb-messages__empty-icon">smart_toy</span>
+        <p>Start the conversation — ask me anything about Rohit!</p>
+      </div>
+      }
+
+      @for (msg of activeMessages(); track trackById($index, msg)) {
+      <div class="cb-msg" [class.cb-msg--user]="msg.sender === 'user'" [class.cb-msg--bot]="msg.sender === 'bot'"
+        [class.cb-msg--loading]="msg.loading" [class.cb-msg--error]="msg.error">
+
+        <!-- Bot avatar — only on bot messages -->
+        @if (msg.sender === 'bot') {
+        <span class="cb-msg__avatar" aria-hidden="true">
+          <span class="material-icons">smart_toy</span>
+        </span>
+        }
+
+        <div class="cb-msg__body">
+
+          <!-- Typing indicator -->
+          @if (msg.loading) {
+          <div class="cb-msg__bubble" aria-label="Bot is typing">
+            <div class="cb-typing">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          }
+
+          <!-- Error state -->
+          @if (msg.error && !msg.loading) {
+          <div class="cb-msg__bubble cb-msg__bubble--error">
+            <span class="material-icons cb-msg__error-icon">error_outline</span>
+            <span>{{ msg.text }} <a href="#contact" (click)="scrollToSection($event, '#contact')" (click)="toggleChat()">Contact Rohit</a> </span>
+          </div>
+          }
+
+          <!-- ── Normal message ────────────────────────────────── -->
+          <!-- User messages: plain text (no markdown needed)       -->
+          <!-- Bot messages:  rendered markdown via ngx-markdown     -->
+          @if (!msg.loading && !msg.error) {
+            @if (msg.sender === 'user') {
+              <div class="cb-msg__bubble">{{ msg.text }}</div>
+            } @else {
+              <!-- markdown directive renders **bold**, lists, tables, etc. -->
+              <div class="cb-msg__bubble cb-msg__bubble--markdown">
+                <markdown [data]="msg.text" />
+              </div>
+            }
+            <time class="cb-msg__time" [dateTime]="msg.timestamp.toISOString()">
+              {{ msg.timestamp | date:'h:mm a' }}
+            </time>
+          }
+
+        </div>
+
+      </div>
+      }
+
+      <!-- Scroll anchor -->
+      <div #messagesEnd aria-hidden="true"></div>
+    </div>
+
+    <!-- COMPOSER -->
+    <div class="cb-composer">
+
+      <!-- Guest limit-reached notice -->
+      @if (chatDisabled()) {
+      <div class="cb-composer__limit-notice" role="status" aria-live="polite">
+        <span class="material-icons" aria-hidden="true">lock_outline</span>
+        <span>Free limit reached. <a href="#/auth/login" (click)="toggleChat()">Log in</a> for unlimited chat.</span>
+      </div>
+      }
+
+      <!-- Input row -->
+      <div class="cb-composer__input-row">
+        <textarea #inputRef class="cb-composer__input" [placeholder]="placeholder"
+          [disabled]="isSending() || chatDisabled()" [value]="newMessage()"
+          (input)="newMessage.set(inputRef.value)" (keydown)="onInputKeydown($event)" rows="1"
+          aria-label="Type your message"></textarea>
+        <button class="cb-composer__send" (click)="sendMessage()"
+          [disabled]="isSending() || chatDisabled() || !newMessage().trim()" aria-label="Send message">
+          @if (isSending()) {
+          <span class="cb-composer__spinner" aria-hidden="true"></span>
+          } @else {
+          <span class="material-icons">send</span>
+          }
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+  }
+
+  <!-- ── FAB ──────────────────────────────────────────────────── -->
+  <button class="cb-fab" (click)="toggleChat()" [attr.aria-expanded]="isOpen()" aria-label="Toggle chat assistant">
+    @if (isOpen()) {
+    <span class="material-icons">close</span>
+    } @else {
+    <span class="material-icons">smart_toy</span>
+    }
+  </button>
+
+</div>

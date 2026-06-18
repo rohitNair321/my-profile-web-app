@@ -1,0 +1,671 @@
+/* =============================================================
+   MAIN LAYOUT — CSS GRID ARCHITECTURE
+   =============================================================
+
+   LAYOUT TOKENS → global styles.scss only (not here)
+   ─────────────────────────────────────────────────────────────
+     :root {
+       --topbar-height:           64px;
+       --sidebar-width:           240px;
+       --sidebar-width-collapsed: 72px;
+       --layout-transition:       0.25s cubic-bezier(0.4, 0, 0.2, 1);
+       --backdrop-z:              1040;
+       --sidebar-z:               1050;
+       --topbar-z:                1060;
+     }
+
+   GRID SWITCHING STRATEGY
+   ─────────────────────────────────────────────────────────────
+   <app-sidebar> is ALWAYS in the DOM. The grid column for it
+   is set to 0 in navbar mode — the sidebar visually disappears
+   without being removed from the DOM. This eliminates the
+   "ghost column" gap that occurred when Angular conditionally
+   added/removed the sidebar grid child at runtime.
+
+   Column track sizes:
+     Sidebar expanded  → [sidebar-width]           1fr
+     Sidebar collapsed → [sidebar-width-collapsed] 1fr
+     Navbar mode       → 0                         1fr  (sidebar hidden)
+     Mobile (all)      → 0                         1fr  (sidebar is fixed overlay)
+   ============================================================= */
+
+// ── Shell ─────────────────────────────────────────────────────
+.app-shell {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-rows: var(--topbar-height) 1fr;
+
+  // Default: sidebar collapsed (icon-only) — left column narrower
+  // grid-template-columns: var(--sidebar-width-collapsed) 1fr;
+  // grid-template-areas:
+  //   "topbar  topbar"
+  //   "sidebar content";
+
+  transition: grid-template-columns var(--layout-transition);
+
+  // ── Sidebar expanded ────────────────────────────────────────
+  &[data-layout="sidebar"][data-collapsed="false"] {
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-areas:
+      "topbar  topbar"
+      "sidebar content";
+  }
+
+  // ── Sidebar collapsed ───────────────────────────────────────
+  &[data-layout="sidebar"][data-collapsed="true"] {
+    grid-template-columns: var(--sidebar-width-collapsed) 1fr;
+    grid-template-areas:
+      "topbar  topbar"
+      "sidebar content";
+  }
+
+  // ── Navbar mode — collapse sidebar column to 0 ─────────────
+  // The sidebar element stays in the DOM but takes up no space.
+  // Content fills the full width — no ghost column, no gap.
+  &[data-layout="navbar"] {
+    grid-template-columns: 0 1fr;
+    grid-template-areas:
+      "topbar  topbar"
+      "sidebar content";
+  }
+
+  // ── Mobile — sidebar is a fixed overlay, not a grid column ─
+  @media (max-width: 900px) {
+
+    &,
+    &[data-layout="sidebar"][data-collapsed="true"],
+    &[data-layout="sidebar"][data-collapsed="false"],
+    &[data-layout="navbar"] {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "topbar"
+        "content";
+    }
+  }
+}
+
+// ── Topbar — always spans full width ─────────────────────────
+.app-shell__topbar {
+  grid-area: topbar;
+  grid-column: 1 / -1; // spans ALL columns unconditionally
+  position: sticky;
+  top: 0;
+  z-index: var(--topbar-z);
+  width: 100%;
+  background: var(--background);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  isolation: isolate;
+}
+
+// ── Sidebar — grid child, collapses when column = 0 ──────────
+.app-shell__sidebar {
+  grid-area: sidebar;
+  position: sticky;
+  top: var(--topbar-height);
+  height: calc(100dvh - var(--topbar-height));
+  overflow: hidden; // hides content when column shrinks to 0
+  z-index: var(--sidebar-z);
+  transition: width var(--layout-transition);
+
+  // In navbar mode the column is 0 — hide the sidebar completely
+  .app-shell[data-layout="navbar"] & {
+    width: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  // ── Mobile: fixed off-canvas overlay ───────────────────────
+  @media (max-width: 900px) {
+    position: fixed;
+    top: var(--topbar-height);
+    left: 0;
+    right: auto;
+    width: var(--sidebar-width);
+    height: calc(100dvh - var(--topbar-height));
+    transform: translateX(-110%);
+    transition: transform var(--layout-transition);
+    visibility: visible;
+    pointer-events: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    // Revealed when expanded on mobile
+    .app-shell[data-mobile="true"][data-collapsed="false"] & {
+      transform: translateX(0);
+    }
+  }
+}
+
+// ── Content area ──────────────────────────────────────────────
+.app-shell__content {
+  grid-area: content;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; // prevent grid blowout
+  transition: all var(--layout-transition);
+}
+
+.app-shell__page {
+  flex: 1;
+  max-width: 1560px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.app-shell__footer {
+  width: 100%;
+  margin-top: auto;
+}
+
+// ── Mobile backdrop ───────────────────────────────────────────
+.app-shell__backdrop {
+  position: fixed;
+  inset: var(--topbar-height) 0 0 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: calc(var(--sidebar-z) - 1);
+  cursor: pointer;
+  animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// ── Tiny screen gutters ───────────────────────────────────────
+@media (max-width: 425px) {
+  .app-shell__page.container-fluid {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
+
+// ── Reduced motion ────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+
+  .app-shell,
+  .app-shell__sidebar,
+  .app-shell__content {
+    transition: none;
+  }
+}
+
+/* =============================================================
+   SETTINGS TRIGGER
+   Fixed to the right edge of the viewport — always visible
+   regardless of layout mode or screen size. Lives in main-layout
+   (not sidebar) so it is never inside the left off-canvas
+   stacking context on mobile.
+   ============================================================= */
+.app-settings-trigger {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  // Vertical centering on the CONTAINER only.
+  // The button never touches transform so its hover nudge
+  // (via the separate `translate` property) doesn't fight this.
+  transform: translateY(-50%);
+  z-index: calc(var(--topbar-z, 1060) + 20);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+
+  &--hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.app-settings-trigger__btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px 0 0 10px; // left corners rounded, right hugs viewport edge
+  border: 1px solid var(--border);
+  border-right: none;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: var(--background);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: -3px 0 12px var(--primary-glow);
+  transition: box-shadow 0.2s ease, translate 0.2s ease;
+
+  .material-icons {
+    font-size: 1.2rem;
+  }
+
+  &:hover {
+    box-shadow: -5px 0 18px var(--primary-glow);
+    translate: -3px 0; // `translate` property — does not override parent transform
+  }
+}
+
+@media (max-width: 900px) {
+  .app-settings-trigger__btn {
+    width: 36px;
+    height: 36px;
+
+    .material-icons {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+/* =============================================================
+   SETTINGS PANEL
+   Full-height right-side drawer. Also viewport-level fixed —
+   never nested inside any grid cell or off-canvas container.
+   ============================================================= */
+.app-settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100dvh;
+  width: 300px;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--background) 100%);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 32px var(--logo-shadow);
+  z-index: calc(var(--topbar-z, 1060) + 15);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: settingsPanelIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+}
+
+@keyframes settingsPanelIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.app-settings-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--topbar-height, 64px);
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.app-settings-panel__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+}
+
+.app-settings-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+
+  .material-icons {
+    font-size: 1.2rem;
+  }
+
+  &:hover {
+    color: var(--error);
+    background: color-mix(in oklab, var(--error) 10%, transparent);
+  }
+}
+
+.app-settings-panel__section {
+  padding: 1.1rem 1rem;
+  border-bottom: 1px solid var(--border);
+
+  &--theme {
+    border-bottom: none;
+    flex: 1;
+  }
+}
+
+.app-settings-panel__section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin: 0 0 0.3rem;
+}
+
+.app-settings-panel__desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.9rem;
+  line-height: 1.5;
+}
+
+// ── Layout picker ─────────────────────────────────────────────
+.layout-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.layout-card {
+  background: var(--surface-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.5rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover { border-color: var(--primary); transform: translateY(-1px); }
+
+  &--active {
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+  }
+
+  &__diagram {
+    width: 100%;
+    height: 52px;
+    border-radius: 6px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    overflow: hidden;
+
+    &--sidebar {
+      display: flex;
+      .lc-sidebar-col {
+        width: 24%;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .lc-body-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+    }
+
+    &--navbar {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    .material-icons { font-size: 0.95rem; }
+  }
+
+  &--active &__label { color: var(--primary); }
+
+  &__check {
+    font-size: 0.85rem !important;
+    color: var(--primary);
+    margin-left: auto;
+  }
+}
+
+// Shared diagram primitives
+.lc-bar {
+  height: 26%;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.lc-lines {
+  flex: 1;
+  padding: 5px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.lc-line {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  &--short { width: 60%; }
+}
+
+// ── Brand picker ──────────────────────────────────────────────
+.brand-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.brand-card {
+  background: var(--surface-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.5rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover { border-color: var(--primary); transform: translateY(-1px); }
+
+  &--active {
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+  }
+
+  &__diagram {
+    width: 100%;
+    height: 52px;
+    border-radius: 6px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+  }
+
+  &__label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  &--active &__label { color: var(--primary); }
+}
+
+.bc-sidebar {
+  width: 30%;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 4px;
+  gap: 4px;
+
+  &--bare { padding-top: 10px; }
+}
+
+.bc-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--primary);
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.bc-logo-sm {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: var(--primary);
+  opacity: 0.85;
+}
+
+.bc-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
+.bc-line {
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  &--short { width: 60%; }
+}
+
+.bc-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bc-topbar {
+  height: 30%;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+
+  &--brand { background: var(--surface-alt); }
+}
+
+// Theme grid + cards
+.app-settings-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 0.25rem 0;
+}
+
+.app-settings-theme-card {
+  background: var(--surface-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px var(--primary-glow);
+  }
+
+  &--active {
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+
+    .app-settings-theme-card__name {
+      color: var(--primary);
+      font-weight: 700;
+    }
+  }
+}
+
+.app-settings-theme-card__preview {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.app-settings-theme-card__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+
+  &--surface {
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.app-settings-theme-card__info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.app-settings-theme-card__name {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-settings-theme-card__check {
+  font-size: 13px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .app-settings-panel {
+    width: 100%; // full-width sheet on small screens
+    border-left: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-settings-panel {
+    animation: none;
+  }
+}

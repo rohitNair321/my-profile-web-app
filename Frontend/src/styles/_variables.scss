@@ -1,0 +1,456 @@
+// /* Color Variables */
+:root {
+  --global-text-color: var(--global-text-primary);
+
+  /* Typography */
+  --global-font-family: var(--font-family-base);
+
+  // --global-font-family: 'Inter', sans-serif;
+  --global-heading-font: 'Poppins', sans-serif;
+  --global-body-font: 'Inter', sans-serif;
+
+  /* Spacing */
+  --global-spacing-xs: 0.25rem;
+  --global-spacing-sm: 0.5rem;
+  --global-spacing-md: 1rem;
+  --global-spacing-lg: 1.5rem;
+  --global-spacing-xl: 2rem;
+
+  /* Border radius */
+  --global-border-radius-sm: 0.25rem;
+  --global-border-radius-md: 0.5rem;
+  --global-border-radius-lg: 1rem;
+
+  /* Transitions */
+  --global-transition-speed: 0.3s;
+
+
+  /* Badges */
+  --badge-angular: #e8f0fe;
+  --badge-angular-text: #d32f2f;
+  --badge-java: #f5f5f5;
+  --badge-java-text: #007396;
+  --badge-dotnet: #f3e6ff;
+  --badge-dotnet-text: #512bd4;
+  --badge-bootstrap: #f0f3fa;
+  --badge-bootstrap-text: #563d7c;
+  --badge-primeng: #e0f7fa;
+  --badge-primeng-text: #009688;
+  --badge-customcss: #fffde7;
+  --badge-customcss-text: #795548;
+  --badge-ngrx: #f3e5f5;
+  --badge-ngrx-text: #8e24aa;
+  --badge-abp: #e3f2fd;
+  --badge-abp-text: #1976d2;
+  --badge-js: #fffde7;
+  --badge-js-text: #fbc02d;
+  --badge-ts: #e3f2fd;
+  --badge-ts-text: #1976d2;
+}
+
+/* Theme 1 */
+.theme-1 {
+  --global-background-color: #F8F5F2;
+  --global-surface-color: #EDE5DE;
+  --global-primary-color: #4A6B7D;
+  --global-secondary-color: #9B7E6B;
+  --global-text-primary: #2D3741;
+  --global-text-secondary: #5C6B7A;
+  --global-accent-color: #C44536;
+  --global-border-color: #D3CEC9;
+  --global-common-border: #000000;
+
+  --global-logo-bg-gradient-start: #FFF0E1;
+  --global-logo-bg-gradient-end: #FFDAB9;
+  --global-logo-letter-r-color: #A0522D;
+  --global-logo-letter-n-color: #8B4513;
+  --global-logo-border-color: #E8A87C;
+  --global-logo-hover-border-color: #E29578;
+  --global-app-background-color: #FFFFFF;
+  --global-logo-main-shadow-color: rgba(200, 120, 80, 0.18);
+  --global-logo-letter-text-shadow: rgba(255, 255, 255, 0.6);
+
+  --global-text-color: var(--global-text-primary);
+}
+
+.theme-1.dark-mode {
+  --global-background-color: #1A242D;
+  --global-surface-color: #24323D;
+  --global-primary-color: #6B9080;
+  --global-secondary-color: #D4A373;
+  --global-text-primary: #E3E9EC;
+  --global-text-secondary: #A8B5BE;
+  --global-accent-color: #E76F51;
+  --global-border-color: #364551;
+  --global-common-border: #FFFFFF;
+
+  --global-text-color: var(--global-text-primary);
+}
+
+/* Theme 2 */
+.theme-2 {
+  --global-background-color: #F9FBFD;
+  --global-surface-color: #FFFFFF;
+  --global-border-color: #E3E8EF;
+
+  --global-primary-color: #4361EE;
+  --global-primary-light: #EFF2FF;
+  --global-primary-dark: #3A56D4;
+
+  --global-secondary-color: #7B61FF;
+  --global-secondary-light: #F0EDFF;
+  --global-common-border: #000000;
+
+  --global-text-primary: #1A202C;
+  --global-text-secondary: #4A5568;
+  --global-text-tertiary: #718096;
+
+  --global-accent-color: #00C9A7;
+  --global-error-color: #E53E3E;
+  --global-warning-color: #DD6B20;
+  --global-success-color: #38A169;
+
+  --global-neutral-50: #F7FAFC;
+  --global-neutral-100: #EDF2F7;
+
+  --global-logo-bg-gradient-start: #F0F4FF;
+  --global-logo-bg-gradient-end: #E6EDFF;
+  --global-logo-primary: #4361EE;
+  --global-logo-secondary: #7B61FF;
+  --global-logo-border-color: #D6E0FF;
+  --global-logo-hover-border-color: #A3B8FF;
+  --global-logo-main-shadow-color: rgba(99, 130, 255, 0.15);
+
+  --global-text-color: var(--global-text-primary);
+}
+
+.theme-2.dark-mode {
+  --global-background-color: #121826;
+  --global-surface-color: #1D2433;
+  --global-border-color: #2D3748;
+
+  --global-primary-color: #5B75F6;
+  --global-primary-light: rgba(91, 117, 246, 0.16);
+
+  --global-secondary-color: #9D8AFF;
+  --global-common-border: #FFFFFF;
+
+  --global-text-primary: #E2E8F0;
+  --global-text-secondary: #A0AEC0;
+  --global-text-tertiary: #718096;
+
+  --global-accent-color: #2DE3C2;
+
+  --global-logo-bg-gradient-start: #161E2E;
+  --global-logo-bg-gradient-end: #1A243D;
+  --global-logo-primary: #7B90FF;
+  --global-logo-border-color: rgba(123, 145, 255, 0.24);
+  --global-logo-hover-border-color: rgba(123, 145, 255, 0.4);
+  --global-logo-main-shadow-color: rgba(25, 40, 80, 0.5);
+
+  --global-text-color: var(--global-text-primary);
+}
+
+/* Theme 3 */
+.theme-3 {
+  --global-background-color: #F8FAFF;
+  --global-surface-color: #FFFFFF;
+  --global-border-color: #E2E8F0;
+
+  --global-primary-color: #4A3FDB;
+  --global-primary-light: #EDEBFF;
+  --global-primary-dark: #3A30B8;
+
+  --global-secondary-color: #3F8A8F;
+  --global-secondary-light: #EBF5F5;
+  --global-common-border: #000000;
+
+  --global-accent-color: #FF6B6B;
+  --global-accent-light: #FFF0F0;
+  --global-error-color: #E53E3E;
+  --global-warning-color: #DD6B20;
+  --global-success-color: #38A169;
+
+  --global-text-primary: #1A202C;
+  --global-text-secondary: #4A5568;
+  --global-text-tertiary: #718096;
+
+  --global-neutral-50: #F7FAFC;
+  --global-neutral-100: #EDF2F7;
+
+  --global-logo-bg-gradient-start: #F0F4FF;
+  --global-logo-bg-gradient-end: #E6EDFF;
+  --global-logo-primary: #4A3FDB;
+  --global-logo-secondary: #FF6B6B;
+  --global-logo-border-color: #D6E0FF;
+  --global-logo-hover-border-color: #A3B8FF;
+  --global-logo-main-shadow-color: rgba(74, 63, 219, 0.15);
+
+  --global-text-color: var(--global-text-primary);
+}
+
+.theme-3.dark-mode {
+  --global-background-color: #0F1120;
+  --global-surface-color: #1A1D33;
+  --global-border-color: #2D3250;
+
+  --global-primary-color: #6C63FF;
+  --global-primary-light: rgba(108, 99, 255, 0.18);
+
+  --global-secondary-color: #4ECDC4;
+  --global-common-border: #FFFFFF;
+
+  --global-accent-color: #FF8E8E;
+  --global-accent-light: rgba(255, 142, 142, 0.15);
+
+  --global-text-primary: #F0F2FF;
+  --global-text-secondary: #A1A8C7;
+  --global-text-tertiary: #6B7290;
+
+  --global-logo-bg-gradient-start: #16182D;
+  --global-logo-bg-gradient-end: #1C1F3D;
+  --global-logo-primary: #6C63FF;
+  --global-logo-secondary: #FF8E8E;
+  --global-logo-border-color: rgba(108, 99, 255, 0.3);
+  --global-logo-hover-border-color: rgba(108, 99, 255, 0.5);
+  --global-logo-main-shadow-color: rgba(15, 17, 32, 0.7);
+
+  --global-text-color: var(--global-text-primary);
+}
+
+/* Theme 4 */
+.theme-4 {
+  --global-background-color: #FDFAFC;
+  --global-surface-color: #FFFFFF;
+  --global-border-color: #EDE7ED;
+
+  --global-primary-color: #5D3A5F;
+  --global-primary-light: #F5EEF5;
+  --global-primary-dark: #4A2D4C;
+
+  --global-secondary-color: #4FA49C;
+  --global-secondary-light: #ECF7F6;
+  --global-common-border: #000000;
+
+  --global-accent-color: #D17B46;
+  --global-accent-light: #FDF1E8;
+  --global-error-color: #D84C73;
+  --global-warning-color: #E9A639;
+  --global-success-color: #4FA49C;
+
+  --global-text-primary: #2E2630;
+  --global-text-secondary: #6D5E71;
+  --global-text-tertiary: #9E94A0;
+
+  --global-neutral-50: #FAF7FA;
+  --global-neutral-100: #F3EFF3;
+
+  --global-logo-bg-gradient-start: #FBF5FA;
+  --global-logo-bg-gradient-end: #F7EDF5;
+  --global-logo-primary: #5D3A5F;
+  --global-logo-secondary: #4FA49C;
+  --global-logo-border-color: #E5D3E0;
+  --global-logo-hover-border-color: #D2B8CE;
+  --global-logo-main-shadow-color: rgba(93, 58, 95, 0.12);
+
+  --global-text-color: var(--global-text-primary);
+}
+
+.theme-4.dark-mode {
+  --global-background-color: #16121A;
+  --global-surface-color: #201C24;
+  --global-border-color: #383240;
+
+  --global-primary-color: #A47DA9;
+  --global-primary-light: rgba(164, 125, 169, 0.18);
+
+  --global-secondary-color: #6FD1C8;
+  --global-common-border: #FFFFFF;
+
+  --global-accent-color: #E99E6D;
+  --global-accent-light: rgba(233, 158, 109, 0.15);
+
+  --global-text-primary: #F0EAF2;
+  --global-text-secondary: #B5A9BC;
+  --global-text-tertiary: #8A7F90;
+
+  --global-logo-bg-gradient-start: #1D1820;
+  --global-logo-bg-gradient-end: #24202A;
+  --global-logo-primary: #A47DA9;
+  --global-logo-secondary: #6FD1C8;
+  --global-logo-border-color: rgba(164, 125, 169, 0.3);
+  --global-logo-hover-border-color: rgba(164, 125, 169, 0.5);
+  --global-logo-main-shadow-color: rgba(22, 18, 26, 0.7);
+
+  --global-text-color: var(--global-text-primary);
+}
+
+/* Theme 6 - TRON: Ares Duality (Hero vs Villain) */
+
+/* === LIGHT MODE === HERO THEME (White/Blue) */
+.theme-5 {
+  /* Core - Heroic Bright */
+  --global-background-color: #ffffff;
+  --global-surface-color: #f5f7ff;
+  --global-border-color: #d0d8ff;
+  --global-common-border: #000000;
+
+  /* Primary Colors - Hero Blue (Protagonist) */
+  --global-primary-color: #0066ff;
+  --global-primary-light: rgba(0, 102, 255, 0.1);
+  --global-primary-dark: #004ccc;
+  
+  /* Secondary Colors - Pure White (Hero) */
+  --global-secondary-color: #2a2a2a;
+  --global-secondary-light: rgba(42, 42, 42, 0.1);
+  --global-common-border: #000000;
+
+  /* Accent Colors - Heroic Accents */
+  --global-accent-color: #00aaff;
+  --global-accent-light: rgba(0, 170, 255, 0.1);
+  --global-error-color: #ff0033;
+  --global-warning-color: #ff8800;
+  --global-success-color: #00aa66;
+
+  /* Text Colors - Dark for readability */
+  --global-text-primary: #1a1a2e;
+  --global-text-secondary: #4a4a6e;
+  --global-text-tertiary: #6a6a8e;
+
+  /* UI Colors */
+  --global-neutral-50: rgba(245, 247, 255, 0.5);
+  --global-neutral-100: rgba(230, 235, 255, 0.8);
+
+  /* Logo Colors - Heroic */
+  --global-logo-bg-gradient-start: #f0f4ff;
+  --global-logo-bg-gradient-end: #e6edff;
+  --global-logo-primary: #0066ff;
+  --global-logo-secondary: #2a2a2a;
+  --global-logo-border-color: rgba(0, 102, 255, 0.3);
+  --global-logo-hover-border-color: rgba(0, 102, 255, 0.6);
+  --global-logo-main-shadow-color: rgba(0, 102, 255, 0.15);
+
+  /* Special Effects - Heroic Grid */
+  --tron-grid-size: 40px;
+  --tron-grid-color: rgba(0, 102, 255, 0.05);
+  --tron-glow-intensity: 1;
+  --tron-scanline-color: rgba(0, 102, 255, 0.08);
+  --tron-data-stream-color: rgba(0, 102, 255, 0.7);
+  
+  /* Animation Speeds */
+  --tron-scan-speed: 8s;
+  --tron-pulse-speed: 3s;
+  --tron-glow-speed: 2s;
+  --tron-data-speed: 5s;
+
+  /* Badges - Hero Theme */
+  --badge-angular: rgba(0, 102, 255, 0.1);
+  --badge-angular-text: #0066ff;
+  --badge-java: rgba(42, 42, 42, 0.1);
+  --badge-java-text: #2a2a2a;
+  --badge-dotnet: rgba(0, 170, 255, 0.1);
+  --badge-dotnet-text: #00aaff;
+  --badge-bootstrap: rgba(0, 76, 204, 0.1);
+  --badge-bootstrap-text: #004ccc;
+  --badge-primeng: rgba(0, 170, 102, 0.1);
+  --badge-primeng-text: #00aa66;
+  --badge-customcss: rgba(255, 136, 0, 0.1);
+  --badge-customcss-text: #ff8800;
+  --badge-ngrx: rgba(255, 0, 51, 0.1);
+  --badge-ngrx-text: #ff0033;
+  --badge-abp: rgba(106, 106, 142, 0.1);
+  --badge-abp-text: #6a6a8e;
+  --badge-js: rgba(255, 204, 0, 0.1);
+  --badge-js-text: #ffcc00;
+  --badge-ts: rgba(0, 150, 255, 0.1);
+  --badge-ts-text: #0096ff;
+
+  --global-text-color: var(--global-text-primary);
+}
+
+/* === DARK MODE === VILLAIN THEME (Red/Black) */
+.theme-5.dark-mode {
+  /* Core - Villainous Dark */
+  --global-background-color: #0a0a0a;
+  --global-surface-color: #1a1a1a;
+  --global-border-color: #333333;
+  --global-common-border: #ffffff;
+
+  /* Primary Colors - Villain Red (Ares) */
+  --global-primary-color: #ff0033;
+  --global-primary-light: rgba(255, 0, 51, 0.15);
+  --global-primary-dark: #cc0029;
+  
+  /* Secondary Colors - Corrupted White (Anti-hero) */
+  --global-secondary-color: #ff5555;
+  --global-secondary-light: rgba(255, 85, 85, 0.1);
+  --global-common-border: #ffffff;
+
+  /* Accent Colors - Villainous Accents */
+  --global-accent-color: #ff3366;
+  --global-accent-light: rgba(255, 51, 102, 0.15);
+  --global-error-color: #ff2255;
+  --global-warning-color: #ffaa33;
+  --global-success-color: #00cc88;
+
+  /* Text Colors - Light for contrast */
+  --global-text-primary: #ffffff;
+  --global-text-secondary: #cccccc;
+  --global-text-tertiary: #999999;
+
+  /* UI Colors */
+  --global-neutral-50: rgba(26, 26, 26, 0.5);
+  --global-neutral-100: rgba(40, 40, 40, 0.8);
+
+  /* Logo Colors - Villainous */
+  --global-logo-bg-gradient-start: #1a0a0a;
+  --global-logo-bg-gradient-end: #2a1a1a;
+  --global-logo-primary: #ff0033;
+  --global-logo-secondary: #ff5555;
+  --global-logo-border-color: rgba(255, 0, 51, 0.4);
+  --global-logo-hover-border-color: rgba(255, 0, 51, 0.7);
+  --global-logo-main-shadow-color: rgba(255, 0, 51, 0.3);
+
+  /* Special Effects - Villain Grid */
+  --tron-grid-size: 40px;
+  --tron-grid-color: rgba(255, 0, 51, 0.08);
+  --tron-glow-intensity: 1.5;
+  --tron-scanline-color: rgba(255, 0, 51, 0.15);
+  --tron-data-stream-color: rgba(255, 0, 51, 0.8);
+  
+  /* Animation Speeds - Slightly faster, more aggressive */
+  --tron-scan-speed: 6s;
+  --tron-pulse-speed: 2s;
+  --tron-glow-speed: 1.5s;
+  --tron-data-speed: 4s;
+
+  /* Badges - Villain Theme */
+  --badge-angular: rgba(255, 0, 51, 0.15);
+  --badge-angular-text: #ff0033;
+  --badge-java: rgba(255, 85, 85, 0.15);
+  --badge-java-text: #ff5555;
+  --badge-dotnet: rgba(255, 51, 102, 0.15);
+  --badge-dotnet-text: #ff3366;
+  --badge-bootstrap: rgba(204, 0, 41, 0.15);
+  --badge-bootstrap-text: #cc0029;
+  --badge-primeng: rgba(0, 204, 136, 0.15);
+  --badge-primeng-text: #00cc88;
+  --badge-customcss: rgba(255, 170, 51, 0.15);
+  --badge-customcss-text: #ffaa33;
+  --badge-ngrx: rgba(255, 34, 85, 0.15);
+  --badge-ngrx-text: #ff2255;
+  --badge-abp: rgba(153, 153, 153, 0.15);
+  --badge-abp-text: #999999;
+  --badge-js: rgba(255, 204, 0, 0.15);
+  --badge-js-text: #ffcc00;
+  --badge-ts: rgba(255, 85, 85, 0.15);
+  --badge-ts-text: #ff5555;
+
+  --global-text-color: var(--global-text-primary);
+}
+
+
+
+
+
+

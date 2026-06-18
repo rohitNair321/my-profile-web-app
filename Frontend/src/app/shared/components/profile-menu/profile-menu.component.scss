@@ -1,0 +1,93 @@
+/* =========================================================
+   AVATAR BUTTON
+========================================================= */
+.avatar-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-btn img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+}
+
+.avatar-initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--accent)
+  );
+  color: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* =========================================================
+   PRIME MENU PANEL
+========================================================= */
+.profile-menu-panel {
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  min-width: 220px;
+  padding: 0.25rem 0;
+}
+
+/* Remove PrimeNG defaults */
+.profile-menu-panel .p-menu {
+  border: none;
+}
+
+/* =========================================================
+   MENU ITEMS
+========================================================= */
+.profile-menu-panel .p-menuitem-link {
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  color: var(--text-primary);
+}
+
+.profile-menu-panel .p-menuitem-link:hover {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--primary) 12%, transparent),
+    color-mix(in oklab, var(--accent) 12%, transparent)
+  );
+}
+
+/* =========================================================
+   USER HEADER ITEM
+========================================================= */
+.menu-user-header {
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+/* =========================================================
+   LOGOUT ITEM
+========================================================= */
+.menu-logout .p-menuitem-link {
+  color: var(--error);
+}
+
+.menu-logout .p-menuitem-link:hover {
+  background: color-mix(in oklab, var(--error) 12%, transparent);
+}

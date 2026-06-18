@@ -1,0 +1,125 @@
+.christmas-wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+
+  // Accessing your tokens (Assumes they are compiled to CSS variables)
+  --c-red: var(--primary);
+  --c-green: var(--accent);
+  --c-gold: var(--highlight);
+}
+
+/* =========================================================
+   SANTA'S SLEIGH (The "Magic" Moment)
+========================================================= */
+.sleigh-path {
+  position: absolute;
+  top: 15%;
+  left: -200px;
+  animation: fly-across 30s linear infinite;
+}
+
+.sleigh-wrap {
+  display: flex;
+  align-items: center;
+  font-size: 2rem;
+  animation: bobbing 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px var(--primary-glow));
+}
+
+@keyframes fly-across {
+  0% { transform: translateX(0) scale(0.7); }
+  20% { transform: translateX(120vw) scale(1); }
+  100% { transform: translateX(120vw); } 
+}
+
+@keyframes bobbing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* =========================================================
+   SNOW LAYERS (Optimized)
+========================================================= */
+.snow-layer {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(4px 4px at 20px 30px, #fff, rgba(0,0,0,0)),
+                    radial-gradient(3px 3px at 60px 100px, #fff, rgba(0,0,0,0)),
+                    radial-gradient(5px 5px at 110px 150px, #fff, rgba(0,0,0,0));
+  background-size: 250px 250px;
+  animation: snow-fall 10s linear infinite;
+
+  &.far {
+    opacity: 0.4;
+    animation-duration: 20s;
+    filter: blur(1px);
+  }
+}
+
+@keyframes snow-fall {
+  from { transform: translateY(-250px); }
+  to { transform: translateY(100vh); }
+}
+
+/* =========================================================
+   TOGGLE BUTTON (Accessible)
+========================================================= */
+.snow-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 45rem;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    background: var(--surface-alt);
+    border-color: var(--accent);
+  }
+}
+
+/* =========================================================
+   GIFTS
+========================================================= */
+.gift-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding-bottom: 20px;
+}
+
+.gift {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  position: relative;
+  
+  &::after { // Ribbon
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.4) 60%, transparent 60%),
+                linear-gradient(0deg, transparent 40%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.4) 60%, transparent 60%);
+  }
+}
+
+.gift-primary { background: var(--primary); }
+.gift-accent { background: var(--accent); }
+.gift-warn { background: var(--warning); }

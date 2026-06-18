@@ -1,0 +1,225 @@
+<!--
+  MAIN LAYOUT GRID ARCHITECTURE
+  ═══════════════════════════════════════════════════════════════
+  Described structure (matches your spec exactly):
+
+  SIDEBAR MODE — desktop:
+  ┌────────────────────────────────────────────┐
+  │               [topbar]                     │
+  ├──────────┬─────────────────────┬───────────┤
+  │ [sidebar]│    [content]        │           │
+  │ left menu│    main content     │  (no      │
+  │          │                     │  right    │
+  │          ├─────────────────────┤  panel    │
+  │          │    [footer]         │  yet)     │
+  └──────────┴─────────────────────┴───────────┘
+
+  NAVBAR MODE — desktop (sidebar hidden, content full width):
+  ┌────────────────────────────────────────────┐
+  │               [topbar]                     │
+  ├────────────────────────────────────────────┤
+  │               [content]                    │
+  │               main content                 │
+  ├────────────────────────────────────────────┤
+  │               [footer]                     │
+  └────────────────────────────────────────────┘
+
+  MOBILE — all modes (sidebar is off-canvas overlay):
+  ┌────────────────────────────────────────────┐
+  │               [topbar]                     │
+  ├────────────────────────────────────────────┤
+  │               [content]                    │
+  ├────────────────────────────────────────────┤
+  │               [footer]                     │
+  └────────────────────────────────────────────┘
+
+  KEY ARCHITECTURAL DECISION:
+  ───────────────────────────
+  <app-sidebar> is ALWAYS in the DOM — never conditionally rendered.
+  The CSS grid collapses the sidebar column to 0 in navbar mode.
+  This eliminates the "ghost column" gap when switching modes,
+  because Angular never has to add/remove a grid child at runtime.
+  ═══════════════════════════════════════════════════════════════
+-->
+
+<div class="app-shell" [attr.data-layout]="appConfig.appConfiguration.type"
+  [attr.data-collapsed]="appConfig.appConfiguration.collapsed" [attr.data-mobile]="appConfig.appConfiguration.isMobile"
+  [attr.data-theme]="appConfig.appConfiguration.theme">
+
+  <!-- ① TOP NAVIGATION — always row 1, spans full width -->
+  <app-navigation class="app-shell__topbar" [config]="appConfig"
+    (isSidebarCollapsedChange)="initSidebarMenu($event)"></app-navigation>
+
+  <!-- ② SIDEBAR — always in DOM; CSS collapses it to width 0 in navbar mode.
+       Mobile: becomes a fixed off-canvas overlay (transform-based).
+       The backdrop is shown when sidebar is open on mobile. -->
+  <app-sidebar class="app-shell__sidebar" (collapseChange)="initSidebarMenu($event)"></app-sidebar>
+
+  <!-- Mobile backdrop — shown when sidebar is open on mobile -->
+  @if (appConfig.appConfiguration.isMobile && !appConfig.appConfiguration.collapsed) {
+  <div class="app-shell__backdrop" (click)="initSidebarMenu(true)" aria-hidden="true"></div>
+  }
+
+  <!-- ③ MAIN CONTENT — always row 2+, fills remaining grid column -->
+  <main class="app-shell__content">
+    <div class="app-shell__page container-fluid px-3 px-md-4">
+      <router-outlet></router-outlet>
+    </div>
+    <app-footer class="app-shell__footer"></app-footer>
+  </main>
+
+</div>
+
+<!-- ④ FLOATING OVERLAYS — outside grid flow entirely -->
+@if (appConfig.appConfiguration.showAgentChat) {
+<app-chat-bot [position]="'bottom-right'" [title]="'FolioAI Assistant'"
+  [placeholder]="'Ask about my projects...'"></app-chat-bot>
+}
+
+<!-- ⑤ SETTINGS TRIGGER — viewport-level, always fixed to right edge.
+     Lives here (not inside app-sidebar) so it is never affected by
+     the sidebar's off-canvas stacking context on mobile. -->
+<div class="app-settings-trigger" aria-label="Open preferences"
+  [class.app-settings-trigger--hidden]="isSettingsPanelOpen">
+  <button class="app-settings-trigger__btn" (click)="toggleSettingsPanel()">
+    <span class="material-icons">settings</span>
+  </button>
+</div>
+
+<!-- ⑥ SETTINGS PANEL — viewport-level fixed overlay, slides in from right -->
+@if (isSettingsPanelOpen) {
+<aside class="app-settings-panel" role="complementary" aria-label="Preferences panel">
+
+  <div class="app-settings-panel__header">
+    <span class="app-settings-panel__title">Preferences</span>
+    <button class="app-settings-panel__close" (click)="toggleSettingsPanel()" aria-label="Close preferences">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+
+  <!-- ① Navigation Layout -->
+  <section class="app-settings-panel__section">
+    <h4 class="app-settings-panel__section-title">Navigation Layout</h4>
+    <div class="layout-picker">
+
+      <div class="layout-card" [class.layout-card--active]="appConfig.appConfiguration.type === 'sidebar'"
+        (click)="onNavigationTypeChange('sidebar')">
+        <div class="layout-card__diagram layout-card__diagram--sidebar">
+          <div class="lc-sidebar-col"></div>
+          <div class="lc-body-col">
+            <div class="lc-bar"></div>
+            <div class="lc-lines">
+              <div class="lc-line"></div>
+              <div class="lc-line lc-line--short"></div>
+              <div class="lc-line"></div>
+            </div>
+          </div>
+        </div>
+        <div class="layout-card__label">
+          <span class="material-icons">view_sidebar</span>
+          Sidebar
+          @if (appConfig.appConfiguration.type === 'sidebar') {
+          <span class="material-icons layout-card__check">check_circle</span>
+          }
+        </div>
+      </div>
+
+      <div class="layout-card" [class.layout-card--active]="appConfig.appConfiguration.type === 'navbar'"
+        (click)="onNavigationTypeChange('navbar')">
+        <div class="layout-card__diagram layout-card__diagram--navbar">
+          <div class="lc-bar"></div>
+          <div class="lc-lines">
+            <div class="lc-line"></div>
+            <div class="lc-line lc-line--short"></div>
+            <div class="lc-line"></div>
+          </div>
+        </div>
+        <div class="layout-card__label">
+          <span class="material-icons">web</span>
+          Top Nav
+          @if (appConfig.appConfiguration.type === 'navbar') {
+          <span class="material-icons layout-card__check">check_circle</span>
+          }
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ② Brand Location — only meaningful in sidebar mode -->
+  @if (appConfig.appConfiguration.type === 'sidebar') {
+  <section class="app-settings-panel__section">
+    <h4 class="app-settings-panel__section-title">Brand Location</h4>
+    <div class="brand-picker">
+
+      <div class="brand-card" [class.brand-card--active]="!appConfig.appConfiguration.logoLocationHeader"
+        (click)="onBrandLocationChange(false)">
+        <div class="brand-card__diagram">
+          <div class="bc-sidebar">
+            <div class="bc-logo"></div>
+            <div class="bc-lines">
+              <div class="bc-line"></div>
+              <div class="bc-line bc-line--short"></div>
+            </div>
+          </div>
+          <div class="bc-body">
+            <div class="bc-topbar"></div>
+          </div>
+        </div>
+        <span class="brand-card__label">In Sidebar</span>
+      </div>
+
+      <div class="brand-card" [class.brand-card--active]="appConfig.appConfiguration.logoLocationHeader"
+        (click)="onBrandLocationChange(true)">
+        <div class="brand-card__diagram">
+          <div class="bc-sidebar bc-sidebar--bare">
+            <div class="bc-lines">
+              <div class="bc-line"></div>
+              <div class="bc-line bc-line--short"></div>
+            </div>
+          </div>
+          <div class="bc-body">
+            <div class="bc-topbar bc-topbar--brand">
+              <div class="bc-logo-sm"></div>
+            </div>
+          </div>
+        </div>
+        <span class="brand-card__label">In Header</span>
+      </div>
+
+    </div>
+  </section>
+  }
+
+  <!-- ③ Theme picker — driven by availableThemes() from CommonApp -->
+  <section class="app-settings-panel__section app-settings-panel__section--theme">
+    <h4 class="app-settings-panel__section-title">Theme</h4>
+    <p class="app-settings-panel__desc">Select a theme that suits your style.</p>
+    <div class="app-settings-theme-grid">
+      @for (theme of availableThemes(); track theme.id) {
+      <div class="app-settings-theme-card"
+        [class.app-settings-theme-card--active]="themeService.currentThemeId() === theme.id"
+        (click)="onThemeChange(theme)">
+        <div class="app-settings-theme-card__preview">
+          <span class="app-settings-theme-card__dot" [style.background]="theme.tokens['primary']"></span>
+          <span class="app-settings-theme-card__dot" [style.background]="theme.tokens['accent']"></span>
+          <span class="app-settings-theme-card__dot app-settings-theme-card__dot--surface"
+            [style.background]="theme.tokens['surface']"></span>
+        </div>
+        <div class="app-settings-theme-card__info">
+          <span class="app-settings-theme-card__name">{{ theme.name }}</span>
+          @if (themeService.currentThemeId() === theme.id) {
+          <span class="material-icons app-settings-theme-card__check">check_circle</span>
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </section>
+
+</aside>
+}
+
+<p-confirmDialog></p-confirmDialog>
+<app-christmas-animation></app-christmas-animation>
+<app-new-year-animation></app-new-year-animation>

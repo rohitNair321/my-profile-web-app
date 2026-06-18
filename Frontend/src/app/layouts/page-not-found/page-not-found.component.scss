@@ -1,0 +1,91 @@
+/* =========================================================
+   PAGE WRAPPER
+========================================================= */
+.not-found-page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(
+    135deg,
+    var(--background),
+    var(--surface)
+  );
+  color: var(--text-primary);
+}
+
+/* =========================================================
+   CARD
+========================================================= */
+.not-found-card {
+  max-width: 480px;
+  width: 100%;
+  background: linear-gradient(
+    180deg,
+    var(--surface),
+    var(--background)
+  );
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  padding: 3rem 2.5rem;
+  text-align: center;
+}
+
+/* =========================================================
+   ERROR CODE
+========================================================= */
+.error-code {
+  font-size: clamp(4rem, 10vw, 6rem);
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 1rem;
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--accent)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =========================================================
+   TEXT
+========================================================= */
+.error-title {
+  font-size: 1.6rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.error-description {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+/* =========================================================
+   ACTION
+========================================================= */
+.back-home-btn {
+  display: inline-block;
+  padding: 0.7rem 2rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--accent)
+  );
+  color: var(--background);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width: 480px) {
+  .not-found-card {
+    padding: 2.5rem 1.5rem;
+  }
+}

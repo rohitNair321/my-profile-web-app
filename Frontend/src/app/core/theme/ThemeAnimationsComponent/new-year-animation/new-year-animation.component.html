@@ -1,0 +1,33 @@
+@if (isNewYear()) {
+  <div class="ny-wrapper" [class.disabled]="!showAnimations()">
+    
+    <button class="ny-toggle" (click)="toggleAnimations()" [title]="showAnimations() ? 'Disable FX' : 'Enable FX'">
+      @if (showAnimations()) {
+        <span>🎆</span>
+      } @else {
+        <span>✨</span>
+      }
+    </button>
+
+    @if (showAnimations()) {
+      @for (f of fireworks; track $index) {
+        <div class="firework"></div>
+      }
+
+      @for (c of confetti; track $index) {
+        <div class="confetti" 
+             [style.left.%]="c.x" 
+             [style.animation-delay.s]="c.delay"
+             [style.background-color]="c.color">
+        </div>
+      }
+      
+      <div class="firework"></div>
+      <div class="firework" style="left: 70%; animation-delay: 1.5s"></div>
+
+      <div class="countdown-toast">
+        <span>Happy New Year! 🥂</span>
+      </div>
+    }
+  </div>
+}

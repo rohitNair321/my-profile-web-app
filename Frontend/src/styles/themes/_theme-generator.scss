@@ -1,0 +1,7 @@
+// @each $theme-name, $tokens in $themes {
+//   [data-theme='#{$theme-name}'] {
+//     @each $token, $value in $tokens {
+//       --#{$token}: #{$value};
+//     }
+//   }
+// }

@@ -1,0 +1,716 @@
+/* =============================================================
+   CHAT-BOT COMPONENT
+   =============================================================
+   COLOR TOKEN MAP (matches ThemeService API tokens)
+   ─────────────────────────────────────────────────────────────
+   --background      page background
+   --surface         card / panel surface
+   --surface-alt     hover / secondary surface
+   --border          dividers
+   --primary         brand colour — FAB, user bubbles, accents
+   --accent          secondary accent
+   --primary-glow    glow / shadow for primary elements
+   --text-primary    main readable text
+   --text-secondary  muted text, meta info
+   --text-muted      placeholder, timestamps
+   --error           error state
+   --logo-shadow     deep shadows
+   ─────────────────────────────────────────────────────────────
+   LAYOUT STRATEGY
+   ─────────────────────────────────────────────────────────────
+   Mobile-first: window is a full-screen bottom sheet (≤600px)
+   Desktop: 380×560 fixed panel anchored to chosen corner
+
+   Position variants driven by BEM modifiers on .cb:
+     .cb--left    → anchors to left edge
+     .cb--top     → anchors to top edge
+   ============================================================= */
+
+// ── Layout tokens (fallbacks — real values come from :root) ──
+$fab-size:        56px;
+$corner-offset:   24px;
+$window-w:        500px;
+$window-h:        660px;
+$radius-window:   20px;
+$radius-bubble:   18px;
+$transition:      0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ── Host ──────────────────────────────────────────────────────
+:host {
+  display: contents;    // host itself takes no space — .cb is the real root
+}
+
+/* =============================================================
+   ROOT CONTAINER — positions the FAB + window in one corner
+   ============================================================= */
+.cb {
+  position: fixed;
+  // Default: bottom-right
+  bottom: $corner-offset;
+  right:  $corner-offset;
+  left:   auto;
+  top:    auto;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+
+  // Left-side variant
+  &--left {
+    right: auto;
+    left:  $corner-offset;
+    align-items: flex-start;
+
+    .cb-welcome     { right: auto; left: calc(#{$fab-size} + 12px); }
+    .cb-window      { right: auto; left: 0; }
+  }
+
+  // Top-side variant
+  &--top {
+    bottom: auto;
+    top: $corner-offset;
+    flex-direction: column-reverse;   // window appears below FAB
+
+    .cb-window { bottom: auto; top: calc(#{$fab-size} + 12px); }
+  }
+}
+
+/* =============================================================
+   WELCOME BUBBLE
+   ============================================================= */
+.cb-welcome {
+  position: absolute;
+  bottom: calc(#{$fab-size} + 14px);
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px 24px 4px 24px;
+  padding: 10px 16px;
+  box-shadow: 0 6px 24px var(--logo-shadow, rgba(0,0,0,0.18));
+  white-space: nowrap;
+  animation: cb-float 3s ease-in-out infinite;
+  pointer-events: none;
+
+  &__emoji { font-size: 1.1rem; }
+  &__text  {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+}
+
+@keyframes cb-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* =============================================================
+   FAB — floating action button
+   ============================================================= */
+.cb-fab {
+  width:  $fab-size;
+  height: $fab-size;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: var(--background);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px var(--primary-glow, rgba(0,0,0,0.25));
+  transition: transform $transition, box-shadow $transition;
+  flex-shrink: 0;
+  order: 1;    // always below the window in the flex column
+
+  .material-icons { font-size: 1.5rem; }
+
+  &:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px var(--primary-glow, rgba(0,0,0,0.32));
+  }
+
+  &:active { transform: scale(0.96); }
+}
+
+/* =============================================================
+   CHAT WINDOW
+   ============================================================= */
+.cb-window {
+  width: $window-w;
+  height: $window-h;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-window;
+  box-shadow: 0 12px 48px var(--logo-shadow, rgba(0,0,0,0.22));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: cb-window-in $transition both;
+  order: 0;    // sits above FAB in the flex column
+
+  @keyframes cb-window-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────
+.cb-window__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  flex-shrink: 0;
+
+  &-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.cb-window__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .material-icons {
+    font-size: 1.2rem;
+    color: var(--background);
+  }
+}
+
+.cb-window__header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cb-window__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--background);
+  line-height: 1.2;
+}
+
+.cb-window__status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.cb-window__status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 2px rgba(74,222,128,0.3);
+  animation: cb-pulse 2.4s ease-in-out infinite;
+
+  @keyframes cb-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(74,222,128,0.3); }
+    50%       { box-shadow: 0 0 0 5px rgba(74,222,128,0.08); }
+  }
+}
+
+.cb-icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background $transition;
+
+  .material-icons { font-size: 1.1rem; }
+
+  &:hover        { background: rgba(255,255,255,0.24); }
+  &--active      { background: rgba(255,255,255,0.28); color: #fff; }
+  &--close:hover { background: rgba(220,50,50,0.4); }
+}
+
+// ── History panel ─────────────────────────────────────────────
+.cb-history {
+  background: var(--surface-alt, var(--surface));
+  border-bottom: 1px solid var(--border);
+  max-height: 220px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  animation: cb-history-in 0.18s ease both;
+
+  @keyframes cb-history-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px 6px;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+
+    .material-icons { font-size: 1rem; }
+  }
+
+  &__clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in oklab, var(--error) 40%, transparent);
+    background: none;
+    color: var(--error);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background $transition;
+
+    .material-icons { font-size: 0.95rem; }
+    &:hover { background: color-mix(in oklab, var(--error) 10%, transparent); }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0 6px 6px;
+    overflow-y: auto;
+    flex: 1;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  &__empty {
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    transition: background $transition;
+
+    &:hover        { background: var(--surface); }
+    &--active      { background: color-mix(in oklab, var(--primary) 10%, transparent); }
+
+    &-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      min-width: 0;
+    }
+
+    &-icon {
+      font-size: 1rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    &-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    &-title {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    &-delete {
+      flex-shrink: 0;
+      padding: 6px;
+      min-width: 44px;
+      min-height: 44px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color $transition, background $transition;
+
+      .material-icons { font-size: 1rem; }
+
+      &:hover {
+        color: var(--error);
+        background: color-mix(in oklab, var(--error) 10%, transparent);
+      }
+    }
+  }
+}
+
+// ── Message feed ──────────────────────────────────────────────
+.cb-messages {
+  flex: 1;
+  padding: 16px 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--background);
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  &__empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    color: var(--text-muted);
+
+    p { font-size: 0.85rem; max-width: 220px; line-height: 1.5; margin: 0; }
+  }
+
+  &__empty-icon {
+    font-size: 2.8rem;
+    opacity: 0.3;
+  }
+}
+
+// ── Individual message ────────────────────────────────────────
+.cb-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  animation: cb-msg-in 0.18s ease both;
+
+  @keyframes cb-msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  // Bot message — left-aligned
+  &--bot {
+    align-self: flex-start;
+    flex-direction: row;
+    max-width: 85%;
+  }
+
+  // User message — right-aligned
+  &--user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+    max-width: 78%;
+
+    .cb-msg__bubble {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: var(--background);
+      border-bottom-right-radius: 4px;
+    }
+    .cb-msg__time { text-align: right; }
+  }
+
+  &__avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--primary) 12%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .material-icons {
+      font-size: 0.95rem;
+      color: var(--primary);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  &__bubble {
+    display: inline-block;
+    padding: 9px 13px;
+    border-radius: $radius-bubble;
+    border-bottom-left-radius: 4px;
+    background: var(--surface-alt, var(--surface));
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.55;
+    word-break: break-word;
+
+    &--error {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: color-mix(in oklab, var(--error) 10%, transparent);
+      color: var(--error);
+      border: 1px solid color-mix(in oklab, var(--error) 30%, transparent);
+    }
+  }
+
+  &__error-icon { font-size: 1rem; flex-shrink: 0; }
+
+  &__time {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    padding: 0 2px;
+  }
+}
+
+// ── Typing indicator ──────────────────────────────────────────
+.cb-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  padding: 0 2px;
+
+  span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--primary);
+    opacity: 0.5;
+    animation: cb-bounce 1.3s ease-in-out infinite both;
+
+    &:nth-child(2) { animation-delay: 0.18s; }
+    &:nth-child(3) { animation-delay: 0.36s; }
+  }
+
+  @keyframes cb-bounce {
+    0%, 80%, 100% { transform: translateY(0);   opacity: 0.5; }
+    40%           { transform: translateY(-7px); opacity: 1;   }
+  }
+}
+
+// ── Composer ──────────────────────────────────────────────────
+.cb-composer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__model-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__model-icon {
+    font-size: 0.95rem;
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+
+  &__model-select {
+    flex: 1;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-alt, var(--background));
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    cursor: pointer;
+    outline: none;
+
+    &:focus { border-color: var(--primary); }
+  }
+
+  &__input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  &__input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--background);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    resize: none;
+    outline: none;
+    max-height: 100px;
+    min-height: 40px;
+    transition: border-color $transition;
+    font-family: inherit;
+
+    &::placeholder   { color: var(--text-muted); }
+    &:focus          { border-color: var(--primary); }
+    &:disabled       { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  &__send {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: var(--background);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity $transition, transform $transition;
+
+    .material-icons { font-size: 1.15rem; }
+
+    &:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+    &:not(:disabled):hover { transform: scale(1.06); }
+  }
+
+  &__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: cb-spin 0.7s linear infinite;
+
+    @keyframes cb-spin {
+      to { transform: rotate(360deg); }
+    }
+  }
+}
+
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
+
+// Mobile: full-screen bottom sheet
+@media (max-width: 600px) {
+  .cb {
+    inset: 0 !important;
+    bottom: 0 !important;
+    right:  0 !important;
+    left:   0 !important;
+    top:    0 !important;
+
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    gap: 0;
+    pointer-events: none;
+
+    &.cb--open { pointer-events: auto; }
+  }
+
+  .cb-window {
+    width:         100%;
+    height:        100%;
+    max-height:    100dvh;
+    border-radius: 24px 24px 0 0;
+    border-bottom: none;
+    order: 0;
+  }
+
+  // Hide FAB when window is open on mobile — the header ✕ button
+  // handles closing. This eliminates the overlap with the send button.
+  .cb--open .cb-fab {
+    display: none;
+  }
+
+  .cb-fab {
+    position: fixed;
+    bottom: $corner-offset;
+    right:  $corner-offset;
+    pointer-events: auto;
+    order: 1;
+
+    .cb--left & {
+      right: auto;
+      left:  $corner-offset;
+    }
+  }
+
+  .cb-welcome {
+    position: fixed;
+    bottom: calc(#{$fab-size} + #{$corner-offset} + 12px);
+    right:  $corner-offset;
+
+    .cb--left & {
+      right: auto;
+      left:  $corner-offset;
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .cb-window,
+  .cb-history,
+  .cb-msg,
+  .cb-welcome          { animation: none; }
+  .cb-window__status-dot { animation: none; }
+  .cb-typing span      { animation: none; }
+}
