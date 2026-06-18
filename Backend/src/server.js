@@ -71,6 +71,7 @@ const allowedOrigins = [
   'https://rohitnair321.github.io',
   'https://rohit-nair296.onrender.com',
   'https://portfolio-backend-bpmw.onrender.com',
+  'https://portfolio-frontend-x2c2.onrender.com',
   'https://www.mintpixel.in',
 ];
 

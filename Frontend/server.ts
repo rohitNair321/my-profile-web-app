@@ -10,6 +10,7 @@ const ALLOWED_HOSTS = [
   'localhost',
   '127.0.0.1',
   'rohit-nair296.onrender.com', // Your production domain
+  'portfolio-frontend-x2c2.onrender.com'
   // Add more domains as needed
 ];
 
