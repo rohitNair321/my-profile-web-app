@@ -1,4 +1,5 @@
-import { ApplicationConfig, ErrorHandler, importProvidersFrom, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, importProvidersFrom, provideAppInitializer, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { GlobalErrorHandler } from './shared/components/ui/error-boundary/error-boundary.component';
 
 import { provideRouter, withHashLocation, withInMemoryScrolling } from '@angular/router';
@@ -69,11 +70,11 @@ export const appConfig: ApplicationConfig = {
       CardModule,
       DialogModule
     ),
-    // APP_INITIALIZER: Restore user session before app loads
+    // APP_INITIALIZER: Restore user session before app loads (browser only — skip on SSR)
     provideAppInitializer(() => {
-        const authService = new AuthService();
-        return initializeApp(authService)();
-      }), 
+        if (!isPlatformBrowser(inject(PLATFORM_ID))) return Promise.resolve();
+        return initializeApp(inject(AuthService))();
+      }),
     provideClientHydration(),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     GlobalErrorHandler,

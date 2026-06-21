@@ -6,12 +6,14 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  PLATFORM_ID,
   ViewChild,
   computed,
   effect,
+  inject,
   signal,
 } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommonApp } from 'src/app/core/services/common';
 import { MarkdownComponent } from 'ngx-markdown';
@@ -101,6 +103,8 @@ export class ChatBotComponent extends CommonApp implements OnInit, OnDestroy {
   isLeft = computed(() => this.position.includes('left'));
   isTop  = computed(() => this.position.includes('top'));
 
+  private platformId = inject(PLATFORM_ID);
+
   // ── Cleanup ──────────────────────────────────────────────────
   private _scrollEffect = effect(() => {
     // Re-run whenever messages change so new messages scroll into view.
@@ -113,7 +117,9 @@ export class ChatBotComponent extends CommonApp implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this._loadHistory();
+    if (isPlatformBrowser(this.platformId)) {
+      this._loadHistory();
+    }
   }
 
   ngOnDestroy(): void {
@@ -407,6 +413,8 @@ export class ChatBotComponent extends CommonApp implements OnInit, OnDestroy {
   private _loadHistory(): void {
 
     this.aiChatService.getSessions().subscribe({
+
+      error: () => { /* rate-limited or offline — start with empty sessions */ },
 
       next: (sessions) => {
 
