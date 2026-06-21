@@ -10,7 +10,6 @@ const ALLOWED_HOSTS = [
   'localhost',
   '127.0.0.1',
   'rohit-nair296.onrender.com', // Your production domain
-  'rohitnair-dev.onrender.com'
   // Add more domains as needed
 ];
 
@@ -21,7 +20,7 @@ export function app(): express.Express {
   const browserDistFolder = resolve(serverDistFolder, '../browser');
   const indexHtml = join(serverDistFolder, 'index.server.html');
 
-  const commonEngine = new CommonEngine({ allowedHosts: ALLOWED_HOSTS });
+  const commonEngine = new CommonEngine();
 
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
