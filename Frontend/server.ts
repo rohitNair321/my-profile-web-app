@@ -9,7 +9,7 @@ import bootstrap from './src/main.server';
 const ALLOWED_HOSTS = [
   'localhost',
   '127.0.0.1',
-  'rohit-nair296.onrender.com', // Your production domain
+  'rohitnair-dev.onrender.com', // Your production domain
   // Add more domains as needed
 ];
 
