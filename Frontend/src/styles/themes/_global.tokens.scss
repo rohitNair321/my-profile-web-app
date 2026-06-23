@@ -1,7 +1,8 @@
 :root {
   /* Typography */
   --font-family-base: 'Inter', sans-serif;
-  --font-family-heading: 'Poppins', sans-serif;
+  --font-family-heading: 'Space Grotesk', sans-serif;
+  --font-family-mono:    'JetBrains Mono', ui-monospace, monospace;
 
   // ── Structure ──────────────────────────────────────────────
   --topbar-height:           64px;
@@ -80,7 +81,31 @@
   --duration-slow:   350ms;
 
   // Legacy aliases
-  --transition-fast:   150ms ease-in;
-  --transition-normal: 250ms ease;
+  --transition-fast:          150ms ease-in;
+  --transition-normal:        250ms ease;
+  --global-transition-speed:  0.3s;
+
+  // ── Brand defaults (fallback before ThemeService loads) ────────
+  // These are overridden at runtime by ThemeService._applyTheme().
+  // Set to the Emerald default so the page looks correct on first paint.
+  --primary:       #10B981;
+  --accent:        #06B6D4;
+  --highlight:     #6366F1;
+  --primary-glow:  rgba(16, 185, 129, 0.18);
+  --background:    #F8FAFC;
+  --surface:       #FFFFFF;
+  --surface-alt:   #F1F5F9;
+  --text-primary:  #0F172A;
+  --text-secondary:#475569;
+  --text-muted:    #94A3B8;
+  --border:        #E2E8F0;
+  --success:       #10B981;
+  --warning:       #F59E0B;
+  --error:         #EF4444;
+  --logo-primary:      #10B981;
+  --logo-secondary:    #06B6D4;
+  --logo-border:       #D1FAE5;
+  --logo-border-hover: #A7F3D0;
+  --logo-shadow:       rgba(16, 185, 129, 0.22);
 
 }

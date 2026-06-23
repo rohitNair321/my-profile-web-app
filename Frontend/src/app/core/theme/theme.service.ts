@@ -11,6 +11,59 @@ export interface ThemeDefinition {
   dark_tokens: Record<string, string>;
 }
 
+// ── Built-in themes ──────────────────────────────────────────────────────────
+// These register immediately on app boot so the page has correct colors
+// before the profile API responds. ThemeService merges user-created themes
+// from the profile on top of these — user themes always win on conflict.
+const BUILT_IN_THEMES: ThemeDefinition[] = [
+  {
+    id: 'basic',
+    name: 'Emerald',
+    tokens: {
+      background:          '#F8FAFC',
+      surface:             '#FFFFFF',
+      'surface-alt':       '#F1F5F9',
+      primary:             '#10B981',
+      accent:              '#06B6D4',
+      highlight:           '#6366F1',
+      'primary-glow':      'rgba(16, 185, 129, 0.18)',
+      'text-primary':      '#0F172A',
+      'text-secondary':    '#475569',
+      'text-muted':        '#94A3B8',
+      border:              '#E2E8F0',
+      success:             '#10B981',
+      warning:             '#F59E0B',
+      error:               '#EF4444',
+      'logo-primary':      '#10B981',
+      'logo-secondary':    '#06B6D4',
+      'logo-border':       '#D1FAE5',
+      'logo-border-hover': '#A7F3D0',
+      'logo-shadow':       'rgba(16, 185, 129, 0.22)',
+    },
+    dark_tokens: {
+      background:          '#020617',
+      surface:             '#0F172A',
+      'surface-alt':       '#1E293B',
+      primary:             '#10B981',
+      accent:              '#06B6D4',
+      highlight:           '#818CF8',
+      'primary-glow':      'rgba(16, 185, 129, 0.28)',
+      'text-primary':      '#F1F5F9',
+      'text-secondary':    '#94A3B8',
+      'text-muted':        '#64748B',
+      border:              '#1E293B',
+      success:             '#10B981',
+      warning:             '#F59E0B',
+      error:               '#EF4444',
+      'logo-primary':      '#10B981',
+      'logo-secondary':    '#06B6D4',
+      'logo-border':       'rgba(16, 185, 129, 0.24)',
+      'logo-border-hover': 'rgba(16, 185, 129, 0.40)',
+      'logo-shadow':       'rgba(25, 40, 80, 0.50)',
+    },
+  },
+];
+
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly THEME_KEY = 'selected-theme-id';
@@ -27,6 +80,10 @@ export class ThemeService {
   private themeRegistry = new Map<string, ThemeDefinition>();
 
   constructor() {
+    // Register built-in themes immediately so the page has correct colors
+    // before the profile API responds.
+    this.registerThemes(BUILT_IN_THEMES);
+
     // Automatically re-apply theme tokens whenever the ID or Dark Mode changes
     effect(() => {
       this.applyTheme(this.currentThemeId(), this.isDark());
@@ -97,7 +154,4 @@ export class ThemeService {
       root.style.setProperty(`--${key.replace(/_/g, '-')}`, value);
     });
   }
-
-
-
 }
