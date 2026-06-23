@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, Output, EventEmitter, Injector, computed, PLATFORM_ID, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, OnDestroy, Output, EventEmitter, Injector, computed, signal, PLATFORM_ID, Inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -15,6 +15,7 @@ const MOBILE_BREAKPOINT = 900;
 @Component({
   selector: 'app-navigation',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -53,8 +54,24 @@ export class NavigationComponent extends CommonApp implements OnInit, OnDestroy 
   // ── Computed signals ─────────────────────────────────────────
   profileData = computed(() => this.appService.profile());
   notifications = computed(() => this.appService.notifications());
+  isScrolled = signal(false);
+  activeSection = signal('home');
+  scrollProgress = signal(0);
+
   private readonly _onResize = this._handleResize.bind(this);
-  // private router = this.injector.get(Router);
+  private readonly _onScroll = () => {
+    this.isScrolled.set(window.scrollY > 50);
+    const total = document.body.scrollHeight - window.innerHeight;
+    this.scrollProgress.set(total > 0 ? (window.scrollY / total) * 100 : 0);
+  };
+  private _sectionObserver: IntersectionObserver | undefined;
+
+  // Maps section element IDs → menu item keys (they differ for about/aboutMe)
+  private readonly _sectionKeyMap: Record<string, string> = {
+    home: 'home', about: 'aboutMe', skills: 'skills',
+    experience: 'experience', projects: 'projects',
+    testimonials: 'testimonials', contact: 'contact',
+  };
   private isBrowser: boolean;
   
   constructor(
@@ -67,15 +84,33 @@ export class NavigationComponent extends CommonApp implements OnInit, OnDestroy 
 
   ngOnInit() {
     if (this.isBrowser) {
-      this._handleResize();                            // set initial state
+      this._handleResize();
+      this._onScroll();
       window.addEventListener('resize', this._onResize);
+      window.addEventListener('scroll', this._onScroll, { passive: true });
+      this._initSectionObserver();
     }
   }
 
   ngOnDestroy() {
     if (this.isBrowser) {
-      window.removeEventListener('resize', this.checkMobile.bind(this));
+      window.removeEventListener('resize', this._onResize);
+      window.removeEventListener('scroll', this._onScroll);
     }
+    this._sectionObserver?.disconnect();
+  }
+
+  private _initSectionObserver(): void {
+    if (!this.isBrowser) return;
+    this._sectionObserver = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) {
+          this.activeSection.set(this._sectionKeyMap[e.target.id] ?? e.target.id);
+        }
+      }),
+      { threshold: 0.4 }
+    );
+    document.querySelectorAll('section[id]').forEach(s => this._sectionObserver!.observe(s));
   }
 
   checkMobile() {

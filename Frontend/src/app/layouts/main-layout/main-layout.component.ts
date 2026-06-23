@@ -5,7 +5,11 @@ import {
   OnInit,
   OnDestroy,
   computed,
- ChangeDetectionStrategy } from '@angular/core';
+  signal,
+  PLATFORM_ID,
+  Inject,
+  ChangeDetectionStrategy } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { THEME_NAME_MAP } from 'src/app/core/config/theme.config';
@@ -43,13 +47,20 @@ const MOBILE_BREAKPOINT = 900;
 export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy {
 
   isSettingsPanelOpen = false;
+  showScrollTop = signal(false);
+  private isBrowser: boolean;
 
   availableThemes = computed(() =>
     this.normalizeThemesResponse(this.appService.profile()?.themes ?? [])
   );
 
-  constructor(public override injector: Injector, private confirmationService: ConfirmationService) {
+  constructor(
+    public override injector: Injector,
+    private confirmationService: ConfirmationService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
     super(injector);
+    this.isBrowser = isPlatformBrowser(this.platformId);
 
     this.appConfig.theme.name = 'theme-6';
     this.appConfig.appConfiguration.type = 'sidebar';   // 'sidebar' | 'navbar'
@@ -114,6 +125,19 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   onThemeChange(theme: { id: string; name: string }): void {
     this.appConfig.theme.name = theme.name;
     this.themeService.setTheme(theme.id);
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (this.isBrowser) {
+      this.showScrollTop.set(window.scrollY > 500);
+    }
+  }
+
+  scrollTop(): void {
+    if (this.isBrowser) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   @HostListener('window:resize')

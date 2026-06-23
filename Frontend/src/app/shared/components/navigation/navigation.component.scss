@@ -46,28 +46,32 @@
 
 // ── Root nav element ─────────────────────────────────────────
 .nav-bar {
-  position: relative;           // anchor for the mobile dropdown
-  // 100vw minus any scrollbar — ensures the bar never falls short
-  // when the parent grid column is transitioning widths.
+  position: relative;
   width: 100%;
   min-width: 0;
   height: var(--topbar-height, 64px);
-
-  // Explicit opaque background — required so scrolling content
-  // never bleeds through. The !important guard prevents any global
-  // reset or Bootstrap utility from accidentally making this transparent.
-  background: var(--background) !important;
-  // Frosted-glass fallback for the token-fetch window on first paint
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
+  background: var(--background);
   color: var(--text-primary);
   border-bottom: 1px solid var(--border);
-  // Glow shadow uses the primary-glow token for a subtle brand tint
   box-shadow: 0 2px 8px var(--primary-glow);
-  transition: background var(--global-transition-speed),
-              border-color var(--global-transition-speed),
-              box-shadow var(--global-transition-speed);
+  // Smooth transition for all visual states
+  transition: background 0.35s ease, border-color 0.35s ease,
+              box-shadow 0.35s ease, backdrop-filter 0.35s ease;
+}
+
+// ── Navbar mode: transparent at scroll=0, frosted when scrolled ─
+.nav-bar--navbar {
+  background: transparent;
+  border-bottom-color: transparent;
+  box-shadow: none;
+
+  &.nav-bar--scrolled {
+    background: color-mix(in oklab, var(--background) 90%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom-color: var(--border);
+    box-shadow: 0 2px 8px var(--primary-glow);
+  }
 }
 
 // ── Inner flex row ────────────────────────────────────────────
@@ -394,6 +398,57 @@
 .animate-nav-slide-in {
   opacity: 0;
   animation: navSlideIn 0.6s cubic-bezier(.77, 0, .18, 1) 0.2s forwards;
+}
+
+// ── Scroll progress bar (emerald→cyan gradient, 2px at nav bottom) ──
+.nav-bar__progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #10B981, #06B6D4);
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+// ── Notification badge (admin bell icon) ─────────────────────
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--error);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+// ── "Hire Me" pill CTA ────────────────────────────────────────
+.nav-bar__btn-hire-me {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.25rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45);
+  }
 }
 
 // ── Reduced-motion ────────────────────────────────────────────

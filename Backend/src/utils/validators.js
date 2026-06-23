@@ -61,9 +61,9 @@ const chatValidators = {
       'string.max': 'Message is too long (max 1000 characters)',
       'any.required': 'Message is required',
     }),
-    sessionId: Joi.string().uuid().optional(),
-    userId: Joi.string().uuid().optional(),
-    role: Joi.string().valid('admin', 'guest').optional(),
+    sessionId: Joi.string().uuid().allow(null).optional(),
+    userId: Joi.string().uuid().allow(null).optional(),
+    role: Joi.string().lowercase().valid('admin', 'guest').allow(null).optional(),
   }),
 
   createSession: Joi.object({
@@ -149,3 +149,4 @@ module.exports = {
   profileValidators,
   validate,
 };
+

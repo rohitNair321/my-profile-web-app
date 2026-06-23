@@ -220,6 +220,13 @@
 </aside>
 }
 
+<!-- ⑦ SCROLL-TO-TOP FAB — fixed bottom-right, visible after 500px scroll -->
+@if (showScrollTop()) {
+<button class="scroll-top-fab" (click)="scrollTop()" aria-label="Back to top" title="Back to top">
+  <span class="material-icons">keyboard_arrow_up</span>
+</button>
+}
+
 <p-confirmDialog></p-confirmDialog>
 <app-christmas-animation></app-christmas-animation>
 <app-new-year-animation></app-new-year-animation>

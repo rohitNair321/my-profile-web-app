@@ -1,4 +1,4 @@
-import { ApplicationConfig, ErrorHandler, importProvidersFrom, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { GlobalErrorHandler } from './shared/components/ui/error-boundary/error-boundary.component';
 
 import { provideRouter, withHashLocation, withInMemoryScrolling } from '@angular/router';
@@ -71,9 +71,9 @@ export const appConfig: ApplicationConfig = {
     ),
     // APP_INITIALIZER: Restore user session before app loads
     provideAppInitializer(() => {
-        const authService = new AuthService();
+        const authService = inject(AuthService);
         return initializeApp(authService)();
-      }), 
+      }),
     provideClientHydration(),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     GlobalErrorHandler,

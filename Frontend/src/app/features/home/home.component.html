@@ -3,6 +3,7 @@
 
     <!-- HERO SECTION - Modern Split Layout -->
     <section id="home" class="hero-section animate-section">
+      <canvas #particleCanvas class="particle-canvas" aria-hidden="true"></canvas>
       <div class="hero-bg-pattern"></div>
       <div class="container">
         <div class="hero-grid">
@@ -16,7 +17,11 @@
               <span class="title-greeting">Hi, I'm</span>
               <span class="title-name">{{ homeData?.full_name }}</span>
             </h1>
-            
+
+            <div class="hero-role">
+              <span class="typewriter-text">{{ typewriterText() }}</span><span class="typewriter-cursor">|</span>
+            </div>
+
             <p class="hero-description">
               {{ homeData?.short_bio || 'Building exceptional digital experiences with modern web technologies. Specialized in creating scalable, performant applications.' }}
             </p>
@@ -54,8 +59,17 @@
             <div class="hero-image-wrapper">
               <div class="image-glow"></div>
               <img [src]="homeData?.avatar_url" [alt]="homeData?.full_name || 'Rohit Nair — Full Stack Developer'" loading="eager" class="hero-image">
-              <div class="hero-tagline">
-                <span>{{ (homeData?.experiences?.[0]?.role || 'Developer') }}</span>
+              <div class="hero-chip hero-chip--tl">
+                <i class="material-icons" style="font-size:14px;color:#10B981">bolt</i>Angular 19
+              </div>
+              <div class="hero-chip hero-chip--tr">
+                <i class="material-icons" style="font-size:14px;color:#3178C6">code</i>TypeScript
+              </div>
+              <div class="hero-chip hero-chip--bl">
+                <i class="material-icons" style="font-size:14px;color:#06B6D4">hub</i>RxJS
+              </div>
+              <div class="hero-chip hero-chip--br">
+                <i class="material-icons" style="font-size:14px;color:#6366F1">account_balance</i>Finance
               </div>
             </div>
           </div>
@@ -131,6 +145,80 @@
       </div>
     </section>
 
+    <!-- SKILLS SECTION - 4-Column Category Grid -->
+    <section id="skills" class="skills-section animate-section">
+      <div class="container">
+        <div class="section-header centered">
+          <span class="section-badge">Technical Skills</span>
+          <h2 class="section-title">What I Work With</h2>
+        </div>
+        <div class="skills-grid">
+          @for (cat of SKILL_CATEGORIES; track cat.name) {
+            <div class="skill-card">
+              <div class="skill-card__icon" [style.background]="cat.color + '18'" [style.color]="cat.color">
+                <i class="material-icons">{{ cat.icon }}</i>
+              </div>
+              <h4 class="skill-card__name">{{ cat.name }}</h4>
+              <div class="skill-tags">
+                @for (s of cat.skills; track s) {
+                  <span class="skill-mono">{{ s }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE SECTION - Vertical Timeline -->
+    <section id="experience" class="experience-section animate-section">
+      <div class="container">
+        <div class="section-header centered">
+          <span class="section-badge">Work History</span>
+          <h2 class="section-title">Professional Experience</h2>
+        </div>
+        @if ((homeData?.experiences?.length ?? 0) > 0) {
+          <div class="timeline">
+            @for (exp of homeData.experiences; track exp; let i = $index) {
+              <div class="timeline-item" [class.timeline-item--expanded]="expandedExp() === i" (click)="toggleExp(i)">
+                <div class="timeline-node" [style.borderColor]="i % 2 === 0 ? '#10B981' : '#06B6D4'"></div>
+                <div class="timeline-card" [style.borderLeftColor]="i % 2 === 0 ? '#10B981' : '#06B6D4'">
+                  <div class="timeline-header">
+                    <div class="timeline-badge" [style.background]="i % 2 === 0 ? '#10B98122' : '#06B6D422'" [style.color]="i % 2 === 0 ? '#10B981' : '#06B6D4'">
+                      {{ exp.company?.substring(0, 2)?.toUpperCase() || 'CO' }}
+                    </div>
+                    <div class="timeline-meta">
+                      <div class="timeline-role">{{ exp.role }}</div>
+                      <div class="timeline-company">{{ exp.company }}</div>
+                    </div>
+                    <div class="timeline-right">
+                      <span class="timeline-period">{{ exp.startDate }} – {{ exp.present ? 'Present' : exp.endDate }}</span>
+                      @if (exp.location) {
+                        <span class="timeline-location">{{ exp.location }}</span>
+                      }
+                    </div>
+                    <i class="material-icons timeline-chevron">{{ expandedExp() === i ? 'expand_less' : 'expand_more' }}</i>
+                  </div>
+                  @if (expandedExp() === i && exp.description) {
+                    <div class="timeline-body">
+                      <p>{{ exp.description }}</p>
+                      @if ((exp.projects?.length ?? 0) > 0) {
+                        <div class="timeline-tech">
+                          @for (proj of exp.projects; track proj.name) {
+                            <span class="tech-tag">{{ proj.name }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
     <!-- PROJECTS SECTION - Modern Card Grid -->
     <section id="projects" class="projects-section animate-section">
       <div class="container">
@@ -191,6 +279,31 @@
             <span>View All Projects</span>
             <i class="material-icons">grid_view</i>
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS SECTION - 3-Column Quote Grid -->
+    <section id="testimonials" class="testimonials-section animate-section">
+      <div class="container">
+        <div class="section-header centered">
+          <span class="section-badge">Testimonials</span>
+          <h2 class="section-title">What People Say</h2>
+        </div>
+        <div class="testimonials-grid">
+          @for (t of TESTIMONIALS; track t.name) {
+            <div class="testimonial-card">
+              <div class="testimonial-quote-mark" [style.color]="t.color">"</div>
+              <p class="testimonial-text">{{ t.quote }}</p>
+              <div class="testimonial-author">
+                <div class="testimonial-avatar" [style.background]="t.color + '22'" [style.color]="t.color">{{ t.initials }}</div>
+                <div class="testimonial-info">
+                  <span class="testimonial-name">{{ t.name }}</span>
+                  <span class="testimonial-role">{{ t.role }}</span>
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </div>
     </section>

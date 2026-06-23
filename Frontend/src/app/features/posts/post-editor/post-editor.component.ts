@@ -1,5 +1,5 @@
 import {
-  Component, OnInit, OnDestroy, inject, signal, computed, Injector
+  ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, signal, computed, Injector
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -15,6 +15,7 @@ type TabId = 'editor' | 'seo';
 @Component({
   selector: 'app-post-editor',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, QuillEditorComponent],
   templateUrl: './post-editor.component.html',
   styleUrls: ['./post-editor.component.scss'],

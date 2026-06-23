@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Injector, OnDestroy, OnInit, Renderer2, computed, inject , ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, Injector, OnDestroy, OnInit, PLATFORM_ID, Renderer2, ViewChild, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -57,16 +57,69 @@ interface HomeData { hero: Hero; aboutTeaser?: AboutTeaser; contact?: ContactInf
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeComponent extends CommonApp implements OnInit, OnDestroy {
+export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, OnDestroy {
+
+  @ViewChild('particleCanvas') private canvasRef?: ElementRef<HTMLCanvasElement>;
+  private animationId: number | undefined;
 
   private sanitizer = inject(DomSanitizer);
   private seo = inject(SeoService);
+  private platformId = inject(PLATFORM_ID);
 
-  homeData: any = { experiences: [] }; // Initialize with safe defaults
+  homeData: any = { experiences: [] };
 
   get safeDescription(): SafeHtml {
     return this.sanitizer.sanitize(SecurityContext.HTML, this.homeData?.description ?? '') ?? '';
   }
+
+  // TypeWriter
+  readonly ROLES = [
+    'Frontend Developer',
+    'Angular 19 Specialist',
+    'UI/UX Engineer',
+    'RxJS & Signals Expert',
+    'Full-Stack Developer'
+  ];
+  typewriterText = signal('');
+  private twHandle: ReturnType<typeof setTimeout> | undefined;
+
+  // Skills grid
+  readonly SKILL_CATEGORIES = [
+    { icon: 'web', color: '#10B981', name: 'Frontend', skills: ['Angular 19', 'TypeScript', 'JavaScript ES2024', 'SCSS', 'HTML5', 'CSS Grid/Flex'] },
+    { icon: 'layers', color: '#06B6D4', name: 'UI Libraries', skills: ['PrimeNG 19', 'Bootstrap 5', 'Highcharts', 'Angular Material', 'RxJS 7', 'NgRx'] },
+    { icon: 'architecture', color: '#6366F1', name: 'Architecture', skills: ['Signals', 'Standalone', 'SSO/OAuth', 'SSR + CSR', 'REST APIs', 'HTTP Interceptors'] },
+    { icon: 'build', color: '#F59E0B', name: 'Tools', skills: ['Git + GitHub', 'Node.js', 'VS Code', 'Figma', 'Angular CLI', 'GitHub Actions'] }
+  ];
+
+  // Experience timeline
+  expandedExp = signal<number | null>(null);
+  toggleExp(i: number) { this.expandedExp.update(v => v === i ? null : i); }
+
+  // Testimonials
+  readonly TESTIMONIALS = [
+    {
+      quote: 'Rohit delivered the PFM dashboard ahead of schedule with pixel-perfect attention to detail. His Angular expertise and proactive communication made the project a pleasure.',
+      name: 'Priya Sharma',
+      role: 'Engineering Manager, Fiserv',
+      initials: 'PS',
+      color: '#10B981',
+    },
+    {
+      quote: 'Outstanding work on the Wealthermapper UI. Rohit translated complex financial data into clean, intuitive interfaces that our traders loved from day one.',
+      name: 'Marcus Lindqvist',
+      role: 'Product Owner, Handelsbanken',
+      initials: 'ML',
+      color: '#06B6D4',
+    },
+    {
+      quote: "Rohit's knowledge of Angular signals and SSR patterns is exceptional. He refactored our suitability test app and cut load time by 40% without breaking a single test.",
+      name: 'Ananya Iyer',
+      role: 'Tech Lead, Capgemini',
+      initials: 'AI',
+      color: '#6366F1',
+    },
+  ];
+
   contactForm: FormGroup;
   projectList: any[] = [];
   experienceYears = 5;
@@ -102,6 +155,7 @@ export class HomeComponent extends CommonApp implements OnInit, OnDestroy {
       keywords: 'Full Stack Developer, Angular, Node.js, TypeScript, Pune, India',
       url: 'https://www.mintpixel.in/#/home',
     });
+    this.startTypewriter();
     const profile = this.profileData();
     if (profile) {
       this.homeData = profile;
@@ -183,7 +237,76 @@ export class HomeComponent extends CommonApp implements OnInit, OnDestroy {
     // this.alertService.showAlert(`This about me page is under development, will be in functional soon!!`, 'info');
   }
 
+  ngAfterViewInit() {
+    this.initParticles();
+  }
+
+  private initParticles(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.canvasRef) return;
+    const canvas = this.canvasRef.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = Array.from({ length: 55 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: 0.3 + Math.random() * 1.6,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dark = document.documentElement.classList.contains('dark');
+      ctx.fillStyle = dark ? '#06B6D4' : '#10B981';
+      ctx.globalAlpha = 0.55;
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      this.animationId = requestAnimationFrame(draw);
+    };
+    draw();
+  }
+
+  private startTypewriter(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.typewriterText.set(this.ROLES[0]);
+      return;
+    }
+    let roleIdx = 0, charIdx = 0, deleting = false;
+    const tick = () => {
+      const role = this.ROLES[roleIdx];
+      if (!deleting) {
+        this.typewriterText.set(role.substring(0, ++charIdx));
+        if (charIdx === role.length) {
+          this.twHandle = setTimeout(() => { deleting = true; tick(); }, 2000);
+          return;
+        }
+      } else {
+        this.typewriterText.set(role.substring(0, --charIdx));
+        if (charIdx === 0) { deleting = false; roleIdx = (roleIdx + 1) % this.ROLES.length; }
+      }
+      this.twHandle = setTimeout(tick, deleting ? 40 : 72);
+    };
+    tick();
+  }
+
   ngOnDestroy() {
+    if (this.twHandle) clearTimeout(this.twHandle);
+    if (this.animationId) cancelAnimationFrame(this.animationId);
     this.destroy$.next();
     this.destroy$.complete();
   }

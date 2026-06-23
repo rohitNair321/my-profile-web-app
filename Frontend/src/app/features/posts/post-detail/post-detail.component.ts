@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, signal, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Meta, Title, DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -9,6 +9,7 @@ import { Subject, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-post-detail',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterLink],
   templateUrl: './post-detail.component.html',
   styleUrls: ['./post-detail.component.scss'],
@@ -128,20 +129,20 @@ export class PostDetailComponent extends CommonApp implements OnInit, OnDestroy 
   }
 
   shareOnLinkedIn(): void {
-    const url = encodeURIComponent(`https://www.mintpixel.in/posts/${this.post()?.slug}`);
+    const url = encodeURIComponent(`https://rohitnair-dev.onrender.com/#/posts/${this.post()?.slug}`);
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'noopener,noreferrer');
   }
 
   shareOnTwitter(): void {
     const post = this.post();
     if (!post) return;
-    const url = encodeURIComponent(`https://www.mintpixel.in/posts/${post.slug}`);
+    const url = encodeURIComponent(`https://rohitnair-dev.onrender.com/#/posts/${post.slug}`);
     const text = encodeURIComponent(post.title);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'noopener,noreferrer');
   }
 
   copyLink(): void {
-    navigator.clipboard.writeText(`https://www.mintpixel.in/posts/${this.post()?.slug}`)
+    navigator.clipboard.writeText(`https://rohitnair-dev.onrender.com/#/posts/${this.post()?.slug}`)
       .then(() => alert('Link copied!'))
       .catch(() => {});
   }
