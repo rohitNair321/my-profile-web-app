@@ -67,6 +67,7 @@ $card-hover-sh : 0 8px 28px var(--primary-glow, rgba(0,0,0,0.14));
 }
 
 .pp__title {
+  font-family: var(--font-family-heading);
   font-size: clamp(1.6rem, 4vw, 2.4rem);
   font-weight: 900;
   color: var(--text-primary);

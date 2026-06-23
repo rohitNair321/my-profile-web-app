@@ -10,9 +10,10 @@
   margin-bottom: 40px;
 
   &__title {
+    font-family: var(--font-family-heading);
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;
-    color: var(--text-primary, #1e293b);
+    color: var(--text-primary);
     margin-bottom: 8px;
   }
 
