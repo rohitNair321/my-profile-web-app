@@ -57,11 +57,12 @@
 
 .section-title {
   font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-family: var(--font-family-heading);
   font-weight: 800;
   line-height: 1.2;
   color: var(--text-primary);
   margin: 0;
-  
+
   @media (min-width: 768px) {
     font-size: clamp(2rem, 4vw, 3rem);
   }
@@ -356,6 +357,7 @@
   
   .title-name {
     display: block;
+    font-family: var(--font-family-heading);
     font-size: clamp(2rem, 8vw, 3.5rem);
     font-weight: 800;
     background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
@@ -400,6 +402,7 @@
   flex-direction: column;
   
   .stat-number {
+    font-family: var(--font-family-heading);
     font-size: 1.5rem;
     font-weight: 800;
     color: var(--primary);
