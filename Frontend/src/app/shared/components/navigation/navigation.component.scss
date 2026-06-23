@@ -321,7 +321,7 @@
 
 // ── Logo ──────────────────────────────────────────────────────
 .logo-initials {
-  font-family: var(--font-family-heading, 'Montserrat', sans-serif);
+  font-family: var(--font-family-heading);
   font-weight: 900;
   font-size: 2rem;
   width: 46px;
@@ -370,6 +370,7 @@
 }
 
 .logo-name {
+  font-family: var(--font-family-heading);
   font-size: 1.2rem;
   font-weight: 700;
   display: inline-flex;

@@ -3,7 +3,7 @@
    ========================================================================== */
 :host {
   display: block;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family-base);
   box-sizing: border-box;
 }
 
@@ -44,7 +44,7 @@
    Common Cell Styles & Utility Classes
    ========================================================================== */
 .grid-cell {
-  border: 1px solid; /* Uses border token implicitly */
+  border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -67,7 +67,7 @@
 
 /* Applied globally via main context, kept here for reference */
 .shadow-card {
-  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.9); /* Hard brutalist shadow */
+  box-shadow: var(--shadow-md);
 }
 
 /* ==========================================================================
@@ -93,11 +93,13 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  border: 4px solid; /* Will use primary color */
+  border: 3px solid var(--primary);
   object-fit: cover;
+  object-position: center top;
 }
 
 .display-name {
+  font-family: var(--font-family-heading);
   font-size: 3rem;
   font-weight: 800;
   line-height: 1;
@@ -115,10 +117,13 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.5); /* Slight tint over surface-alt */
+  padding: 0.875rem 1rem;
+  background: var(--surface);
   border-radius: 8px;
-  border: 1px solid; /* implicitly neutral-100 or border */
+  border: 1px solid var(--border);
+  transition: border-color 0.2s ease;
+
+  &:hover { border-color: var(--primary); }
 }
 
 .tech-icon {
@@ -128,6 +133,7 @@
 
 /* 3. Story Cell */
 .section-title {
+  font-family: var(--font-family-heading);
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;

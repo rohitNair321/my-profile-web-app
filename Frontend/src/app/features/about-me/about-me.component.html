@@ -5,15 +5,15 @@
     <section class="grid-cell hero-cell surface shadow-card">
       <div class="cell-content">
         <div class="badge-row">
-          <span class="badge badge-primary">{{'PORTFOLIO'}}</span>
-          <span class="badge badge-outline">{{'ISSUE #28'}}</span>
+          <span class="badge badge-primary">PORTFOLIO</span>
+          <span class="badge badge-outline">ISSUE #28</span>
         </div>
         <div class="profile-header">
-          <img [src]="profileData()?.avatar_url" alt="{{'Rohit'}}" class="profile-avatar border-primary">
+          <img [src]="profileData()?.avatar_url" [alt]="profileData()?.full_name || 'Rohit Nair'" class="profile-avatar border-primary">
           <div class="profile-titles">
-            <span class="card-label">{{"Hello, I'm"}}</span>
-            <h1 class="display-name">{{'Rohit'}}</h1>
-            <p class="subtitle text-secondary">{{'Systems Engineer & Full Stack Architect'}}</p>
+            <span class="card-label">Hello, I'm</span>
+            <h1 class="display-name">{{ profileData()?.full_name?.split(' ')[0] || 'Rohit' }}</h1>
+            <p class="subtitle text-secondary">{{ profileData()?.description?.split('.')[0] || 'Frontend Developer · Finance Specialist' }}</p>
           </div>
         </div>
       </div>
@@ -21,23 +21,23 @@
 
     <section class="grid-cell tech-cell surface-alt shadow-card">
       <div class="cell-content">
-        <h3 class="cell-heading text-primary">{{'Toolkit'}}</h3>
+        <h3 class="cell-heading text-primary">Toolkit</h3>
         <div class="tech-list">
           <div class="tech-item">
-            <span class="tech-icon">🅰️</span>
-            <span class="tech-name">Angular</span>
+            <span class="tech-icon"><i class="material-icons" style="color:#DD0031;font-size:1.1rem">web</i></span>
+            <span class="tech-name">Angular 19</span>
           </div>
           <div class="tech-item">
-            <span class="tech-icon">TS</span>
+            <span class="tech-icon"><i class="material-icons" style="color:#3178C6;font-size:1.1rem">code</i></span>
             <span class="tech-name">TypeScript</span>
           </div>
           <div class="tech-item">
-            <span class="tech-icon">⬢</span>
+            <span class="tech-icon"><i class="material-icons" style="color:#3C873A;font-size:1.1rem">storage</i></span>
             <span class="tech-name">Node.js</span>
           </div>
           <div class="tech-item">
-            <span class="tech-icon">Rx</span>
-            <span class="tech-name">RxJS</span>
+            <span class="tech-icon"><i class="material-icons" style="color:#B7178C;font-size:1.1rem">hub</i></span>
+            <span class="tech-name">RxJS 7</span>
           </div>
         </div>
       </div>
@@ -45,33 +45,38 @@
 
     <section class="grid-cell story-cell surface shadow-card">
       <div class="cell-content">
-        <h2 class="section-title text-primary">{{'Building at Scale'}}</h2>
+        <h2 class="section-title text-primary">Building at Scale</h2>
         <p class="story-paragraph text-secondary">
-          {{ "Every great system begins with a single question: How can we make this resilient enough to outlast the current trend? In my career as a Full Stack Architect, I've learned that " }}
-          <strong class="text-primary">{{ 'code is temporary, but structure is permanent' }}</strong>{{ '.' }}
+          Every great system begins with a single question: How can we make this resilient enough
+          to outlast the current trend? In my career as a Frontend Developer, I've learned that
+          <strong class="text-primary">architecture outlasts any framework version</strong>.
+          I specialise in Angular-based enterprise applications for Finance &amp; Wealth Management
+          — where precision, accessibility, and performance aren't optional.
         </p>
       </div>
     </section>
 
     <section class="grid-cell image-cell shadow-card">
-      <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?fit=crop&w=800&q=80" alt="{{'Workspace'}}">
+      <img [src]="profileData()?.avatar_url"
+           [alt]="profileData()?.full_name || 'Rohit Nair'"
+           style="width:100%;height:100%;object-fit:cover;object-position:center top">
     </section>
 
     <section class="grid-cell stats-cell neutral-100 shadow-card">
       <div class="cell-content stats-row">
         <div class="stat-block">
-          <span class="stat-number text-primary">{{'5+'}}</span>
-          <span class="stat-label text-muted">{{'Years Experience'}}</span>
+          <span class="stat-number text-primary">4.5+</span>
+          <span class="stat-label text-muted">Years Experience</span>
         </div>
         <div class="stat-divider border"></div>
         <div class="stat-block">
-          <span class="stat-number text-primary">{{'50+'}}</span>
-          <span class="stat-label text-muted">{{'Projects Delivered'}}</span>
+          <span class="stat-number text-primary">4</span>
+          <span class="stat-label text-muted">Live Products</span>
         </div>
         <div class="stat-divider border"></div>
         <div class="stat-block">
-          <span class="stat-number success">{{'100%'}}</span>
-          <span class="stat-label text-muted">{{'Commitment'}}</span>
+          <span class="stat-number success">100%</span>
+          <span class="stat-label text-muted">Commitment</span>
         </div>
       </div>
     </section>
@@ -80,12 +85,12 @@
 
   <section class="cta-banner surface shadow-card border-accent">
     <div class="cta-content">
-      <h3 class="cta-title text-primary">{{'Ready to Build Something Amazing?'}}</h3>
-      <p class="cta-desc text-secondary">{{"Currently accepting new freelance projects and full-time opportunities."}}</p>
+      <h3 class="cta-title text-primary">Ready to Build Something Amazing?</h3>
+      <p class="cta-desc text-secondary">Currently accepting new projects and full-time opportunities.</p>
     </div>
     <button class="btn-primary" (click)="openContactDialog()">
-      <span class="btn-text">{{'Get in Touch'}}</span>
-      <span class="btn-icon">→</span>
+      <span class="btn-text">Get in Touch</span>
+      <span class="btn-icon">&#8594;</span>
     </button>
   </section>
 
