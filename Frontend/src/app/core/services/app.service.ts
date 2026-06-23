@@ -114,7 +114,26 @@ export class AppService {
     }
 
     aiChat(message: string, sessionId: string | null): Observable<AiChatResponse> {
-        return this.http.post<{ data: AiChatResponse }>(this.apiAIChatUrl, { message, sessionId, userId: this.profile()?.id, role: this.role() })
+        const payload: Record<string, string> = {
+            message,
+        };
+
+        const profileId = this.profile()?.id;
+        const normalizedRole = this.role()?.toLowerCase();
+
+        if (sessionId) {
+            payload['sessionId'] = sessionId;
+        }
+
+        if (profileId) {
+            payload['userId'] = profileId;
+        }
+
+        if (normalizedRole === 'admin' || normalizedRole === 'guest') {
+            payload['role'] = normalizedRole;
+        }
+
+        return this.http.post<{ data: AiChatResponse }>(this.apiAIChatUrl, payload)
             .pipe(map(r => r.data));
     }
 
@@ -234,3 +253,4 @@ interface AiChatResponse {
     sessionId: string;
     limitReached?: boolean;
 }
+

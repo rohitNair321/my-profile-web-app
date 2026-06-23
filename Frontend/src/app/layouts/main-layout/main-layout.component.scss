@@ -93,9 +93,13 @@
   z-index: var(--topbar-z);
   width: 100%;
   background: var(--background);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   isolation: isolate;
+}
+
+// In navbar (public) mode the nav component owns the background
+// so the hero can show through at scroll=0.
+.app-shell[data-layout="navbar"] .app-shell__topbar {
+  background: transparent;
 }
 
 // ── Sidebar — grid child, collapses when column = 0 ──────────
@@ -667,5 +671,50 @@
 @media (prefers-reduced-motion: reduce) {
   .app-settings-panel {
     animation: none;
+  }
+}
+
+/* =============================================================
+   SCROLL-TO-TOP FAB
+   Fixed bottom-right, gradient emerald→cyan, appears at 500px
+   ============================================================= */
+.scroll-top-fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 5rem; // offset left of the settings trigger
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #10B981, #06B6D4);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+  z-index: calc(var(--topbar-z, 1060) + 5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: fabIn 0.2s ease forwards;
+
+  .material-icons { font-size: 1.5rem; }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
+  }
+}
+
+@keyframes fabIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 900px) {
+  .scroll-top-fab {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 42px;
+    height: 42px;
   }
 }

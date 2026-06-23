@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, Input, OnInit, HostListener, Injector, Inject, computed, EventEmitter, Output, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, HostListener, Injector, Inject, computed, EventEmitter, Output, PLATFORM_ID } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -17,6 +17,7 @@ const MOBILE_BREAKPOINT = 900;
 @Component({
   selector: 'app-sidebar',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,

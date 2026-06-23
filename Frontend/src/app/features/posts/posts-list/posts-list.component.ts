@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PostService, Post } from 'src/app/core/services/post.service';
@@ -9,6 +9,7 @@ import { CommonApp } from 'src/app/core/services/common';
 @Component({
   selector: 'app-posts-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, PostCardComponent],
   templateUrl: './posts-list.component.html',
   styleUrls: ['./posts-list.component.scss'],

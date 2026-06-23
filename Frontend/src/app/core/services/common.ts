@@ -38,7 +38,9 @@ export class CommonApp {
 
     this.menuItems = [
       new MenuItem({ label: 'Home', key: 'home', href: '#home', icon: 'home' }),
-      new MenuItem({ label: 'About Me', key: 'aboutMe', href: '#about', icon: 'person' }),
+      new MenuItem({ label: 'About', key: 'aboutMe', href: '#about', icon: 'person' }),
+      new MenuItem({ label: 'Skills', key: 'skills', href: '#skills', icon: 'code' }),
+      new MenuItem({ label: 'Experience', key: 'experience', href: '#experience', icon: 'work_history' }),
       new MenuItem({ label: 'Projects', key: 'projects', href: '#projects', icon: 'work' }),
       new MenuItem({ label: 'Posts', key: 'posts', routerLink: '/posts', icon: 'article', isHide: true }),
       new MenuItem({ label: 'Contact', key: 'contact', href: '#contact', icon: 'mail' }),
@@ -73,20 +75,12 @@ export class CommonApp {
    */
   scrollToSection(event: Event, target: string): void {
     event.preventDefault();
-    const element = document.querySelector(target);
-
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest'
-      });
-    } else {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }
+    if (!target) return;
+    const el = document.querySelector(target);
+    if (!el) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    // Offset by topbar height (64px) + 8px breathing room
+    const top = el.getBoundingClientRect().top + window.scrollY - 72;
+    window.scrollTo({ top, behavior: 'smooth' });
   }
 
   public normalizeThemesResponse(raw: any): any[] {

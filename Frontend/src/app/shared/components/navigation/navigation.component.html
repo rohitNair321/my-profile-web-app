@@ -26,8 +26,10 @@
   ═══════════════════════════════════════════════════════════════
 -->
 
-<nav class="nav-bar" [class.nav-bar--navbar]="config?.appConfiguration?.type === 'navbar'"
+<nav class="nav-bar"
+  [class.nav-bar--navbar]="config?.appConfiguration?.type === 'navbar'"
   [class.nav-bar--sidebar]="config?.appConfiguration?.type === 'sidebar'"
+  [class.nav-bar--scrolled]="isScrolled()"
   [attr.data-collapsed]="config?.appConfiguration?.collapsed">
 
   <!-- ════════════════════════════════════════════════════
@@ -53,7 +55,7 @@
       @if (config?.appConfiguration?.logoLocationHeader || isMobile || config?.appConfiguration?.type === 'navbar') {
       <span class="logo-name ms-2">
         <span class="logo-rohit">Rohit</span>
-        <span class="logo-portfolio ms-1">Portfolio</span>
+        <span class="logo-portfolio ms-1">Nair</span>
       </span>
       }
     </a>
@@ -109,11 +111,12 @@
           }
         </li>
 
-        <!-- Type A: href scroll-links (Home, About, Projects, Contact) -->
-        <!-- No isHide guard — these are always public-facing links -->
+        <!-- Type A: href scroll-links (Home, About, Skills, Experience, Projects, Contact) -->
         } @else if (item.href) {
         <li>
-          <a [href]="item.href" class="nav-bar__link" (click)="scrollToSection($event, item.href)">
+          <a [href]="item.href" class="nav-bar__link"
+             [class.active]="activeSection() === item.key"
+             (click)="scrollToSection($event, item.href)">
             {{ item.label }}
           </a>
         </li>
@@ -130,14 +133,12 @@
         <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
       </button>
 
-      <!-- Logout — non-admin only -->
+      <!-- Hire Me CTA (guests) / Logout placeholder (admin) -->
       @if (appService.role() === 'ADMIN') {
-      <!-- <button class="nav-bar__icon-btn btn-logout" title="Logout" (click)="logout()">
-        <span class="material-icons">logout</span>
-      </button> -->
+        <!-- admin: no CTA needed in topbar -->
       } @else {
-      <button class="nav-bar__btn-login" title="Admin Login" (click)="navigateToLogin()">
-        <span class="material-icons me-1">login</span>
+      <button class="nav-bar__btn-hire-me" (click)="scrollToSection($event, '#contact')" title="Get in touch">
+        Hire Me
       </button>
       }
 
@@ -255,7 +256,9 @@
 
           <!-- Type A: href scroll-links — always visible, no isHide guard -->
           } @else if (item.href) {
-          <a class="nav-bar__mobile-link" [href]="item.href" (click)="onMobileItemClick($event, item)">
+          <a class="nav-bar__mobile-link" [href]="item.href"
+             [class.active]="activeSection() === item.key"
+             (click)="onMobileItemClick($event, item)">
             <span class="link-content d-flex align-items-center gap-3">
               <span class="material-icons">{{ item.icon || 'circle' }}</span>
               <span>{{ item.label }}</span>
@@ -293,5 +296,8 @@
     </div>
   </div>
   }
+
+  <!-- Scroll progress bar — 2px gradient line at nav bottom -->
+  <div class="nav-bar__progress-bar" [style.width.%]="scrollProgress()" aria-hidden="true"></div>
 
 </nav>

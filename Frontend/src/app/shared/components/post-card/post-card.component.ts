@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Post } from 'src/app/core/services/post.service';
@@ -6,6 +6,7 @@ import { Post } from 'src/app/core/services/post.service';
 @Component({
   selector: 'app-post-card',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterLink],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.scss'],

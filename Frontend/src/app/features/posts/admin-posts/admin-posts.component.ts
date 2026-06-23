@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +10,7 @@ type StatusFilter = '' | 'draft' | 'published' | 'archived';
 @Component({
   selector: 'app-admin-posts',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './admin-posts.component.html',
   styleUrls: ['./admin-posts.component.scss'],
