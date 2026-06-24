@@ -701,7 +701,7 @@ $card-hover-sh : 0 6px 24px var(--primary-glow, rgba(0, 0, 0, 0.14));
 
 .ad__page-path {
   display: block;
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-family: var(--font-family-mono, 'Cascadia Code', 'Fira Code', ui-monospace, monospace);
   font-size: 0.75rem;
   color: var(--text-muted);
 }

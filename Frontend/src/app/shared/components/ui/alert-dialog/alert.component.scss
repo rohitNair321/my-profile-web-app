@@ -33,7 +33,7 @@
   &.error { 
     border-left: 6px solid var(--error);
     i { color: var(--error); }
-    background: #fffcfc; // Light tint for error
+    background: color-mix(in oklab, var(--error) 4%, var(--surface));
   }
   &.warning { 
     border-left: 6px solid var(--warning);
