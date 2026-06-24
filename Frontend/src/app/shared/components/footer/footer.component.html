@@ -6,17 +6,17 @@
       <div class="footer-brand">
         <h3 class="brand-name">{{ profileData()?.full_name || 'ROHIT PORTFOLIO' }}</h3>
         <p class="brand-bio">
-          {{ 'Building exceptional digital experiences with modern web technologies.' }}
+          {{ profileData()?.description?.split('.')[0] || 'Building exceptional digital experiences with modern web technologies.' }}
         </p>
         <div class="social-links">
           <a class="social-icon" aria-label="LinkedIn" (click)="openLink($event, profileData()?.linkedin)">
-            <i class="material-icons">linkedin</i>
+            <i class="fab fa-linkedin-in"></i>
           </a>
           <a class="social-icon" aria-label="GitHub" (click)="openLink($event, profileData()?.github)">
-            <i class="material-icons">code</i>
+            <i class="fab fa-github"></i>
           </a>
           <a class="social-icon" aria-label="Email" [href]="'mailto:' + profileData()?.email">
-            <i class="material-icons">email</i>
+            <i class="material-icons" style="font-size:1.1rem">email</i>
           </a>
         </div>
       </div>

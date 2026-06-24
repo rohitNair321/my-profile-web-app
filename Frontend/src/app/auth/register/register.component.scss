@@ -2,11 +2,10 @@
 @use '../login/login.component.scss';
 
 :host {
-  // Local token mapping with fallbacks to the new light/bright scheme
-  --error-color: var(--error, #FF5252);
-  --text-secondary-color: var(--text_secondary, #5c6b7a);
-  --primary-color: var(--primary, #FF5252);
-  --accent-color: var(--accent, #4CAF50);
+  --error-color:           var(--error, #EF4444);
+  --text-secondary-color:  var(--text-secondary, #475569);
+  --primary-color:         var(--primary, #10B981);
+  --accent-color:          var(--accent, #06B6D4);
 }
 
 .register-card {
