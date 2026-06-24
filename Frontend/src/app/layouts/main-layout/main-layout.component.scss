@@ -160,6 +160,15 @@
   padding-bottom: 1.25rem;
 }
 
+// ── Navbar (public) mode: home page is full-bleed ────────────
+// Each section manages its own .container (max-width: 1280px).
+// The page wrapper must NOT add extra padding or width limits.
+.app-shell[data-layout="navbar"] .app-shell__page {
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
 .app-shell__footer {
   width: 100%;
   margin-top: auto;
