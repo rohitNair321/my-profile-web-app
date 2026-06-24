@@ -7,28 +7,28 @@
 // ─────────────────────────────────────────────────────────
 
 :host {
-  // ── Colour tokens (override in global theme if needed) ──
-  --nc-accent:        #4361ee;      // primary / unread highlight
-  --nc-accent-soft:   #eef0fd;      // unread card background tint
-  --nc-accent-ring:   rgba(67, 97, 238, 0.12);
+  // ── All colour tokens wired to global DS tokens ──────────────
+  --nc-accent:        var(--primary,        #10B981);
+  --nc-accent-soft:   color-mix(in oklab, var(--primary) 10%, transparent);
+  --nc-accent-ring:   var(--primary-glow,   rgba(16, 185, 129, 0.18));
 
-  --nc-success:       #16a34a;      // mark-read button
-  --nc-success-soft:  #dcfce7;
+  --nc-success:       var(--success,        #10B981);
+  --nc-success-soft:  color-mix(in oklab, var(--success) 10%, transparent);
 
-  --nc-danger:        #dc2626;      // delete button
-  --nc-danger-soft:   #fee2e2;
+  --nc-danger:        var(--error,          #EF4444);
+  --nc-danger-soft:   color-mix(in oklab, var(--error)   10%, transparent);
 
-  --nc-surface:       #ffffff;
-  --nc-bg:            #f4f4f5;      // page background (optional)
-  --nc-border:        #e4e4e7;
-  --nc-border-hover:  #d1d1d6;
+  --nc-surface:       var(--surface,        #ffffff);
+  --nc-bg:            var(--surface-alt,    #F1F5F9);
+  --nc-border:        var(--border,         #E2E8F0);
+  --nc-border-hover:  color-mix(in oklab, var(--border) 60%, var(--primary) 40%);
 
-  --nc-text:          #18181b;
-  --nc-text-muted:    #71717a;
-  --nc-text-light:    #a1a1aa;
+  --nc-text:          var(--text-primary,   #0F172A);
+  --nc-text-muted:    var(--text-secondary, #475569);
+  --nc-text-light:    var(--text-muted,     #94A3B8);
 
   --nc-radius:        12px;
-  --nc-shadow:        0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  --nc-shadow:        var(--shadow-sm, 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04));
 }
 
 // ── Wrapper ────────────────────────────────────────────────
@@ -114,7 +114,7 @@
   // Unread state
   &.is-unread {
     background: var(--nc-accent-soft);
-    border-color: #c3cef9;
+    border-color: color-mix(in oklab, var(--primary) 30%, transparent);
   }
 
   // Expanded / open state
