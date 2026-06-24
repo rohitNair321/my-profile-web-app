@@ -173,9 +173,9 @@
     <!-- EXPERIENCE SECTION - Vertical Timeline -->
     <section id="experience" class="experience-section animate-section">
       <div class="container">
-        <div class="section-header centered">
+        <div class="section-header">
           <span class="section-badge">Work History</span>
-          <h2 class="section-title">Professional Experience</h2>
+          <h2 class="section-title">Where I've built things</h2>
         </div>
         @if ((homeData?.experiences?.length ?? 0) > 0) {
           <div class="timeline">
@@ -222,9 +222,9 @@
     <!-- PROJECTS SECTION - Modern Card Grid -->
     <section id="projects" class="projects-section animate-section">
       <div class="container">
-        <div class="section-header centered">
-          <span class="section-badge">Portfolio</span>
-          <h2 class="section-title">Featured Projects</h2>
+        <div class="section-header">
+          <span class="section-badge">Selected Work</span>
+          <h2 class="section-title">Production applications</h2>
           <p class="section-subtitle">Selected work that showcases my expertise and creativity</p>
         </div>
 
@@ -286,9 +286,9 @@
     <!-- TESTIMONIALS SECTION - 3-Column Quote Grid -->
     <section id="testimonials" class="testimonials-section animate-section">
       <div class="container">
-        <div class="section-header centered">
+        <div class="section-header">
           <span class="section-badge">Testimonials</span>
-          <h2 class="section-title">What People Say</h2>
+          <h2 class="section-title">What colleagues say</h2>
         </div>
         <div class="testimonials-grid">
           @for (t of TESTIMONIALS; track t.name) {
