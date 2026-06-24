@@ -219,67 +219,61 @@
       </div>
     </section>
 
-    <!-- PROJECTS SECTION - Modern Card Grid -->
+    <!-- PROJECTS SECTION - V2 Left-border accent cards -->
     <section id="projects" class="projects-section animate-section">
       <div class="container">
-        <div class="section-header">
-          <span class="section-badge">Selected Work</span>
-          <h2 class="section-title">Production applications</h2>
-          <p class="section-subtitle">Selected work that showcases my expertise and creativity</p>
+
+        <div class="projects-section-top">
+          <div class="section-header">
+            <span class="section-badge">Selected Work</span>
+            <h2 class="section-title">Production applications</h2>
+            <p class="section-subtitle">Enterprise software serving real users in banking and wealth management.</p>
+          </div>
+          <button class="projects-all-btn" (click)="goToProjects()">
+            All projects <i class="material-icons">arrow_forward</i>
+          </button>
         </div>
 
         <div class="projects-grid">
-          @for (project of homeData?.experiences?.[0]?.projects || []; track project; let i = $index) {
-            @if (i < 6) {
-              <div class="project-card" [class.project-card--featured]="i === 0">
-                <div class="project-card-inner">
-                  <div class="project-image-wrapper">
-                    <img [src]="project.image || 'assets/images/placeholder.jpg'" [alt]="project.title || 'Project screenshot'" loading="lazy" class="project-image">
-                    <div class="project-overlay">
-                      <button class="project-quick-view" (click)="openProject(project)">
-                        <i class="material-icons">visibility</i>
-                      </button>
+          @for (exp of homeData?.experiences || []; track exp; let ei = $index) {
+            @for (project of exp.projects || []; track project; let pi = $index) {
+              @if ((ei * 10 + pi) < 4) {
+                <article class="v2-project-card"
+                  [style.border-left-color]="ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1'">
+                  <div class="v2-project-card__body">
+                    <div class="v2-project-card__head">
+                      <span class="v2-project-card__company-chip"
+                        [style.background]="'color-mix(in oklab, ' + (ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1') + ' 10%, transparent)'"
+                        [style.color]="ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1'"
+                        [style.border-color]="'color-mix(in oklab, ' + (ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1') + ' 22%, transparent)'">
+                        <span class="material-icons">business</span>{{ exp.company }}
+                      </span>
+                      <span class="v2-project-card__status">
+                        <span></span>{{ project.projectProgress === 'completed' ? 'Completed' : 'Live' }}
+                      </span>
+                    </div>
+                    <h3 class="v2-project-card__title">{{ project.title }}</h3>
+                    <p class="v2-project-card__desc">{{ project.description | slice:0:140 }}{{ project.description.length > 140 ? '…' : '' }}</p>
+                    <div class="v2-project-card__tech">
+                      @for (tech of (project.technologies | slice:0:5); track tech) {
+                        <span class="v2-project-card__tech-pill">{{ tech }}</span>
+                      }
                     </div>
                   </div>
-                  
-                  <div class="project-content">
-                    <div class="project-meta">
-                      <span class="project-status" [class.status-completed]="project?.projectProgress === 'completed'" [class.status-progress]="project?.projectProgress === 'in-progress'">
-                        <span class="status-dot"></span>
-                        {{ project?.projectProgress === 'completed' ? 'Completed' : 'In Progress' }}
-                      </span>
-                      <span class="project-category">{{ project.category || 'Web App' }}</span>
-                    </div>
-                    
-                    <h3 class="project-title">{{ project.title }}</h3>
-                    <p class="project-description">{{ project.description | slice:0:120 }}{{ project.description.length > 120 ? '...' : '' }}</p>
-                    
-                    <div class="project-tech-stack">
-                      @for (tech of project.technologies | slice:0:4; track tech) {
-                        <span class="tech-pill">{{ tech }}</span>
-                      }
-                      @if (project.technologies.length > 4) {
-                        <span class="tech-pill more">+{{ project.technologies.length - 4 }}</span>
-                      }
-                    </div>
-                    
-                    <button class="project-link-btn" (click)="openProject(project)">
-                      <span>View Case Study</span>
-                      <i class="material-icons">arrow_forward</i>
+                  <div class="v2-project-card__foot">
+                    <button class="v2-project-card__btn v2-project-card__btn--primary" (click)="goToProjects()">
+                      <i class="material-icons">open_in_new</i>Details
+                    </button>
+                    <button class="v2-project-card__btn v2-project-card__btn--ghost" (click)="goToProjects()">
+                      <i class="material-icons">grid_view</i>All
                     </button>
                   </div>
-                </div>
-              </div>
+                </article>
+              }
             }
           }
         </div>
-        
-        <div class="projects-footer">
-          <button class="btn-primary btn-large" (click)="goToProjects()">
-            <span>View All Projects</span>
-            <i class="material-icons">grid_view</i>
-          </button>
-        </div>
+
       </div>
     </section>
 

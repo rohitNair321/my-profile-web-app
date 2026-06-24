@@ -505,7 +505,11 @@
    ========================================== */
 .about-section {
   padding: 4rem 0;
-  background: var(--surface-alt);
+  background: var(--background);
+  
+  @media (min-width: 768px) {
+    padding: 5rem 0;
+  }
   
   @media (min-width: 768px) {
     padding: 5rem 0;
@@ -648,9 +652,171 @@
 /* ==========================================
    PROJECTS SECTION
    ========================================== */
+.projects-section-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  .section-header { margin-bottom: 0; }
+
+  .projects-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .625rem 1.375rem;
+    background: transparent;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    border-radius: 9999px;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .2s;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    &:hover {
+      background: color-mix(in oklab, var(--primary) 10%, transparent);
+    }
+
+    .material-icons { font-size: 1rem; }
+  }
+}
+
+/* V2 project card — left accent border style */
+.v2-project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all .28s;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(0,0,0,.10);
+  }
+
+  &__body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; gap: .625rem; }
+  &__foot {
+    padding: .75rem 1.25rem 1.125rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: .625rem;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  &__company-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 9px 3px 6px;
+    border-radius: 9999px;
+    font-size: .7rem;
+    font-weight: 700;
+    border: 1px solid;
+    white-space: nowrap;
+
+    .material-icons { font-size: .8rem; }
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--primary);
+
+    span { width: 5px; height: 5px; border-radius: 50%; background: var(--primary); display: inline-block; animation: v2-pulse 2s infinite; }
+  }
+
+  &__title {
+    font-family: var(--font-family-heading);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  &__desc {
+    font-size: .8125rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0;
+    flex: 1;
+  }
+
+  &__tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+
+  &__tech-pill {
+    padding: .2rem .6rem;
+    border-radius: 9999px;
+    font-size: .71rem;
+    font-weight: 600;
+    font-family: var(--font-family-mono, monospace);
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    color: var(--primary);
+  }
+
+  &__btn {
+    flex: 1;
+    padding: .575rem 1rem;
+    border-radius: 8px;
+    font-size: .8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .375rem;
+    font-family: inherit;
+    transition: all .2s;
+
+    &--primary {
+      background: color-mix(in oklab, var(--primary) 10%, transparent);
+      color: var(--primary);
+      border: 1px solid color-mix(in oklab, var(--primary) 22%, transparent);
+      &:hover { background: color-mix(in oklab, var(--primary) 18%, transparent); }
+    }
+    &--ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      &:hover { border-color: var(--primary); color: var(--primary); }
+    }
+
+    .material-icons { font-size: .95rem; }
+  }
+}
+
+@keyframes v2-pulse {
+  0%,100% { transform: scale(1); }
+  50%      { transform: scale(.85); opacity: .6; }
+}
+
 .projects-section {
   padding: 4rem 0;
-  background: var(--background);
+  background: var(--surface-alt);
   
   @media (min-width: 768px) {
     padding: 5rem 0;
@@ -664,16 +830,11 @@
 .projects-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  gap: 1.25rem;
+  margin-bottom: 0;
   
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
-  }
-  
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
   }
 }
 
@@ -1487,8 +1648,7 @@
 .timeline {
   position: relative;
   padding-left: 2.5rem;
-  max-width: 860px;
-  margin: 0 auto;
+  max-width: 100%;
 
   &::before {
     content: '';
