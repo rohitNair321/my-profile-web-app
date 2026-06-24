@@ -67,6 +67,7 @@
 }
 
 .page-title {
+  font-family: var(--font-family-heading, 'Space Grotesk', sans-serif);
   font-size: 1.75rem;
   font-weight: 600;
   margin: 0 0 0.375rem 0;

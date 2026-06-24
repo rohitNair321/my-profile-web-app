@@ -1,15 +1,14 @@
 /* --- THEME ADAPTATION --- */
 :host {
-  // Mapping API Tokens to CSS Variables with Fallbacks
-  --bg-color: var(--background, #f8f5f2); 
-  --card-bg: var(--surface, #ffffff);
-  --card-border: var(--border, #d3cec9);
-  --primary-color: var(--primary, #FF5252); // Bright Red Default
-  --primary-glow: var(--primary_glow, rgba(255, 82, 82, 0.2));
-  --accent-color: var(--accent, #4CAF50);   // Bright Green Default
-  --text-main: var(--text_primary, #2d3741);
-  --text-muted: var(--text_muted, #5c6b7a);
-  --error-color: var(--error, #FF5252);
+  --bg-color:     var(--background, #F8FAFC);
+  --card-bg:      var(--surface, #ffffff);
+  --card-border:  var(--border, #E2E8F0);
+  --primary-color:var(--primary, #10B981);
+  --primary-glow: var(--primary-glow, rgba(16, 185, 129, 0.18));
+  --accent-color: var(--accent, #06B6D4);
+  --text-main:    var(--text-primary, #0F172A);
+  --text-muted:   var(--text-muted, #94A3B8);
+  --error-color:  var(--error, #EF4444);
 }
 
 .auth-page {
@@ -18,10 +17,9 @@
   align-items: center;
   justify-content: center;
   background-color: var(--bg-color);
-  /* Subtle glow using the primary color token */
   background-image: radial-gradient(circle at top right, var(--primary-glow), transparent 40%);
   padding: 2rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-base);
   transition: background-color 0.3s ease;
 }
 
@@ -41,6 +39,7 @@
   margin-bottom: 2.5rem;
 
   .logo-initials {
+    font-family: var(--font-family-heading);
     font-size: 2.5rem;
     font-weight: 800;
     margin-bottom: 1rem;
@@ -50,6 +49,7 @@
   }
 
   h1 {
+    font-family: var(--font-family-heading);
     color: var(--text-main);
     font-size: 1.75rem;
     margin-bottom: 0.5rem;

@@ -12,8 +12,8 @@
           <img [src]="profileData()?.avatar_url" [alt]="profileData()?.full_name || 'Rohit Nair'" class="profile-avatar border-primary">
           <div class="profile-titles">
             <span class="card-label">Hello, I'm</span>
-            <h1 class="display-name">{{ profileData()?.full_name?.split(' ')[0] || 'Rohit' }}</h1>
-            <p class="subtitle text-secondary">{{ profileData()?.description?.split('.')[0] || 'Frontend Developer · Finance Specialist' }}</p>
+            <h1 class="display-name">{{ profileData()?.full_name?.split(' ')?.at(0) || 'Rohit' }}</h1>
+            <p class="subtitle text-secondary">{{ profileData()?.description?.split('.')?.at(0) || 'Frontend Developer · Finance Specialist' }}</p>
           </div>
         </div>
       </div>
