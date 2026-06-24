@@ -6,7 +6,7 @@
       <div class="footer-brand">
         <h3 class="brand-name">{{ profileData()?.full_name || 'ROHIT PORTFOLIO' }}</h3>
         <p class="brand-bio">
-          {{ profileData()?.description?.split('.')[0] || 'Building exceptional digital experiences with modern web technologies.' }}
+          {{ profileData()?.description?.split('.')?.[0] || 'Building exceptional digital experiences with modern web technologies.' }}
         </p>
         <div class="social-links">
           <a class="social-icon" aria-label="LinkedIn" (click)="openLink($event, profileData()?.linkedin)">
