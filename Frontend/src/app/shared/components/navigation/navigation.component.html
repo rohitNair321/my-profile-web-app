@@ -49,13 +49,10 @@
 
     <!-- ② BRAND — always visible ───────────────────────── -->
     <a routerLink="/home" class="nav-bar__brand flex-shrink-0 animate-nav-slide-in text-decoration-none">
-      <span class="logo-initials animate-nav-fade-in">
-        <span class="rn-r">R</span><span class="rn-n">N</span>
-      </span>
+      <div class="logo-circle animate-nav-fade-in">RN</div>
       @if (config?.appConfiguration?.logoLocationHeader || isMobile || config?.appConfiguration?.type === 'navbar') {
       <span class="logo-name ms-2">
-        <span class="logo-rohit">Rohit</span>
-        <span class="logo-portfolio ms-1">Nair</span>
+        <span class="logo-rohit">Rohit</span><span class="logo-dot">.</span><span class="logo-dev">dev</span>
       </span>
       }
     </a>
@@ -278,19 +275,6 @@
           {{ themeService.isDark() ? 'Switch to Light' : 'Switch to Dark' }}
         </button>
 
-        @if (appService.role() === 'GUEST') {
-        <!-- <button class="mobile-theme-toggle btn-logout w-100 d-flex align-items-center gap-3 mt-2" (click)="logout()">
-          <span class="material-icons">logout</span>
-          Logout
-        </button> -->
-        <button class="mobile-theme-toggle btn-login w-100 d-flex align-items-center gap-3 mt-2"
-          (click)="navigateToLogin()">
-          <span class="material-icons">login</span>
-          Admin Login
-        </button>
-        } @else {
-        
-        }
       </div>
 
     </div>

@@ -1,0 +1,45 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">About Me</h1>
+      <p class="page-sub">Edit your bio and about section content.</p>
+    </div>
+    <button class="btn-primary" type="button">
+      <span class="material-icons">save</span> Save
+    </button>
+  </div>
+
+  <!-- Mode switcher -->
+  <div class="mode-bar">
+    <button class="mode-btn" [class.active]="activeMode() === 'edit'" type="button" (click)="setMode('edit')">
+      <span class="material-icons">edit</span> Edit
+    </button>
+    <button class="mode-btn" [class.active]="activeMode() === 'preview'" type="button" (click)="setMode('preview')">
+      <span class="material-icons">visibility</span> Preview
+    </button>
+  </div>
+
+  <!-- Editor -->
+  @if (activeMode() === 'edit') {
+    <div class="editor-pane">
+      <div class="editor-header">
+        <span class="material-icons" style="font-size:1rem;color:#475569">code</span>
+        <span style="font-size:.78rem;color:var(--admin-t3c)">Markdown</span>
+      </div>
+      <textarea class="editor-textarea" [(ngModel)]="markdownText"></textarea>
+    </div>
+  }
+
+  <!-- Preview -->
+  @if (activeMode() === 'preview') {
+    <div class="preview-pane">
+      <div class="preview-header">
+        <span class="material-icons" style="font-size:1rem;color:#475569">visibility</span>
+        <span style="font-size:.78rem;color:var(--admin-t3c)">Rendered Preview</span>
+      </div>
+      <div class="preview-body" [innerHTML]="previewHtml"></div>
+    </div>
+  }
+
+</div>

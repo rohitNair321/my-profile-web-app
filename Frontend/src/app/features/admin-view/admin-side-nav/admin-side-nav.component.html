@@ -1,0 +1,70 @@
+<aside class="admin-sidenav"
+  [class.admin-sidenav--collapsed]="collapsed"
+  [class.admin-sidenav--mobile-open]="isMobileOpen">
+
+  <!-- Header / Brand -->
+  <div class="admin-sidenav__header">
+    @if (!collapsed) {
+      <a routerLink="/admin/settings" class="admin-sidenav__brand" (click)="onNavClick()">
+        <span class="admin-brand-circle">
+          <span class="rn-r">R</span><span class="rn-n">N</span>
+        </span>
+        <span class="admin-brand-name">
+          Rohit<span class="admin-brand-dot">.</span><span class="admin-brand-dev">admin</span>
+        </span>
+      </a>
+    }
+    <button class="admin-sidenav__toggle"
+      [class.ms-auto]="!collapsed"
+      (click)="toggleCollapse()"
+      [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <span class="material-icons">{{ collapsed ? 'menu' : 'menu_open' }}</span>
+    </button>
+  </div>
+
+  <!-- Navigation items -->
+  <nav class="admin-sidenav__nav" aria-label="Admin navigation">
+    @for (item of navItems; track item.key) {
+      <a [routerLink]="item.route"
+         class="admin-sidenav__link"
+         routerLinkActive="admin-sidenav__link--active"
+         [title]="collapsed ? item.label : ''"
+         (click)="onNavClick()">
+
+        <span class="admin-sidenav__icon-wrap">
+          <span class="material-icons admin-sidenav__icon">{{ item.icon }}</span>
+          @if (item.badge && (notifications()?.unreadCount ?? 0) > 0) {
+            <span class="admin-sidenav__badge">{{ notifications()?.unreadCount }}</span>
+          }
+        </span>
+
+        @if (!collapsed) {
+          <span class="admin-sidenav__label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="admin-sidenav__footer">
+    <button class="admin-sidenav__footer-btn"
+      (click)="themeService.toggleDarkMode()"
+      [title]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
+      <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
+      @if (!collapsed) {
+        <span class="admin-sidenav__label">
+          {{ themeService.isDark() ? 'Light mode' : 'Dark mode' }}
+        </span>
+      }
+    </button>
+    <button class="admin-sidenav__footer-btn admin-sidenav__footer-btn--danger"
+      (click)="onLogout()"
+      title="Sign out">
+      <span class="material-icons">logout</span>
+      @if (!collapsed) {
+        <span class="admin-sidenav__label">Sign out</span>
+      }
+    </button>
+  </div>
+
+</aside>

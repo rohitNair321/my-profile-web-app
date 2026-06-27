@@ -165,12 +165,17 @@
     .sidebar__icon { color: var(--primary); }
   }
 
-  // Active state set by routerLinkActive="active-item"
+  // Active state — emerald gradient + left accent border (V2)
   &.active-item {
-    background: var(--primary);
-    color: var(--background);
+    background: linear-gradient(90deg,
+      rgba(16, 185, 129, 0.18),
+      rgba(16, 185, 129, 0.08));
+    color: #10B981;
+    border-left: 2.5px solid #10B981;
+    border-radius: 0 10px 10px 0;
+    padding-left: calc(0.85rem - 2.5px); // compensate for border width
 
-    .sidebar__icon { color: var(--background); }
+    .sidebar__icon { color: #10B981; }
   }
 
   // Footer variants

@@ -18,10 +18,26 @@
     </div>
   </div>
 
+  <!-- ── Filter tabs ── -->
+  <div class="notif-filters">
+    <button class="notif-filter-btn" [class.active]="filter === 'all'" (click)="filter = 'all'">
+      All
+    </button>
+    <button class="notif-filter-btn" [class.active]="filter === 'unread'" (click)="filter = 'unread'">
+      Unread
+      @if ((notifications()?.unreadCount ?? 0) > 0) {
+        <span class="filter-badge">{{ notifications()?.unreadCount }}</span>
+      }
+    </button>
+    <button class="notif-filter-btn" [class.active]="filter === 'read'" (click)="filter = 'read'">
+      Read
+    </button>
+  </div>
+
   <!-- ── List ── -->
   <div class="notif-list">
 
-    @for (note of notifications()?.notificationList; track note.id) {
+    @for (note of filteredNotifications; track note.id) {
 
       <div class="notif-card"
            [class.is-unread]="!note.is_read"

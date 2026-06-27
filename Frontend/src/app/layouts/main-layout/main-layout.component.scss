@@ -727,3 +727,47 @@
     height: 42px;
   }
 }
+
+/* ================================================================
+   V2 RESPONSIVE OVERRIDES — main layout shell
+   ================================================================ */
+
+// On mobile (navbar mode), give page content a safe top padding
+// so hero content doesn't hide behind the fixed nav
+@media (max-width: 767px) {
+  .app-shell[data-layout="navbar"] .app-shell__page {
+    padding-top: 0; // hero manages its own padding-top
+  }
+}
+
+// Preferences panel: full-width sheet on mobile
+@media (max-width: 480px) {
+  .app-settings-panel {
+    width: 100%;
+    border-radius: 0;
+  }
+  .app-settings-panel__header {
+    padding: .875rem 1rem;
+  }
+  .app-settings-panel__content {
+    padding: 1rem;
+  }
+}
+
+// Backdrop: slightly darker on mobile for better contrast
+@media (max-width: 900px) {
+  .app-shell__backdrop {
+    background: rgba(0, 0, 0, .55);
+  }
+}
+
+// Scroll-to-top: hide on very small screens to save space
+@media (max-width: 360px) {
+  .scroll-top-fab {
+    bottom: .875rem;
+    right: .875rem;
+    width: 38px;
+    height: 38px;
+    .material-icons { font-size: 1.25rem; }
+  }
+}

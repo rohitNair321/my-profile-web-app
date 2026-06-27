@@ -27,6 +27,14 @@ export class NotificationComponent extends CommonApp implements OnInit, OnDestro
     );
   });
   openId: string | null = null;
+  filter: 'all' | 'unread' | 'read' = 'all';
+
+  get filteredNotifications() {
+    const list = this.notifications()?.notificationList ?? [];
+    if (this.filter === 'unread') return list.filter(n => !n.is_read);
+    if (this.filter === 'read')   return list.filter(n => n.is_read);
+    return list;
+  }
   constructor(public override injector: Injector) {
     super(injector);
   }

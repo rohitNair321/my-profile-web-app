@@ -1,0 +1,93 @@
+<div class="page-wrap">
+
+  <!-- Heading -->
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Welcome back, {{ adminFirstName }}. Here's your overview.</p>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="ov-stats">
+    @for (s of stats(); track s.label) {
+      <div class="ov-stat" [style.--sc]="s.color">
+        <div class="ov-stat__icon">
+          <span class="material-icons">{{ s.icon }}</span>
+        </div>
+        <div class="ov-stat__val">{{ s.value }}</div>
+        <div class="ov-stat__lbl">{{ s.label }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Charts row -->
+  <div class="ov-charts">
+
+    <!-- 14-day bar chart -->
+    <div class="admin-card ov-chart-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#10B981">trending_up</span>
+        AI Interactions — 14 days
+      </div>
+      <div class="bar-chart-wrap">
+        <canvas #barCanvas></canvas>
+      </div>
+      <div class="ov-bar-labels">
+        <span>14 days ago</span>
+        <span>Today</span>
+      </div>
+    </div>
+
+    <!-- Recent notifications -->
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#6366F1">notifications</span>
+        Recent Messages
+      </div>
+
+      @for (note of recentNotifications; track note.id; let i = $index) {
+        <div class="ov-notif" [class.ov-notif--border]="i < recentNotifications.length - 1">
+          <div class="ov-notif__avatar" [class.ov-notif__avatar--unread]="!note.is_read">
+            {{ getInitials(note.first_name, note.last_name) }}
+          </div>
+          <div class="ov-notif__body">
+            <div class="ov-notif__name">{{ note.first_name }} {{ note.last_name }}</div>
+            <div class="ov-notif__msg">{{ note.message | slice:0:40 }}…</div>
+          </div>
+          @if (!note.is_read) {
+            <span class="ov-notif__dot"></span>
+          }
+        </div>
+      } @empty {
+        <div class="admin-empty" style="padding:2rem 0">
+          <span class="material-icons">mark_email_read</span>
+          <span class="empty-label">No recent messages</span>
+        </div>
+      }
+
+      <a routerLink="/admin/notifications" class="ov-view-all">View all →</a>
+    </div>
+
+  </div>
+
+  <!-- Quick actions -->
+  <div class="ov-actions">
+    <a routerLink="/admin/profile" class="btn-primary">
+      <span class="material-icons">person</span> Edit Profile
+    </a>
+    <a routerLink="/admin/posts" class="btn-ghost">
+      <span class="material-icons">article</span> Manage Posts
+    </a>
+    <a routerLink="/admin/notifications" class="btn-ghost">
+      <span class="material-icons">notifications</span> Notifications
+      @if ((notifications()?.unreadCount ?? 0) > 0) {
+        <span class="ov-action-badge">{{ notifications()?.unreadCount }}</span>
+      }
+    </a>
+    <a routerLink="/" class="btn-ghost" target="_blank">
+      <span class="material-icons">open_in_new</span> View Site
+    </a>
+  </div>
+
+</div>

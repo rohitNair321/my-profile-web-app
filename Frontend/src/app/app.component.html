@@ -4,3 +4,7 @@
   <app-spinner></app-spinner>
   <app-alert></app-alert>
 </app-error-boundary>
+
+@if (showLoginModal()) {
+  <app-admin-login-modal (close)="showLoginModal.set(false)"></app-admin-login-modal>
+}

@@ -148,7 +148,7 @@
     </ul>
   </nav>
 
-  <!-- FOOTER: theme toggle + logout -->
+  <!-- FOOTER: theme toggle -->
   <div class="sidebar__footer">
     <button class="sidebar__link sidebar__link--footer w-100" (click)="themeService.toggleDarkMode()">
       <span class="material-icons sidebar__icon">
@@ -160,24 +160,6 @@
       </span>
       }
     </button>
-
-    @if (appService.role() === 'ADMIN') {
-      <a routerLink="/admin/posts" class="sidebar__link sidebar__link--footer" routerLinkActive="active-item" title="Manage Posts">
-        <span class="material-icons sidebar__icon">edit_note</span>
-        @if (!appConfig.appConfiguration.collapsed) {
-          <span class="sidebar__label">Manage Posts</span>
-        }
-      </a>
-    }
-
-    @if (appService.role() !== 'ADMIN') {
-    <button  class="sidebar__link sidebar__link--footer sidebar__link--danger w-100" title="Admin Login" (click)="navigateToLogin()">
-      <span class="material-icons sidebar__icon">login</span>
-      @if (!appConfig.appConfiguration.collapsed) {
-        <span class="sidebar__label">Admin Login</span>
-      }
-    </button>
-    }
   </div>
 
 </aside>

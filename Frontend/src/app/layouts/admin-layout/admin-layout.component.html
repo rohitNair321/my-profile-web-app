@@ -1,0 +1,68 @@
+<!--
+  ADMIN LAYOUT GRID ARCHITECTURE
+  ════════════════════════════════════════════════════════════
+  Desktop (expanded):
+  ┌──────────────────────────────────────────────────────────┐
+  │                    [topbar]  (spans both cols)            │
+  ├───────────────┬──────────────────────────────────────────┤
+  │  [admin-nav]  │              [content]                   │
+  │   240px       │              router-outlet               │
+  └───────────────┴──────────────────────────────────────────┘
+
+  Desktop (collapsed):
+  ┌──────────────────────────────────────────────────────────┐
+  │                    [topbar]                               │
+  ├───────┬──────────────────────────────────────────────────┤
+  │ [nav] │              [content]                           │
+  │  72px │                                                  │
+  └───────┴──────────────────────────────────────────────────┘
+
+  Mobile (≤900px): sidebar is a fixed off-canvas overlay.
+  ┌──────────────────────────────────────────────────────────┐
+  │                    [topbar]                               │
+  ├──────────────────────────────────────────────────────────┤
+  │                    [content]                              │
+  └──────────────────────────────────────────────────────────┘
+  ════════════════════════════════════════════════════════════
+-->
+
+<div class="admin-shell"
+  [class.admin-shell--collapsed]="isSidebarCollapsed()">
+
+  <!-- Topbar — always row 1, spans full width -->
+  <app-admin-topbar
+    class="admin-shell__topbar"
+    [collapsed]="isSidebarCollapsed()"
+    [isMobile]="isMobile()"
+    [pageTitle]="currentPageTitle()"
+    [adminDark]="adminDark()"
+    (toggleSidebar)="onToggleSidebar()"
+    (toggleDark)="onToggleDark()"
+    (logout)="onLogout()">
+  </app-admin-topbar>
+
+  <!-- Sidebar — always in DOM; column collapses on mobile -->
+  <app-admin-side-nav
+    class="admin-shell__sidebar"
+    [collapsed]="isSidebarCollapsed()"
+    [isMobile]="isMobile()"
+    [isMobileOpen]="isMobileSidebarOpen()"
+    (collapseChange)="onCollapseChange($event)"
+    (closeMobile)="onCloseMobileSidebar()"
+    (logout)="onLogout()">
+  </app-admin-side-nav>
+
+  <!-- Mobile backdrop — shown when sidebar overlay is open -->
+  @if (isMobile() && isMobileSidebarOpen()) {
+    <div class="admin-shell__backdrop" (click)="onCloseMobileSidebar()" aria-hidden="true"></div>
+  }
+
+  <!-- Main content area -->
+  <main class="admin-shell__content">
+    <div class="admin-shell__page">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+</div>
+

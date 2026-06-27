@@ -2,12 +2,8 @@
 
 const { supabase } = require('../db/supabaseClient');
 const { v4: uuidv4 } = require('uuid');
-const jwt = require('jsonwebtoken');
-const validator = require('validator');
 
-const BUCKET = process.env.ASSET_BUCKET || 'assets';   // <-- updated to single bucket
-
-const JWT_SECRET = process.env.JWT_SECRET;
+const BUCKET = process.env.ASSET_BUCKET || 'assets';
 const RESUME_EXPIRY_SECONDS = Number(process.env.RESUME_SIGNED_URL_EXPIRY || 600);
 
 //#region Helper to parse JSON fields
@@ -110,18 +106,23 @@ async function updateMyProfile(req, res) {
     const {
       name, full_name, description, email, primaryPhone, primary_phone,
       secondaryPhone, secondary_phone, location, website, linkedin, github,
-      openToWork, open_to_work, skills, experiences, logo_initials, currenttheme, themes
+      openToWork, open_to_work, skills, experiences, logo_initials, currenttheme, themes,
+      // About Me editor fields (camelCase keys from FormData)
+      heading, shortBio, short_bio, about_role, role: aboutRole, longBio
     } = req.body;
 
     // Partial-update payload: only include fields that were actually sent with a value.
     // Empty strings and undefined are skipped so existing DB values are never wiped.
     const payload = {};
+    // Only update a string field when the value was explicitly sent and non-empty.
+    // No HTML escaping here — express-xss-sanitizer already runs on every request.
     const setStr = (key, val) => {
-      if (val != null && val !== '') payload[key] = validator.escape(String(val));
+      if (val != null && val !== '') payload[key] = String(val).trim();
     };
 
+    // Core profile fields
     setStr('full_name', full_name || name);
-    setStr('description', description);
+    setStr('description', description || longBio); // longBio = about-me editor alias for description
     setStr('email', email);
     setStr('primary_phone', primaryPhone || primary_phone);
     setStr('secondary_phone', secondaryPhone || secondary_phone);
@@ -131,6 +132,11 @@ async function updateMyProfile(req, res) {
     setStr('github', github);
     setStr('logo_initials', logo_initials);
     setStr('currenttheme', currenttheme);
+
+    // About Me editor fields
+    setStr('about_heading', heading);
+    setStr('short_bio', shortBio || short_bio);
+    setStr('about_role', about_role || aboutRole);
 
     // Boolean: only include if the key was present in the request body
     const openRaw = openToWork !== undefined ? openToWork : open_to_work;

@@ -27,6 +27,7 @@ export class AdminPostsComponent extends CommonApp implements OnInit {
   currentPage = signal(1);
   totalPages = signal(0);
   statusFilter: StatusFilter = '';
+  deleteConfirm = signal<Post | null>(null);
   deletingId: string | null = null;
   editingImpressions: string | null = null;
   impressionsInput = 0;
@@ -74,10 +75,16 @@ export class AdminPostsComponent extends CommonApp implements OnInit {
     this.loadPosts(page);
   }
 
-  deletePost(id: string, title: string): void {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
-    this.deletingId = id;
-    this.postService.delete(id).subscribe({
+  confirmDelete(post: Post): void {
+    this.deleteConfirm.set(post);
+  }
+
+  executeDelete(): void {
+    const post = this.deleteConfirm();
+    if (!post) return;
+    this.deletingId = post.id;
+    this.deleteConfirm.set(null);
+    this.postService.delete(post.id).subscribe({
       next: () => {
         this.deletingId = null;
         this.loadPosts(this.currentPage());

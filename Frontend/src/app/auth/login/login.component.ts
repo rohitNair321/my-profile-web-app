@@ -57,7 +57,7 @@ export class LoginComponent extends CommonApp implements OnInit {
       next: () => {
         this.loading.hide();
         this.appService.setRole('ADMIN');
-        this.router.navigate(['/']);
+        this.router.navigate(['/admin/overview']);
       },
       error: () => {
         this.loading.hide();

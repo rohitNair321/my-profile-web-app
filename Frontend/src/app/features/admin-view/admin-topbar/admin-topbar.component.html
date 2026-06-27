@@ -1,0 +1,76 @@
+<header class="admin-topbar">
+
+  <!-- Left: hamburger + brand -->
+  <div class="admin-topbar__left">
+    <button class="tb-btn" (click)="onToggle()" title="Toggle sidebar">
+      <span class="material-icons">{{ isMobile ? 'menu' : (collapsed ? 'menu' : 'menu_open') }}</span>
+    </button>
+
+    <!-- Logo circle always visible -->
+    <a routerLink="/admin/overview" class="tb-logo">
+      <span class="tb-logo-circle">
+        <span class="tb-r">R</span><span class="tb-n">N</span>
+      </span>
+      <!-- Wordmark hidden when sidebar is expanded (logo already in sidebar) or mobile -->
+      @if (collapsed || isMobile) {
+        <span class="tb-wordmark">Rohit<span class="tb-dot">.</span><span class="tb-dev">admin</span></span>
+      }
+    </a>
+  </div>
+
+  <!-- Center: page title -->
+  <div class="admin-topbar__center">
+    @if (pageTitle) {
+      <span class="tb-page-label">{{ pageTitle }}</span>
+    }
+  </div>
+
+  <!-- Right: actions -->
+  <div class="admin-topbar__right">
+
+    <!-- Theme toggle -->
+    <button class="tb-btn" (click)="themeService.toggleDarkMode()"
+      [title]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
+      <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
+    </button>
+
+    <!-- Notification bell -->
+    <button class="tb-btn tb-bell" (click)="goToNotifications()" title="Notifications">
+      <span class="material-icons">notifications</span>
+      @if ((notifications()?.unreadCount ?? 0) > 0) {
+        <span class="tb-badge">{{ notifications()?.unreadCount }}</span>
+      }
+    </button>
+
+    <!-- View public site -->
+    <a routerLink="/" class="tb-btn" title="View public site" target="_blank">
+      <span class="material-icons">open_in_new</span>
+    </a>
+
+    <!-- Avatar pill + dropdown -->
+    <div class="tb-avatar-wrap">
+      <button class="tb-avatar-pill" (click)="showDropdown.set(!showDropdown())" type="button">
+        <span class="tb-avatar-circle">{{ adminInitials }}</span>
+        <span class="tb-name">{{ adminName.split(' ')[0] }}</span>
+        <span class="material-icons tb-chevron">expand_more</span>
+      </button>
+
+      @if (showDropdown()) {
+        <!-- Transparent backdrop to close on outside click -->
+        <div class="tb-drop-backdrop" (click)="showDropdown.set(false)"></div>
+
+        <div class="tb-dropdown">
+          <div class="tb-drop-user">
+            <div class="tb-drop-name">{{ adminName }}</div>
+            <div class="tb-drop-role">Administrator</div>
+          </div>
+          <button class="tb-drop-logout" type="button" (click)="onLogout()">
+            <span class="material-icons">logout</span>
+            Sign out
+          </button>
+        </div>
+      }
+    </div>
+
+  </div>
+</header>

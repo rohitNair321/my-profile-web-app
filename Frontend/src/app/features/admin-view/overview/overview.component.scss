@@ -1,0 +1,298 @@
+.ov-wrap {
+  padding: 1.75rem 2rem;
+  animation: ovFadeIn 0.3s ease;
+}
+
+@keyframes ovFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Heading ───────────────────────────────────────────────────
+.ov-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-tc, #E2E8F0);
+  margin-bottom: 0.25rem;
+}
+
+.ov-sub {
+  font-size: 0.875rem;
+  color: var(--admin-t3c, #64748B);
+  margin-bottom: 2rem;
+}
+
+// ── Stat cards ────────────────────────────────────────────────
+.ov-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ov-stat {
+  background: var(--admin-bg-sf, #0F172A);
+  border: 1px solid var(--admin-bdc, #1E293B);
+  border-radius: 16px;
+  padding: 1.375rem;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  cursor: default;
+
+  &:hover {
+    border-color: color-mix(in oklab, var(--sc, #10B981) 40%, transparent);
+    box-shadow: 0 4px 20px color-mix(in oklab, var(--sc, #10B981) 10%, transparent);
+  }
+}
+
+.ov-stat__icon {
+  width: 40px;
+  height: 40px;
+  background: color-mix(in oklab, var(--sc, #10B981) 14%, transparent);
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.875rem;
+
+  .material-icons { color: var(--sc, #10B981); font-size: 1.25rem; }
+}
+
+.ov-stat__val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--admin-tc, #E2E8F0);
+  line-height: 1;
+}
+
+.ov-stat__lbl {
+  font-size: 0.75rem;
+  color: var(--admin-t3c, #64748B);
+  margin-top: 4px;
+}
+
+// ── Charts row ────────────────────────────────────────────────
+.ov-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ov-card {
+  background: var(--admin-bg-sf, #0F172A);
+  border: 1px solid var(--admin-bdc, #1E293B);
+  border-radius: 16px;
+  padding: 1.375rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-card__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--admin-tc, #E2E8F0);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+
+  .material-icons { font-size: 1.1rem; }
+}
+
+// ── Bar chart ─────────────────────────────────────────────────
+.bar-chart-wrap {
+  position: relative;
+  height: 100px;
+  width: 100%;
+}
+
+.ov-chart-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 88px;
+  flex: 1;
+}
+
+.ov-bar {
+  flex: 1;
+  background: linear-gradient(to top, #10B981, #06B6D4);
+  border-radius: 4px 4px 0 0;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+  min-height: 4px;
+
+  &:hover { opacity: 1; }
+}
+
+.ov-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: #475569;
+}
+
+// ── Notification items in card ────────────────────────────────
+.ov-notif {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+
+  &--border {
+    border-bottom: 1px solid var(--admin-bdc, #1E293B);
+  }
+}
+
+.ov-notif__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748B;
+  flex-shrink: 0;
+
+  &--unread {
+    background: rgba(16, 185, 129, 0.18);
+    color: #10B981;
+  }
+}
+
+.ov-notif__body { flex: 1; min-width: 0; }
+
+.ov-notif__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--admin-tc, #E2E8F0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-notif__msg {
+  font-size: 0.7rem;
+  color: #64748B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-notif__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  flex-shrink: 0;
+}
+
+.ov-notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  color: #475569;
+  font-size: 0.8rem;
+
+  .material-icons { font-size: 2rem; opacity: 0.4; }
+}
+
+.ov-view-all {
+  display: block;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #10B981;
+  text-decoration: none;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.8; }
+}
+
+// ── Quick action buttons ──────────────────────────────────────
+.ov-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ov-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.125rem;
+  background: var(--admin-bg-s2, #1E293B);
+  border: 1px solid var(--admin-bdc, #1E293B);
+  border-radius: 10px;
+  color: var(--admin-t2c, #94A3B8);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  position: relative;
+
+  .material-icons { font-size: 1.125rem; }
+
+  &:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10B981;
+  }
+
+  &--outline {
+    background: transparent;
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #94A3B8;
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #818CF8;
+    }
+  }
+}
+
+.ov-action-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: #EF4444;
+  color: #fff;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 1023px) {
+  .ov-stats  { grid-template-columns: repeat(2, 1fr); }
+  .ov-charts { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 639px) {
+  .ov-wrap   { padding: 1.25rem 1rem; }
+}
+
+@media (max-width: 479px) {
+  .ov-stats  { grid-template-columns: 1fr; }
+  .ov-actions { flex-direction: column; }
+  .ov-action-btn { justify-content: center; }
+}

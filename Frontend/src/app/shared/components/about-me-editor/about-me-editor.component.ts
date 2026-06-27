@@ -100,37 +100,32 @@ export class AboutMeEditorComponent extends CommonApp implements OnInit {
   save(): void {
     if (!this.isDirty() || this.saving()) { return; }
 
-    const payload: AboutFields = {
-      heading: this.heading(),
-      role: this.role(),
-      location: this.location(),
-      shortBio: this.shortBio(),
-      longBio: this.longBio(),
-    };
+    const fd = new FormData();
+    fd.append('heading', this.heading());
+    fd.append('role', this.role());
+    fd.append('location', this.location());
+    fd.append('shortBio', this.shortBio());
+    fd.append('longBio', this.longBio());
 
     this.saving.set(true);
 
-    // ── Wire your real API call here ─────────────────────────────
-    // Example:
-    // this.portfolioService.updateAboutMe(payload).subscribe({
-    //   next: () => {
-    //     this.original.set({ ...payload });
-    //     this.saving.set(false);
-    //     this.savedOk.set(true);
-    //     setTimeout(() => this.savedOk.set(false), 2500);
-    //   },
-    //   error: () => {
-    //     this.saving.set(false);
-    //   },
-    // });
-
-    // ── Temporary stub (remove when API is wired) ─────────────
-    setTimeout(() => {
-      this.original.set({ ...payload });
-      this.saving.set(false);
-      this.savedOk.set(true);
-      setTimeout(() => this.savedOk.set(false), 2500);
-    }, 800);
+    this.appService.updateProfile(fd).subscribe({
+      next: () => {
+        this.original.set({
+          heading: this.heading(),
+          role: this.role(),
+          location: this.location(),
+          shortBio: this.shortBio(),
+          longBio: this.longBio(),
+        });
+        this.saving.set(false);
+        this.savedOk.set(true);
+        setTimeout(() => this.savedOk.set(false), 2500);
+      },
+      error: () => {
+        this.saving.set(false);
+      },
+    });
   }
 
   // ── Private: seed from CommonApp profile signal ───────────────
@@ -139,10 +134,10 @@ export class AboutMeEditorComponent extends CommonApp implements OnInit {
 
     const seed = (profile: any) => {
       const fields: AboutFields = {
-        heading: 'About Me',
-        role: profile?.experiences?.find((e: any) => e.present)?.role ?? '',
+        heading: profile?.about_heading ?? 'About Me',
+        role: profile?.about_role ?? profile?.experiences?.find((e: any) => e.present)?.role ?? '',
         location: profile?.location ?? '',
-        shortBio: '',           // not in current API — add when available
+        shortBio: profile?.short_bio ?? '',
         longBio: profile?.description ?? '',
       };
       this.heading.set(fields.heading);
@@ -158,7 +153,6 @@ export class AboutMeEditorComponent extends CommonApp implements OnInit {
     if (profile) {
       seed(profile);
     } else {
-      // Poll until appService loads the profile (max ~3 s)
       const interval = setInterval(() => {
         const p = this.appService.profile();
         if (p) { seed(p); clearInterval(interval); }

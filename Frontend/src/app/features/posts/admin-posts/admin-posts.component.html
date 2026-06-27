@@ -132,7 +132,7 @@
                     <button
                       class="icon-btn icon-btn--danger"
                       [disabled]="deletingId === post.id"
-                      (click)="deletePost(post.id, post.title)"
+                      (click)="confirmDelete(post)"
                       title="Delete"
                     >
                       <i class="material-icons">delete</i>
@@ -175,3 +175,27 @@
   }
 
 </div>
+
+@if (deleteConfirm()) {
+  <div class="posts-dialog-backdrop" (click)="deleteConfirm.set(null)">
+    <div class="posts-dialog-card" (click)="$event.stopPropagation()">
+      <div class="posts-dialog-header">
+        <h3>Delete Post</h3>
+        <button class="posts-dialog-close" type="button" (click)="deleteConfirm.set(null)">
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+      <p class="posts-dialog-body">
+        Are you sure you want to delete
+        <strong>{{ deleteConfirm()!.title }}</strong>?
+        This action cannot be undone.
+      </p>
+      <div class="posts-dialog-footer">
+        <button class="posts-dlg-cancel" type="button" (click)="deleteConfirm.set(null)">Cancel</button>
+        <button class="posts-dlg-delete" type="button" (click)="executeDelete()">
+          <i class="material-icons">delete</i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}

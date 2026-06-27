@@ -188,6 +188,9 @@ export interface Profile {
     id?: string;
     full_name?: string;
     description?: string;
+    short_bio?: string;
+    about_heading?: string;
+    about_role?: string;
     email?: string;
     primary_phone?: string;
     logo_initials?: string;
@@ -201,8 +204,8 @@ export interface Profile {
     experiences?: ExperienceDTO[];
     currenttheme?: string;
     themes?: ThemeDefinition[];
-    avatar_url?: string; // public url for avatar (if public)
-    resume_url?: string; // stored path on server (not public url)
+    avatar_url?: string;
+    resume_url?: string;
     created_at?: string;
     updated_at?: string;
 }

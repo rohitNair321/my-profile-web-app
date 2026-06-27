@@ -1,65 +1,97 @@
-<div class="auth-page">
-  <div class="auth-card">
+<div class="auth-split">
 
-    <div class="auth-branding">
-      <div class="logo-initials">
+  <!-- ── Left: brand panel (desktop only) ─────────────────────── -->
+  <div class="auth-split__panel auth-split__panel--brand">
+    <div class="auth-brand-logo">
+      <span class="brand-logo-circle">
         <span class="rn-r">R</span><span class="rn-n">N</span>
-      </div>
-      <div class="auth-header">
-        <h1>Welcome</h1>
-        <p>Login to manage your professional portfolio or click Continue as Guest to explore the site</p>
-      </div>
+      </span>
     </div>
+    <h1 class="auth-brand-title">Welcome back</h1>
+    <p class="auth-brand-sub">Your portfolio. Your story.</p>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
-      
-      <div class="form-field" [class.invalid]="email?.invalid && email?.touched">
-        <label for="email">Email Address</label>
-        <div class="input-wrapper">
-          <i class="material-icons">mail_outline</i>
-          <input id="email" type="email" formControlName="email" placeholder="name@example.com" />
-        </div>
-        
-        @if (email?.errors && email?.touched) {
-          <div class="field-error">
-            @if (email?.errors?.['required']) {
-              <span>Email is required</span>
-            }
-            @if (email?.errors?.['email']) {
-              <span>Please enter a valid email</span>
-            }
-          </div>
-        }
-      </div>
+    <ul class="auth-feature-list">
+      <li>
+        <i class="material-icons">check_circle</i>
+        <span>Manage portfolio content</span>
+      </li>
+      <li>
+        <i class="material-icons">check_circle</i>
+        <span>Monitor AI usage &amp; analytics</span>
+      </li>
+      <li>
+        <i class="material-icons">check_circle</i>
+        <span>Customise themes &amp; design tokens</span>
+      </li>
+    </ul>
 
-      <div class="form-field" [class.invalid]="password?.invalid && password?.touched">
-        <label for="password">Password</label>
-        <div class="input-wrapper">
-          <i class="material-icons">lock_open</i>
-          <input id="password" type="password" formControlName="password" placeholder="••••••••" />
-        </div>
-
-        @if (password?.errors && password?.touched) {
-          <div class="field-error">
-            @if (password?.errors?.['required']) {
-              <span>Password is required</span>
-            }
-          </div>
-        }
-      </div>
-
-      <button type="submit" class="btn-primary-auth" [disabled]="isloading()">
-        <div class="spinner-container">
-          <span>Admin Login</span>
-        </div>
-      </button>
-
-      <div class="guest-container" style="margin-top: 1.5rem; text-align: center;">
-        <button type="button" class="btn-guest-link" (click)="cancelLogin()">
-          <span>Cancel</span>
-        </button>
-      </div>
-
-    </form>
+    <a routerLink="/" class="auth-guest-link">
+      Continue as Guest
+      <i class="material-icons">arrow_forward</i>
+    </a>
   </div>
+
+  <!-- ── Right: form panel ─────────────────────────────────────── -->
+  <div class="auth-split__panel auth-split__panel--form">
+    <div class="auth-card-v2">
+
+      <div class="auth-card-header">
+        <h2>Admin Login</h2>
+        <p>Access your dashboard</p>
+      </div>
+
+      @if (error()) {
+        <div class="auth-error-banner">
+          <i class="material-icons">error_outline</i>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+
+        <div class="form-field" [class.invalid]="email?.invalid && email?.touched">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <i class="material-icons">mail_outline</i>
+            <input id="email" type="email" formControlName="email" placeholder="admin@example.com" autocomplete="email" />
+          </div>
+          @if (email?.errors && email?.touched) {
+            <div class="field-error">
+              @if (email?.errors?.['required']) { <span>Email is required</span> }
+              @if (email?.errors?.['email']) { <span>Please enter a valid email</span> }
+            </div>
+          }
+        </div>
+
+        <div class="form-field" [class.invalid]="password?.invalid && password?.touched">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <i class="material-icons">lock_open</i>
+            <input id="password" type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          @if (password?.errors && password?.touched) {
+            <div class="field-error">
+              @if (password?.errors?.['required']) { <span>Password is required</span> }
+            </div>
+          }
+        </div>
+
+        <button type="submit" class="btn-primary-auth" [disabled]="isloading()">
+          @if (isloading()) {
+            <span class="btn-spinner"></span>
+          } @else {
+            <i class="material-icons">login</i>
+          }
+          <span>Sign In</span>
+        </button>
+
+      </form>
+
+      <div class="auth-demo-hint">
+        <code>admin&#64;demo.com</code> / <code>admin123</code>
+      </div>
+
+    </div>
+  </div>
+
 </div>

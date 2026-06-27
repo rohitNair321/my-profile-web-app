@@ -46,6 +46,24 @@
   --badge-js-text: #fbc02d;
   --badge-ts: #e3f2fd;
   --badge-ts-text: #1976d2;
+
+  /* ── Admin Layout V2 tokens — aliases to ThemeService tokens ── */
+  --admin-em:          var(--primary,        #10B981);
+  --admin-cy:          var(--accent,         #06B6D4);
+  --admin-in:          var(--highlight,      #6366F1);
+  --admin-am:          var(--warning,        #F59E0B);
+  --admin-er:          var(--error,          #EF4444);
+  --admin-bg-pg:       var(--background,     #020617);
+  --admin-bg-sf:       var(--surface,        #0F172A);
+  --admin-bg-s2:       var(--surface-alt,    #1E293B);
+  --admin-bg-dp:       var(--background,     #020617);
+  --admin-bdc:         var(--border,         #1E293B);
+  --admin-tc:          var(--text-primary,   #E2E8F0);
+  --admin-t2c:         var(--text-secondary, #94A3B8);
+  --admin-t3c:         var(--text-muted,     #64748B);
+  --admin-topbar-h:    60px;
+  --admin-sidebar-w:   220px;
+  --admin-sidebar-col: 60px;
 }
 
 /* Theme 1 */

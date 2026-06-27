@@ -1,0 +1,51 @@
+<div class="alm-backdrop" (click)="onBackdropClick($event)">
+  <div class="alm-card">
+
+    <!-- Header -->
+    <div class="alm-header">
+      <div class="alm-logo">
+        <span class="alm-r">R</span><span class="alm-n">N</span>
+      </div>
+      <div>
+        <div class="alm-title">Admin Login</div>
+        <div class="alm-hint">Press Ctrl+Shift+A to open</div>
+      </div>
+      <button class="alm-close-btn" (click)="close.emit()" title="Close">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Error banner -->
+    @if (error) {
+      <div class="alm-error">{{ error }}</div>
+    }
+
+    <!-- Email -->
+    <div class="alm-field">
+      <label class="alm-label">Email</label>
+      <input class="alm-inp" type="email" placeholder="admin@demo.com"
+             [(ngModel)]="email" (keydown.enter)="submit()" autocomplete="username" />
+    </div>
+
+    <!-- Password -->
+    <div class="alm-field">
+      <label class="alm-label">Password</label>
+      <div class="alm-inp-wrap">
+        <input class="alm-inp" [type]="showPassword ? 'text' : 'password'" placeholder="••••••••"
+               [(ngModel)]="password" (keydown.enter)="submit()" autocomplete="current-password" />
+        <button class="alm-toggle-pw" type="button" (click)="showPassword = !showPassword" tabindex="-1">
+          <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button class="alm-submit" type="button" (click)="submit()" [disabled]="loading">
+      {{ loading ? 'Signing in…' : 'Sign in →' }}
+    </button>
+
+    <!-- Demo hint -->
+    <p class="alm-demo">Demo: <code>admin&#64;demo.com / admin123</code></p>
+
+  </div>
+</div>

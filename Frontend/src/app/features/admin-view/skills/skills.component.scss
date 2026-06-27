@@ -1,0 +1,119 @@
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.125rem;
+}
+
+.skill-cat-card {
+  background: var(--admin-bg-sf);
+  border: 1px solid var(--admin-bdc);
+  border-radius: 16px;
+  padding: 1.25rem;
+  transition: border-color .2s;
+
+  &:hover { border-color: color-mix(in oklab, var(--cat-color) 30%, transparent); }
+}
+
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  margin-bottom: 1rem;
+}
+
+.cat-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--cat-color) 14%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  .material-icons { font-size: 1rem; color: var(--cat-color); }
+}
+
+.cat-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--admin-tc);
+}
+
+.cat-count {
+  margin-left: auto;
+  background: color-mix(in oklab, var(--cat-color) 14%, transparent);
+  color: var(--cat-color);
+  font-size: .7rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  min-width: 22px;
+  text-align: center;
+}
+
+/* Chip list */
+.skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: .875rem;
+  min-height: 2rem;
+}
+
+.skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  background: color-mix(in oklab, var(--cat-color) 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--cat-color) 25%, transparent);
+  color: var(--cat-color);
+  border-radius: 9999px;
+  padding: .25rem .625rem .25rem .75rem;
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: .6;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border-radius: 50%;
+  transition: opacity .15s;
+  .material-icons { font-size: .8rem; }
+  &:hover { opacity: 1; }
+}
+
+/* Add row */
+.skill-add-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .125rem;
+}
+
+.skill-inp {
+  flex: 1;
+  padding: .45rem .75rem !important;
+  font-size: .82rem !important;
+}
+
+/* Bar styles kept for potential future use */
+.skill-bar-track {
+  height: 5px;
+  background: var(--admin-bg-s2);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.skill-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cat-color), color-mix(in oklab, var(--cat-color) 70%, #fff));
+  border-radius: 9999px;
+  transition: width .6s ease;
+}

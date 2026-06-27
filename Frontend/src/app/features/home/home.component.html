@@ -75,6 +75,11 @@
           </div>
         </div>
       </div>
+      <!-- Hero scroll-down indicator — V2 style -->
+      <a href="#about" class="hero-scroll-down" (click)="scrollToSection($event, '#about')">
+        <span>Scroll</span>
+        <i class="material-icons">expand_more</i>
+      </a>
     </section>
 
     <!-- ABOUT SECTION - Minimal & Impactful -->
@@ -119,26 +124,26 @@
           </div>
           
           <div class="about-highlights">
-            <div class="highlight-card">
+            <div class="highlight-card" style="--hc: #10B981">
               <div class="highlight-icon">
-                <i class="material-icons">rocket_launch</i>
+                <i class="material-icons">account_balance</i>
               </div>
-              <h4>Fast & Scalable</h4>
-              <p>Optimized performance with modern architecture patterns</p>
+              <h4>Finance Domain</h4>
+              <p>4.5 years building banking and wealth management platforms for Fiserv and Handelsbanken — two of the industry's leading financial institutions.</p>
             </div>
-            <div class="highlight-card">
+            <div class="highlight-card" style="--hc: #06B6D4">
               <div class="highlight-icon">
-                <i class="material-icons">design_services</i>
+                <i class="material-icons">architecture</i>
               </div>
-              <h4>Pixel Perfect</h4>
-              <p>Attention to detail with responsive, accessible designs</p>
+              <h4>Angular Architecture</h4>
+              <p>Expert in Angular Signals, standalone components, NgRx state management, HTTP interceptors, and SSO integration patterns.</p>
             </div>
-            <div class="highlight-card">
+            <div class="highlight-card" style="--hc: #6366F1">
               <div class="highlight-icon">
-                <i class="material-icons">code</i>
+                <i class="material-icons">verified_user</i>
               </div>
-              <h4>Clean Code</h4>
-              <p>Maintainable, tested, and documented solutions</p>
+              <h4>ADA Compliance</h4>
+              <p>Built accessible UIs meeting WCAG 2.1 AA for enterprise financial applications serving users with disabilities.</p>
             </div>
           </div>
         </div>
@@ -149,8 +154,8 @@
     <section id="skills" class="skills-section animate-section">
       <div class="container">
         <div class="section-header centered">
-          <span class="section-badge">Technical Skills</span>
-          <h2 class="section-title">What I Work With</h2>
+          <span class="section-badge">Tech Stack</span>
+          <h2 class="section-title">The tools I build with</h2>
         </div>
         <div class="skills-grid">
           @for (cat of SKILL_CATEGORIES; track cat.name) {

@@ -1,0 +1,93 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Security</h1>
+      <p class="page-sub">Manage your password and review account activity.</p>
+    </div>
+  </div>
+
+  <div class="admin-2col-equal">
+
+    <!-- Change password -->
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons">lock_outline</span> Change Password
+      </div>
+
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Current Password</label>
+        <div class="inp-reveal-wrap">
+          <input [type]="showCurrent() ? 'text' : 'password'" class="admin-inp"
+            [(ngModel)]="currentPwd" style="padding-right:2.75rem" placeholder="••••••••">
+          <button class="reveal-btn" type="button" (click)="showCurrent.set(!showCurrent())">
+            <span class="material-icons">{{ showCurrent() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field-group" style="margin-bottom:.5rem">
+        <label class="inp-label">New Password</label>
+        <div class="inp-reveal-wrap">
+          <input [type]="showNew() ? 'text' : 'password'" class="admin-inp"
+            [(ngModel)]="newPwd" style="padding-right:2.75rem" placeholder="Min 8 characters">
+          <button class="reveal-btn" type="button" (click)="showNew.set(!showNew())">
+            <span class="material-icons">{{ showNew() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Strength meter -->
+      @if (newPwd) {
+        <div class="strength-bar-wrap">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="strength-segment"
+              [class.filled]="i <= strength"
+              [class.empty]="i > strength"
+              [style.--seg-color]="strengthColors[strength]">
+            </div>
+          }
+        </div>
+        <div class="strength-label" [style.color]="strengthColors[strength]">
+          {{ strengthLabels[strength] }}
+        </div>
+      }
+
+      <div class="field-group" style="margin-bottom:1.25rem;margin-top:1rem">
+        <label class="inp-label">Confirm New Password</label>
+        <div class="inp-reveal-wrap">
+          <input [type]="showConfirm() ? 'text' : 'password'" class="admin-inp"
+            [(ngModel)]="confirmPwd" style="padding-right:2.75rem" placeholder="Repeat password">
+          <button class="reveal-btn" type="button" (click)="showConfirm.set(!showConfirm())">
+            <span class="material-icons">{{ showConfirm() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-primary" type="button" (click)="onSavePassword()">
+        <span class="material-icons">save</span> Update Password
+      </button>
+    </div>
+
+    <!-- Activity log -->
+    <div class="admin-card" style="padding:0">
+      <div class="admin-card-title" style="padding:1.375rem 1.375rem 0">
+        <span class="material-icons">history</span> Activity Log
+      </div>
+      @for (entry of log; track entry.time) {
+        <div class="log-row">
+          <div class="log-icon-box" [class.ok]="entry.ok" [class.err]="!entry.ok">
+            <span class="material-icons">{{ entry.icon }}</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="log-label">{{ entry.label }}</div>
+            <div class="log-detail">{{ entry.detail }}</div>
+          </div>
+          <div class="log-time">{{ entry.time }}</div>
+        </div>
+      }
+    </div>
+
+  </div>
+
+</div>

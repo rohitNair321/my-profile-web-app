@@ -291,3 +291,60 @@
     font-weight: 500;
   }
 }
+/* ── Filter tabs (V2) ──────────────────────────────────────── */
+.notif-filters {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--nc-border);
+  background: var(--nc-surface);
+  overflow-x: auto;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.notif-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 9999px;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--nc-text-light);
+  font-family: inherit;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &.active {
+    background: var(--nc-accent-soft);
+    color: var(--nc-accent);
+  }
+
+  &:hover:not(.active) {
+    background: var(--nc-hover);
+  }
+}
+
+.filter-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--nc-accent);
+  color: #fff;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  .notif-filters { padding: 0.625rem 1rem; }
+  .notif-filter-btn { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
+}

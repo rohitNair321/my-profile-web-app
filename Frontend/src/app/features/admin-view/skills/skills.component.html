@@ -1,0 +1,59 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Skills</h1>
+      <p class="page-sub">Manage your skill set.</p>
+    </div>
+  </div>
+
+  @if (savedOk()) {
+    <div class="save-toast">
+      <span class="material-icons">check_circle</span> Saved successfully
+    </div>
+  }
+
+  <div class="skills-grid">
+    @for (cat of categories(); track cat.cat) {
+      <div class="skill-cat-card" [style.--cat-color]="cat.color">
+
+        <div class="cat-header">
+          <div class="cat-icon-box">
+            <span class="material-icons">{{ cat.icon }}</span>
+          </div>
+          <span class="cat-title">{{ cat.cat }}</span>
+          <span class="cat-count">{{ cat.items.length }}</span>
+        </div>
+
+        <!-- Skill chips -->
+        <div class="skill-chips">
+          @for (skill of cat.items; track skill.name) {
+            <span class="skill-chip">
+              {{ skill.name }}
+              <button class="chip-remove" type="button" title="Remove skill"
+                (click)="removeSkill(skill.name)">
+                <span class="material-icons">close</span>
+              </button>
+            </span>
+          }
+        </div>
+
+        <!-- Add skill inline -->
+        <div class="skill-add-row">
+          <input class="admin-inp skill-inp" [value]="newSkill()"
+            (input)="newSkill.set($any($event.target).value)"
+            placeholder="Add skill…"
+            (keydown.enter)="addSkill()"
+            (keydown.escape)="newSkill.set('')">
+          <button class="btn-primary" style="padding:.45rem .875rem;font-size:.78rem"
+            type="button" (click)="addSkill()" [disabled]="!newSkill().trim() || saving()">
+            <span class="material-icons" style="font-size:.9rem">add</span>
+            Add
+          </button>
+        </div>
+
+      </div>
+    }
+  </div>
+
+</div>
