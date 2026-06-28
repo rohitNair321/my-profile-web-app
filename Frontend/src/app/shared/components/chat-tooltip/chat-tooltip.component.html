@@ -1,0 +1,12 @@
+@if (visible) {
+  <div class="ctt-wrap" [class.intro]="isIntro()">
+    <div class="ctt-bubble">
+      <span class="ctt-emoji">{{ isIntro() ? '✨' : '💬' }}</span>
+      <span class="ctt-text">
+        {{ displayed() }}<span class="ctt-cursor"></span>
+      </span>
+    </div>
+    <div class="ctt-tail-outer"></div>
+    <div class="ctt-tail-inner"></div>
+  </div>
+}

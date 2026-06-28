@@ -8,7 +8,8 @@ import {
   signal,
   PLATFORM_ID,
   Inject,
-  ChangeDetectionStrategy } from '@angular/core';
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +17,6 @@ import { THEME_NAME_MAP } from 'src/app/core/config/theme.config';
 import { CommonApp } from 'src/app/core/services/common';
 import { ChristmasAnimationComponent } from 'src/app/core/theme/ThemeAnimationsComponent/christmas-animation/christmas-animation.component';
 import { NewYearAnimationComponent } from 'src/app/core/theme/ThemeAnimationsComponent/new-year-animation/new-year-animation.component';
-import { ChatBotComponent } from 'src/app/shared/components/chat-bot/chat-bot.component';
 import { FooterComponent } from 'src/app/shared/components/footer/footer.component';
 import { NavigationComponent } from 'src/app/shared/components/navigation/navigation.component';
 import { SidebarComponent } from 'src/app/shared/components/sidebar/sidebar.component';
@@ -31,7 +31,6 @@ const MOBILE_BREAKPOINT = 900;
   imports: [
     RouterOutlet,
     FormsModule,
-    ChatBotComponent,
     NavigationComponent,
     SidebarComponent,
     FooterComponent,
@@ -88,7 +87,7 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     const isAdmin = this.appService.role() === 'ADMIN';
     this.appConfig.appConfiguration.type = isAdmin ? 'sidebar' : 'navbar';
     this.appConfig.appConfiguration.showUserProfileView = isAdmin;
-    this.appConfig.appConfiguration.showNotifications   = isAdmin;
+    this.appConfig.appConfiguration.showNotifications = isAdmin;
   }
 
   ngOnDestroy(): void {

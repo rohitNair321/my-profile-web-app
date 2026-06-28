@@ -2028,6 +2028,134 @@
   .section-header { margin-bottom: 1.5rem !important; }
 }
 
+/* ─── CONTACT SECTION — CHAT TAB ──────────────────────────── */
+
+.contact-right-card {
+  flex: 1.2;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  overflow: visible;  /* must be visible so the tooltip can float above */
+  box-shadow: var(--shadow);
+}
+
+.contact-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt);
+  border-radius: 24px 24px 0 0;  /* round top corners since parent no longer clips */
+  position: relative;
+  overflow: visible;
+}
+
+.contact-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .875rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-family: inherit;
+  transition: all .2s;
+  border-bottom: 2px solid transparent;
+
+  .material-icons { font-size: 1.1rem; }
+
+  &:hover {
+    color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 5%, transparent);
+  }
+
+  &.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 6%, transparent);
+  }
+}
+
+.contact-form-wrap {
+  padding: 2rem;
+  animation: tabFadeIn .25s ease;
+}
+
+.contact-chat-wrap {
+  display: flex;
+  flex-direction: column;
+  animation: tabFadeIn .25s ease;
+}
+
+.chat-inline-badge {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .75rem 1.375rem;
+  background: color-mix(in oklab, var(--primary) 7%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--primary) 18%, transparent);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--primary);
+
+  .material-icons { font-size: 1rem; }
+}
+
+/* Inline chat window — override ChatBotComponent fixed positioning */
+.contact-chat-wrap app-chat-bot {
+  position: static !important;
+
+  ::ng-deep .cb {
+    position: static !important;
+    z-index: auto !important;
+    height: 460px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  ::ng-deep .cb-fab { display: none !important; }
+  ::ng-deep .cb-welcome { display: none !important; }
+
+  ::ng-deep .cb-window {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  ::ng-deep .cb-messages {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .contact-chat-wrap app-chat-bot ::ng-deep .cb { height: 400px; }
+}
+
+@media (max-width: 640px) {
+  .contact-chat-wrap app-chat-bot ::ng-deep .cb { height: 360px; }
+
+  .contact-tab-btn {
+    font-size: .8rem;
+    padding: .75rem .5rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

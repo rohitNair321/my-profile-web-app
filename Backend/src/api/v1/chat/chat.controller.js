@@ -14,8 +14,8 @@ const PRICING = {
   'gpt-4o-mini': { input: 0.00000015, output: 0.0000006 },
 };
 
-function calcCost(inputTokens = 0, outputTokens = 0, model = 'o4-mini') {
-  const p = PRICING[model] ?? PRICING['o4-mini'];
+function calcCost(inputTokens = 0, outputTokens = 0, model = 'gpt-4o-mini') {
+  const p = PRICING[model] ?? PRICING['gpt-4o-mini'];
   return inputTokens * p.input + outputTokens * p.output;
 }
 

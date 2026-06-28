@@ -15,6 +15,8 @@ import { Subject, Subscription, switchMap, take, timer } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
 import { SeoService } from 'src/app/core/services/seo.service';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
+import { ChatBotComponent } from 'src/app/shared/components/chat-bot/chat-bot.component';
+import { ChatTooltipComponent } from 'src/app/shared/components/chat-tooltip/chat-tooltip.component';
 
 interface Hero {
   name: string;
@@ -39,7 +41,9 @@ interface HomeData { hero: Hero; aboutTeaser?: AboutTeaser; contact?: ContactInf
     InputTextModule,
     TextareaModule,
     DialogModule,
-    TagModule
+    TagModule,
+    ChatBotComponent,
+    ChatTooltipComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
@@ -120,6 +124,9 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
     },
   ];
 
+  contactTab: 'form' | 'chat' = 'form';
+  setContactTab(tab: 'form' | 'chat'): void { this.contactTab = tab; }
+
   contactForm: FormGroup;
   projectList: any[] = [];
   experienceYears = 5;
@@ -162,9 +169,6 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
       this.isDataLoaded = true;
     } else {
       this.getMyProfile();
-      if (this.appService.role() === 'ADMIN') {
-        this.getNotifications();
-      }
     }
   }
 

@@ -58,7 +58,6 @@ async function sendChatMessage({ message, sessionId, userId, role, guestId, user
     // Check guest limit
     if (!isAdmin && guestId) {
       const count = await checkGuestLimit(guestId);
-
       if (count >= RATE_LIMIT.GUEST_CHAT_LIMIT) {
         return {
           limitReached: true,
@@ -68,12 +67,10 @@ async function sendChatMessage({ message, sessionId, userId, role, guestId, user
       }
     }
 
-    // Get AI response
-    const reply = await askAI(message, role);
-
+    // Load existing session first so we can pass conversation history to AI
     let session = null;
+    let conversationHistory = [];
 
-    // Find existing session
     if (sessionId) {
       const { data, error } = await supabase
         .from('chat_sessions')
@@ -83,8 +80,20 @@ async function sendChatMessage({ message, sessionId, userId, role, guestId, user
 
       if (!error && data) {
         session = data;
+        conversationHistory = data.messages || [];
       }
     }
+
+    // Get AI response with full context
+    const reply = await askAI(
+      message,
+      role,
+      guestId,
+      session?.id ?? sessionId ?? null,
+      userId,
+      !isAdmin,
+      conversationHistory
+    );
 
     // Create new session if needed
     if (!session) {
@@ -93,7 +102,7 @@ async function sendChatMessage({ message, sessionId, userId, role, guestId, user
         .insert({
           id: uuidv4(),
           title: message.slice(0, 50),
-          model: 'o4-mini',
+          model: 'gpt-4o-mini',
           role: isAdmin ? USER_ROLES.ADMIN : USER_ROLES.GUEST,
           is_guest: !isAdmin,
           user_id: userId || PROFILE_OWNER_ID,

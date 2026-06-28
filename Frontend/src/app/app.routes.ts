@@ -111,10 +111,10 @@ export const routes: Routes = [
 
       // ── Notifications (moved to admin-view) ───────────
       {
-        path: 'notifications',
-        loadComponent: () =>
-          import('./features/admin-view/notifications/notifications.component').then(m => m.NotificationComponent),
+        path: 'notification',
         canActivate: [tokenGuard],
+        loadComponent: () =>
+          import('./features/admin-view/notification/notification.component').then(m => m.NotificationComponent),
         data: { roles: ['ADMIN'] }
       },
 

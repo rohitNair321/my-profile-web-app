@@ -1,13 +1,14 @@
 // notification.component.ts
-import { Component, computed, inject, Injector, OnDestroy, OnInit, signal , ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AccordionModule } from 'primeng/accordion';
 import { ButtonModule } from 'primeng/button';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { BadgeModule } from 'primeng/badge';
-import { TimeAgoPipe } from '../../shared/pipes/time.pipe';
+import { TimeAgoPipe } from '../../../shared/pipes/time.pipe';
 import { CommonApp } from 'src/app/core/services/common';
 import { Subject } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-notifications',
@@ -41,7 +42,7 @@ export class NotificationComponent extends CommonApp implements OnInit, OnDestro
 
   ngOnInit() {
     if (!this.notifications()) {
-      this.router.navigate(['/app/home']);
+      this.appService.getNotifications().pipe(take(1)).subscribe();
     }
   }
 

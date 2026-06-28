@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, RouterOutlet } from '@angular/router';
-import { filter, Subject, takeUntil } from 'rxjs';
+import { filter, Subject, take, takeUntil } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
 import { AdminSideNavComponent } from 'src/app/features/admin-view/admin-side-nav/admin-side-nav.component';
 import { AdminTopbarComponent } from 'src/app/features/admin-view/admin-topbar/admin-topbar.component';
@@ -89,6 +89,12 @@ export class AdminLayoutComponent extends CommonApp implements OnInit, OnDestroy
           this.applyThemeFromProfile(profile);
         }
       }, { injector: this.injector });
+
+      // Restore profile on page refresh — initiateApp() only restores auth state,
+      // not the profile, so the topbar would fall back to "Admin" without this.
+      if (!this.appService.profile()) {
+        this.appService.getProfile().pipe(take(1)).subscribe();
+      }
     }
 
     this.router.events.pipe(
@@ -97,6 +103,19 @@ export class AdminLayoutComponent extends CommonApp implements OnInit, OnDestroy
     ).subscribe(() => this.updatePageTitle());
 
     this.updatePageTitle();
+
+    this.appService.getNotifications().pipe(take(1)).subscribe({
+      next: (notifications) => {
+        if ((notifications?.unreadCount ?? 0) > 0) {
+          const count = notifications.unreadCount;
+          this.alertService.showAlert(
+            `You have ${count} unread notification${count > 1 ? 's' : ''}`,
+            'info'
+          );
+        }
+      },
+      error: () => {},
+    });
   }
 
   ngOnDestroy(): void {

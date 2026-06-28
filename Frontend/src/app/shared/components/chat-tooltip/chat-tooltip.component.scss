@@ -1,0 +1,110 @@
+/* Host — anchors to the tab bar via position:absolute */
+:host {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
+  animation: floatCloud 3s ease-in-out infinite;
+  display: block;
+}
+
+.ctt-wrap {
+  position: relative;
+}
+
+.ctt-bubble {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem 1rem .6rem .875rem;
+  border-radius: 14px;
+  min-width: 240px;
+  max-width: 320px;
+  white-space: nowrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+
+  .ctt-wrap.intro & {
+    background: linear-gradient(135deg, #10B981, #06B6D4);
+    border: none;
+    box-shadow: 0 8px 28px rgba(16, 185, 129, .4);
+  }
+}
+
+.ctt-emoji {
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+
+.ctt-text {
+  font-family: 'Space Grotesk', var(--font-head, sans-serif);
+  font-size: .78rem;
+  font-weight: 500;
+  line-height: 1.4;
+  flex: 1;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .ctt-wrap.intro & {
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+.ctt-cursor {
+  display: inline-block;
+  width: 1.5px;
+  height: .85em;
+  vertical-align: text-bottom;
+  margin-left: 1px;
+  animation: blink 1s step-end infinite;
+  background: var(--text-secondary);
+
+  .ctt-wrap.intro & { background: rgba(255, 255, 255, .8); }
+}
+
+/* Tail — outer (border colour) */
+.ctt-tail-outer {
+  position: absolute;
+  bottom: -7px;
+  right: 28px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid var(--border);
+
+  .ctt-wrap.intro & { border-top-color: #06B6D4; }
+}
+
+/* Tail — inner (fill colour) */
+.ctt-tail-inner {
+  position: absolute;
+  bottom: -5px;
+  right: 29px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--surface);
+
+  .ctt-wrap.intro & { border-top-color: #06B6D4; }
+}
+
+:host-context([data-theme='dark']) .ctt-tail-inner,
+:host-context(.dark) .ctt-tail-inner {
+  border-top-color: var(--surface);
+}
+
+@keyframes floatCloud {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-7px); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

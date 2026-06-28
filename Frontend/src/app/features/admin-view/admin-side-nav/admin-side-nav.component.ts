@@ -21,19 +21,19 @@ export interface AdminNavItem {
 }
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
-  { icon: 'dashboard',      label: 'Overview',       route: '/admin/overview',      key: 'overview' },
-  { icon: 'person',         label: 'Profile',        route: '/admin/profile',       key: 'profile' },
-  { icon: 'work',           label: 'Experience',     route: '/admin/experience',    key: 'experience' },
-  { icon: 'folder_special', label: 'Projects',       route: '/admin/projects',      key: 'projects' },
-  { icon: 'psychology',     label: 'Skills',         route: '/admin/skills',        key: 'skills' },
-  { icon: 'palette',        label: 'Themes',         route: '/admin/themes',        key: 'themes' },
-  { icon: 'article',        label: 'Learning Posts', route: '/admin/blog',          key: 'blog' },
-  { icon: 'edit_note',      label: 'About Me',       route: '/admin/about',         key: 'about' },
-  { icon: 'notifications',  label: 'Notifications',  route: '/admin/notifications', key: 'notifications', badge: true },
-  { icon: 'smart_toy',      label: 'AI Usage',       route: '/admin/ai',            key: 'ai' },
-  { icon: 'bar_chart',      label: 'Analytics',      route: '/admin/analytics',     key: 'analytics' },
-  { icon: 'security',       label: 'Security',       route: '/admin/security',      key: 'security' },
-  { icon: 'share',          label: 'Social Links',   route: '/admin/social',        key: 'social' },
+  { icon: 'dashboard', label: 'Overview', route: '/admin/overview', key: 'overview' },
+  { icon: 'person', label: 'Profile', route: '/admin/profile', key: 'profile' },
+  { icon: 'work', label: 'Experience', route: '/admin/experience', key: 'experience' },
+  { icon: 'folder_special', label: 'Projects', route: '/admin/projects', key: 'projects' },
+  { icon: 'psychology', label: 'Skills', route: '/admin/skills', key: 'skills' },
+  { icon: 'palette', label: 'Themes', route: '/admin/themes', key: 'themes' },
+  { icon: 'article', label: 'Learning Posts', route: '/admin/blog', key: 'blog' },
+  { icon: 'edit_note', label: 'About Me', route: '/admin/about', key: 'about' },
+  { icon: 'notifications', label: 'Notifications', route: '/admin/notification', key: 'notification', badge: true },
+  { icon: 'smart_toy', label: 'AI Usage', route: '/admin/ai', key: 'ai' },
+  { icon: 'bar_chart', label: 'Analytics', route: '/admin/analytics', key: 'analytics' },
+  { icon: 'security', label: 'Security', route: '/admin/security', key: 'security' },
+  { icon: 'share', label: 'Social Links', route: '/admin/social', key: 'social' },
 ];
 
 @Component({
@@ -50,7 +50,7 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
   @Input() isMobileOpen = false;
   @Output() collapseChange = new EventEmitter<boolean>();
   @Output() closeMobile = new EventEmitter<void>();
-  @Output() logout        = new EventEmitter<void>();
+  @Output() logout = new EventEmitter<void>();
 
   readonly navItems = ADMIN_NAV_ITEMS;
   notifications = computed(() => this.appService.notifications());
@@ -59,8 +59,8 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
     super(injector);
   }
 
-  ngOnInit(): void {}
-  ngOnDestroy(): void {}
+  ngOnInit(): void { }
+  ngOnDestroy(): void { }
 
   toggleCollapse(): void {
     this.collapseChange.emit(!this.collapsed);
