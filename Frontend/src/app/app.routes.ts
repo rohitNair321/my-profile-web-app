@@ -16,36 +16,36 @@ export const routes: Routes = [
         path: '',
         pathMatch: 'full',
         loadComponent: () =>
-          import('./features/home/home.component').then(m => m.HomeComponent),
+          import('./features/user-view/home/home.component').then(m => m.HomeComponent),
       },
       {
         path: 'home',
         loadComponent: () =>
-          import('./features/home/home.component').then(m => m.HomeComponent),
+          import('./features/user-view/home/home.component').then(m => m.HomeComponent),
       },
       {
         path: 'about',
         loadComponent: () =>
-          import('./features/about-me/about-me.component').then(m => m.AboutMeComponent),
+          import('./features/user-view/about-me/about-me.component').then(m => m.AboutMeComponent),
       },
       {
         path: 'projects',
         loadComponent: () =>
-          import('./features/projects-page/projects-page.component')
+          import('./features/user-view/projects-page/projects-page.component')
             .then(m => m.ProjectsPageComponent),
       },
       // ── Public Posts ──────────────────────────────────
       {
         path: 'posts',
         loadComponent: () =>
-          import('./features/posts/posts-list/posts-list.component')
+          import('./features/user-view/posts/posts-list/posts-list.component')
             .then(m => m.PostsListComponent),
         title: 'Posts — Rohit Nair',
       },
       {
         path: 'posts/:slug',
         loadComponent: () =>
-          import('./features/posts/post-detail/post-detail.component')
+          import('./features/user-view/posts/post-detail/post-detail.component')
             .then(m => m.PostDetailComponent),
       },
     ],
@@ -122,7 +122,7 @@ export const routes: Routes = [
       {
         path: 'help',
         loadComponent: () =>
-          import('./features/help/help.component').then(m => m.HelpComponent),
+          import('./features/user-view/help/help.component').then(m => m.HelpComponent),
       },
 
       // ── Admin Posts ───────────────────────────────────
@@ -130,7 +130,7 @@ export const routes: Routes = [
         path: 'posts',
         canActivate: [tokenGuard],
         loadComponent: () =>
-          import('./features/posts/admin-posts/admin-posts.component')
+          import('./features/admin-view/posts/admin-posts/admin-posts.component')
             .then(m => m.AdminPostsComponent),
         data: { roles: ['ADMIN'] },
       },
@@ -138,7 +138,7 @@ export const routes: Routes = [
         path: 'posts/new',
         canActivate: [tokenGuard],
         loadComponent: () =>
-          import('./features/posts/post-editor/post-editor.component')
+          import('./features/admin-view/posts/post-editor/post-editor.component')
             .then(m => m.PostEditorComponent),
         data: { roles: ['ADMIN'] },
       },
@@ -146,7 +146,7 @@ export const routes: Routes = [
         path: 'posts/:id/edit',
         canActivate: [tokenGuard],
         loadComponent: () =>
-          import('./features/posts/post-editor/post-editor.component')
+          import('./features/admin-view/posts/post-editor/post-editor.component')
             .then(m => m.PostEditorComponent),
         data: { roles: ['ADMIN'] },
       },

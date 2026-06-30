@@ -1,5 +1,6 @@
 // api/v1/auth/auth.controller.js
 const authService = require('../../../services/authService');
+const { logActivity } = require('../../../services/activityService');
 const ApiResponse = require('../../../utils/ApiResponse');
 const catchAsync = require('../../../utils/catchAsync');
 const { COOKIE } = require('../../../config/constants');
@@ -15,6 +16,16 @@ const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
   const { token, user } = await authService.login(email, password);
+
+  logActivity({
+    userId:    user.id,
+    eventType: 'login',
+    entity:    'auth',
+    meta: {
+      browser: req.headers['user-agent'] || null,
+      ip:      req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null,
+    },
+  });
 
   // Set httpOnly cookie
   res.cookie(COOKIE.TOKEN_NAME, token, {

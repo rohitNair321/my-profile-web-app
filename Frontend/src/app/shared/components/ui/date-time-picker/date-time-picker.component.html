@@ -1,0 +1,117 @@
+<div class="dtp" (click)="$event.stopPropagation()">
+
+  <!-- ── Trigger ──────────────────────────────────────────── -->
+  <div class="dtp__trigger-row">
+    <button
+      type="button"
+      class="dtp__trigger"
+      [class.dtp__trigger--set]="!!value"
+      [class.dtp__trigger--open]="open"
+      (click)="toggle()"
+      [title]="value ? displayLabel : placeholder"
+    >
+      <i class="material-icons">event</i>
+      <span class="dtp__trigger-label">{{ value ? displayLabel : placeholder }}</span>
+      <i class="material-icons dtp__trigger-arrow">{{ open ? 'expand_less' : 'expand_more' }}</i>
+    </button>
+
+    @if (value) {
+      <button type="button" class="dtp__clear-btn" (click)="clear()" title="Clear date">
+        <i class="material-icons">close</i>
+      </button>
+    }
+  </div>
+
+  <!-- ── Popover ──────────────────────────────────────────── -->
+  @if (open) {
+    <div class="dtp__popover">
+
+      <!-- Month navigation -->
+      <div class="dtp__cal-head">
+        <button type="button" class="dtp__nav-btn" (click)="prevMonth()">
+          <i class="material-icons">chevron_left</i>
+        </button>
+        <span class="dtp__month-lbl">{{ monthLabel }}</span>
+        <button type="button" class="dtp__nav-btn" (click)="nextMonth()">
+          <i class="material-icons">chevron_right</i>
+        </button>
+      </div>
+
+      <!-- Weekday headers -->
+      <div class="dtp__weekdays">
+        @for (w of WEEKDAYS; track w) {
+          <span>{{ w }}</span>
+        }
+      </div>
+
+      <!-- Day grid -->
+      <div class="dtp__days">
+        @for (day of days; track day.date.getTime()) {
+          <button
+            type="button"
+            class="dtp__day"
+            [class.dtp__day--other]="!day.inMonth"
+            [class.dtp__day--today]="day.isToday"
+            [class.dtp__day--sel]="day.isSelected"
+            [class.dtp__day--dis]="day.disabled"
+            [disabled]="day.disabled"
+            (click)="pickDay(day)"
+          >{{ day.date.getDate() }}</button>
+        }
+      </div>
+
+      <!-- Divider -->
+      <div class="dtp__divider"></div>
+
+      <!-- Time picker -->
+      <div class="dtp__time">
+        <i class="material-icons dtp__time-icon">schedule</i>
+
+        <div class="dtp__spin">
+          <button type="button" class="dtp__spin-btn" (click)="adjHour(1)">
+            <i class="material-icons">expand_less</i>
+          </button>
+          <span class="dtp__spin-val">{{ hourStr }}</span>
+          <button type="button" class="dtp__spin-btn" (click)="adjHour(-1)">
+            <i class="material-icons">expand_more</i>
+          </button>
+        </div>
+
+        <span class="dtp__colon">:</span>
+
+        <div class="dtp__spin">
+          <button type="button" class="dtp__spin-btn" (click)="adjMin(1)">
+            <i class="material-icons">expand_less</i>
+          </button>
+          <span class="dtp__spin-val">{{ minStr }}</span>
+          <button type="button" class="dtp__spin-btn" (click)="adjMin(-1)">
+            <i class="material-icons">expand_more</i>
+          </button>
+        </div>
+
+        <span class="dtp__ampm" [class.dtp__ampm--pm]="isPm">{{ isPm ? 'PM' : 'AM' }}</span>
+      </div>
+
+      <!-- Hint when no day selected -->
+      @if (!selDate) {
+        <p class="dtp__hint">Pick a day above to continue</p>
+      }
+
+      <!-- Footer -->
+      <div class="dtp__footer">
+        <button type="button" class="dtp__btn-clear" (click)="clear()">Clear</button>
+        <button
+          type="button"
+          class="dtp__btn-confirm"
+          [disabled]="!selDate"
+          (click)="confirm()"
+        >
+          <i class="material-icons">check</i>
+          Confirm
+        </button>
+      </div>
+
+    </div>
+  }
+
+</div>

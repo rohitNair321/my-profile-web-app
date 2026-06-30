@@ -2,9 +2,18 @@
 
 const { supabase } = require('../db/supabaseClient');
 const { v4: uuidv4 } = require('uuid');
+const { logActivity } = require('../services/activityService');
 
 const BUCKET = process.env.ASSET_BUCKET || 'assets';
 const RESUME_EXPIRY_SECONDS = Number(process.env.RESUME_SIGNED_URL_EXPIRY || 600);
+
+// Profile fields to track for field-level diff logging
+const TRACKED_FIELDS = [
+  'full_name', 'description', 'short_bio', 'email', 'primary_phone',
+  'secondary_phone', 'location', 'website', 'linkedin', 'github',
+  'logo_initials', 'currenttheme', 'about_heading', 'about_role',
+  'open_to_work', 'skills', 'experiences', 'themes',
+];
 
 //#region Helper to parse JSON fields
 function parseJsonField(value) {
@@ -200,8 +209,29 @@ async function updateMyProfile(req, res) {
       payload.resume_url = publicData.publicUrl;
     }
 
+    // Fetch current row before update so we can diff changed fields
+    let currentProfile = {};
+    try {
+      const { data: current } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      currentProfile = current || {};
+    } catch (_) { /* non-fatal */ }
+
     const saved = await upsertProfileRow(userId, payload);
-    
+
+    // Log each field that actually changed (fire-and-forget)
+    const stringify = (v) => v == null ? null : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+    for (const field of TRACKED_FIELDS) {
+      if (!(field in payload)) continue;
+      const oldStr = stringify(currentProfile[field]);
+      const newStr = stringify(payload[field]);
+      if (oldStr !== newStr) {
+        logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: field, oldValue: oldStr, newValue: newStr });
+      }
+    }
+    // Log file uploads separately (no content diff — just record the event)
+    if (payload.avatar_url) logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: 'avatar', newValue: 'uploaded' });
+    if (payload.resume_url) logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: 'resume', newValue: 'uploaded' });
+
     // Calculate projectCount
     const projectCount = (saved.experiences || []).reduce((total, exp) => {
       return total + (exp.projects?.length || 0);
@@ -289,6 +319,8 @@ async function deleteResume(req, res) {
 
     // Clear resume_url in the profile row
     const saved = await upsertProfileRow(userId, { resume_url: null });
+
+    logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: 'resume', oldValue: 'uploaded', newValue: null });
 
     const projectCount = (saved.experiences || []).reduce((t, e) => t + (e.projects?.length || 0), 0);
     const companyCount = (saved.experiences || []).length;

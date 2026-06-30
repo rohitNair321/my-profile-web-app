@@ -64,28 +64,119 @@
         </div>
       </div>
 
-      <button class="btn-primary" type="button" (click)="onSavePassword()">
-        <span class="material-icons">save</span> Update Password
+      @if (saveError()) {
+        <div class="save-error">{{ saveError() }}</div>
+      }
+      @if (saveOk()) {
+        <div class="save-ok">Password updated successfully.</div>
+      }
+
+      <button class="btn-primary" type="button" [disabled]="saving()" (click)="onSavePassword()">
+        @if (saving()) { <span class="material-icons spin">refresh</span> }
+        @else           { <span class="material-icons">save</span> }
+        {{ saving() ? 'Saving…' : 'Update Password' }}
       </button>
     </div>
 
     <!-- Activity log -->
     <div class="admin-card" style="padding:0">
-      <div class="admin-card-title" style="padding:1.375rem 1.375rem 0">
-        <span class="material-icons">history</span> Activity Log
+
+      <!-- Header + tab bar -->
+      <div style="padding:1.375rem 1.375rem 0">
+        <div class="admin-card-title" style="margin-bottom:.875rem">
+          <span class="material-icons">history</span> Activity Log
+        </div>
+        <div class="act-tab-bar">
+          <button class="act-tab" [class.active]="activityTab() === 'logins'"
+            type="button" (click)="switchActivityTab('logins')">
+            <span class="material-icons">login</span> Logins
+          </button>
+          <button class="act-tab" [class.active]="activityTab() === 'changes'"
+            type="button" (click)="switchActivityTab('changes')">
+            <span class="material-icons">edit</span> Profile Changes
+          </button>
+          <button class="act-refresh" type="button" [disabled]="logLoading()"
+            (click)="loadActivity()" title="Refresh">
+            <span class="material-icons" [class.spin]="logLoading()">refresh</span>
+          </button>
+        </div>
       </div>
-      @for (entry of log; track entry.time) {
-        <div class="log-row">
-          <div class="log-icon-box" [class.ok]="entry.ok" [class.err]="!entry.ok">
-            <span class="material-icons">{{ entry.icon }}</span>
+
+      <!-- Loading skeleton -->
+      @if (logLoading()) {
+        @for (i of [1,2,3]; track i) {
+          <div class="log-row">
+            <div class="skel-box"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+              <div class="skel-line" style="width:55%"></div>
+              <div class="skel-line" style="width:75%"></div>
+            </div>
+            <div class="skel-line" style="width:52px"></div>
           </div>
-          <div style="flex:1;min-width:0">
-            <div class="log-label">{{ entry.label }}</div>
-            <div class="log-detail">{{ entry.detail }}</div>
-          </div>
-          <div class="log-time">{{ entry.time }}</div>
+        }
+      }
+
+      <!-- Error state -->
+      @else if (logError()) {
+        <div class="log-empty">
+          <span class="material-icons" style="font-size:1.5rem;color:#EF4444">error_outline</span>
+          <span>Could not load activity. <button class="link-btn" (click)="loadActivity()">Retry</button></span>
         </div>
       }
+
+      <!-- ── LOGINS TAB ── -->
+      @else if (activityTab() === 'logins') {
+        @if (logins().length === 0) {
+          <div class="log-empty">
+            <span class="material-icons">login</span>
+            <span>No login history yet.</span>
+          </div>
+        }
+        @for (entry of logins(); track entry.id) {
+          <div class="log-row">
+            <div class="log-icon-box ok">
+              <span class="material-icons">login</span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="log-label">Admin Login</div>
+              <div class="log-detail">
+                {{ parseBrowser(entry.browser) }}
+                @if (entry.ip) { · <span class="log-ip">{{ entry.ip }}</span> }
+              </div>
+            </div>
+            <div class="log-time">{{ relativeTime(entry.timestamp) }}</div>
+          </div>
+        }
+      }
+
+      <!-- ── PROFILE CHANGES TAB ── -->
+      @else if (activityTab() === 'changes') {
+        @if (changes().length === 0) {
+          <div class="log-empty">
+            <span class="material-icons">edit_off</span>
+            <span>No profile changes recorded yet.</span>
+          </div>
+        }
+        @for (entry of changes(); track entry.id) {
+          <div class="log-row">
+            <div class="log-icon-box ok" style="background:rgba(99,102,241,.12)">
+              <span class="material-icons" style="color:#6366F1">edit</span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="log-label">Updated {{ fieldLabel(entry.field_name) }}</div>
+              <div class="log-detail change-detail">
+                @if (entry.old_value) {
+                  <span class="val-old">{{ truncate(entry.old_value) }}</span>
+                  <span class="material-icons" style="font-size:.7rem;opacity:.5">arrow_forward</span>
+                }
+                <span class="val-new">{{ truncate(entry.new_value) }}</span>
+              </div>
+            </div>
+            <div class="log-time">{{ relativeTime(entry.created_at) }}</div>
+          </div>
+        }
+      }
+
     </div>
 
   </div>

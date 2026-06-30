@@ -1,8 +1,32 @@
-import { ChangeDetectionStrategy, Component, computed, Injector, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, Injector, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonApp } from 'src/app/core/services/common';
+import { ActivityApiService, FieldChange, LoginEntry } from 'src/app/core/services/activity-api.service';
 
-interface LogEntry { icon: string; ok: boolean; label: string; detail: string; time: string; }
+type ActivityTab = 'logins' | 'changes';
+
+const FIELD_LABELS: Record<string, string> = {
+  full_name:       'Full Name',
+  description:     'Professional Bio',
+  short_bio:       'Short Bio',
+  email:           'Email',
+  primary_phone:   'Primary Phone',
+  secondary_phone: 'Secondary Phone',
+  location:        'Location',
+  website:         'Website',
+  linkedin:        'LinkedIn',
+  github:          'GitHub',
+  logo_initials:   'Logo Initials',
+  currenttheme:    'Active Theme',
+  about_heading:   'About Heading',
+  about_role:      'Job Title',
+  open_to_work:    'Open to Work',
+  skills:          'Skills',
+  experiences:     'Experience',
+  themes:          'Themes',
+  avatar:          'Profile Photo',
+  resume:          'Resume',
+};
 
 @Component({
   selector: 'app-admin-security',
@@ -12,8 +36,7 @@ interface LogEntry { icon: string; ok: boolean; label: string; detail: string; t
   styleUrls: ['./security.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminSecurityComponent extends CommonApp {
-  // Pull admin email from profile signal
+export class AdminSecurityComponent extends CommonApp implements OnInit {
   adminEmail = computed(() => this.appService.profile()?.email ?? '');
 
   currentPwd  = '';
@@ -26,8 +49,18 @@ export class AdminSecurityComponent extends CommonApp {
   saveError   = signal('');
   saveOk      = signal(false);
 
+  // Activity log state
+  activityTab    = signal<ActivityTab>('logins');
+  logins         = signal<LoginEntry[]>([]);
+  changes        = signal<FieldChange[]>([]);
+  logLoading     = signal(true);
+  logError       = signal(false);
+
+  private activityApi: ActivityApiService;
+
   readonly strengthColors = ['', '#EF4444', '#F59E0B', '#F59E0B', '#10B981'];
   readonly strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  readonly fieldLabels    = FIELD_LABELS;
 
   get strength(): number {
     let s = 0;
@@ -38,18 +71,79 @@ export class AdminSecurityComponent extends CommonApp {
     return s;
   }
 
-  // Static activity log — no API backing yet; kept for UI completeness
-  readonly log: LogEntry[] = [
-    { icon: 'login',         ok: true,  label: 'Admin login',          detail: 'Chrome · Pune, India',  time: 'Today 02:14 PM' },
-    { icon: 'login',         ok: true,  label: 'Admin login',          detail: 'Chrome · Pune, India',  time: 'Yesterday 10:31 AM' },
-    { icon: 'no_encryption', ok: false, label: 'Failed login attempt', detail: 'Unknown browser · US',  time: '2 days ago 07:52 PM' },
-    { icon: 'password',      ok: true,  label: 'Password changed',     detail: 'Chrome · Pune, India',  time: '7 days ago 11:00 AM' },
-    { icon: 'login',         ok: true,  label: 'Admin login',          detail: 'Safari · India',        time: '9 days ago 09:15 AM' },
-  ];
-
   constructor(public override injector: Injector) {
     super(injector);
+    this.activityApi = injector.get(ActivityApiService);
   }
+
+  ngOnInit(): void {
+    this.loadActivity();
+  }
+
+  switchActivityTab(tab: ActivityTab): void {
+    this.activityTab.set(tab);
+  }
+
+  loadActivity(): void {
+    this.logLoading.set(true);
+    this.logError.set(false);
+
+    // Load logins and field changes in parallel
+    let loginsDone  = false;
+    let changesDone = false;
+    const check = () => { if (loginsDone && changesDone) this.logLoading.set(false); };
+
+    this.activityApi.getLogins(30).subscribe({
+      next: res => { this.logins.set(res.logins ?? []); loginsDone = true; check(); },
+      error: ()  => { loginsDone = true; this.logError.set(true); check(); },
+    });
+
+    this.activityApi.getFieldChanges({ entity: 'profile', limit: 50 }).subscribe({
+      next: res => { this.changes.set(res.changes ?? []); changesDone = true; check(); },
+      error: ()  => { changesDone = true; this.logError.set(true); check(); },
+    });
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────
+
+  parseBrowser(ua: string | null): string {
+    if (!ua) return 'Unknown browser';
+    if (/Edg\//.test(ua))                              return 'Edge';
+    if (/OPR\//.test(ua) || /Opera/.test(ua))          return 'Opera';
+    if (/Chrome\//.test(ua) && !/Chromium/.test(ua))   return 'Chrome';
+    if (/Firefox\//.test(ua))                          return 'Firefox';
+    if (/Safari\//.test(ua) && !/Chrome\//.test(ua))   return 'Safari';
+    return 'Browser';
+  }
+
+  relativeTime(iso: string): string {
+    const diff  = Date.now() - new Date(iso).getTime();
+    const mins  = Math.floor(diff / 60000);
+    const hours = Math.floor(mins / 60);
+    const days  = Math.floor(hours / 24);
+    if (mins < 1)   return 'Just now';
+    if (mins < 60)  return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days === 1) return 'Yesterday';
+    if (days < 7)   return `${days}d ago`;
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  fieldLabel(name: string): string {
+    return FIELD_LABELS[name] ?? name.replace(/_/g, ' ');
+  }
+
+  truncate(value: string | null, max = 38): string {
+    if (!value) return '—';
+    // For JSON arrays/objects, show a friendlier summary
+    if (value.startsWith('[')) {
+      try { const arr = JSON.parse(value); return `${arr.length} item${arr.length !== 1 ? 's' : ''}`; }
+      catch { /* fall through */ }
+    }
+    return value.length > max ? value.slice(0, max) + '…' : value;
+  }
+
+  // ── Password ───────────────────────────────────────────────────
 
   onSavePassword(): void {
     this.saveError.set('');

@@ -18,6 +18,7 @@
       <option value="">All Statuses</option>
       <option value="draft">Draft</option>
       <option value="published">Published</option>
+      <option value="scheduled">Scheduled</option>
       <option value="archived">Archived</option>
     </select>
     <span class="admin-posts__count">{{ total() }} post{{ total() !== 1 ? 's' : '' }}</span>
@@ -73,6 +74,9 @@
                 </td>
                 <td>
                   <span class="badge" [class]="statusClass(post.status)">{{ post.status }}</span>
+                  @if (post.status === 'scheduled' && post.scheduled_at) {
+                    <div class="scheduled-date">{{ formatScheduleDate(post.scheduled_at) }}</div>
+                  }
                 </td>
                 <td>
                   <div class="tag-list">
@@ -125,6 +129,11 @@
                       <a [routerLink]="['/posts', post.slug]" target="_blank" class="icon-btn" title="View">
                         <i class="material-icons">visibility</i>
                       </a>
+                    }
+                    @if (post.status === 'scheduled') {
+                      <button class="icon-btn icon-btn--publish" (click)="publishNow(post)" title="Publish now">
+                        <i class="material-icons">publish</i>
+                      </button>
                     }
                     <a [routerLink]="['/admin/posts', post.id, 'edit']" class="icon-btn" title="Edit">
                       <i class="material-icons">edit</i>

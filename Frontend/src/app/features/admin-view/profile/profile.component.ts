@@ -53,6 +53,7 @@ export class AdminProfileComponent extends CommonApp {
   github    = '';
   linkedin  = '';
   bio       = '';
+  shortBio  = '';
   skills:   string[] = [];
   newSkill    = '';
   addingSkill = signal(false);
@@ -84,6 +85,7 @@ export class AdminProfileComponent extends CommonApp {
     this.github         = p.github         ?? '';
     this.linkedin       = p.linkedin       ?? '';
     this.bio            = p.description    ?? '';
+    this.shortBio       = p.short_bio      ?? '';
     this.skills         = p.skills?.length ? [...p.skills] : [];
     if (p.avatar_url) this.avatarSrc.set(p.avatar_url);
   }
@@ -140,6 +142,7 @@ export class AdminProfileComponent extends CommonApp {
     fd.append('github',          this.github.trim());
     fd.append('linkedin',        this.linkedin.trim());
     fd.append('description',     this.bio.trim());
+    fd.append('short_bio',       this.shortBio.trim());
     fd.append('skills',          JSON.stringify(this.skills));
     if (this.avatarFile) {
       fd.append('avatar', this.avatarFile, this.avatarFile.name);

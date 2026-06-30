@@ -194,7 +194,23 @@
       <div class="admin-card-title">
         <span class="material-icons">edit_note</span> Bio / Description
       </div>
-      <label class="inp-label">About Me (Markdown supported)</label>
+
+      <div class="field-group" style="margin-bottom:1.25rem">
+        <label class="inp-label">
+          Short Bio
+          <span style="font-weight:400;color:#64748b;font-size:.75rem;margin-left:.375rem">One-line tagline · max 200 chars</span>
+        </label>
+        <div class="inp-icon-wrap">
+          <span class="material-icons inp-icon">short_text</span>
+          <input class="admin-inp" [(ngModel)]="shortBio" maxlength="200"
+            placeholder="e.g. Full-Stack Engineer · Building products that matter">
+        </div>
+        <p style="font-size:.72rem;color:#94a3b8;margin:.25rem 0 0;text-align:right">
+          {{ shortBio.length }} / 200
+        </p>
+      </div>
+
+      <label class="inp-label">About Me <span style="font-weight:400;color:#64748b;font-size:.75rem;margin-left:.375rem">Markdown supported</span></label>
       <textarea class="admin-inp admin-textarea" [(ngModel)]="bio" rows="12"
         placeholder="Write something about yourself…"></textarea>
       <p style="font-size:.75rem;color:#475569;margin:.5rem 0 0">

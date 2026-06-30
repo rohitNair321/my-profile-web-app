@@ -30,6 +30,14 @@
           <option value="archived">Archived</option>
         </select>
 
+        <!-- Schedule date/time picker -->
+        <app-date-time-picker
+          [value]="form.get('scheduled_at')?.value"
+          [min]="minScheduleIso"
+          placeholder="Schedule"
+          (valueChange)="onScheduledAtChange($event)"
+        ></app-date-time-picker>
+
         <button
           type="button"
           class="btn-secondary"
@@ -43,11 +51,11 @@
         <button
           type="button"
           class="btn-primary"
-          (click)="save(true)"
+          (click)="save(!isScheduledFuture)"
           [disabled]="isSaving()"
         >
-          <i class="material-icons">publish</i>
-          Publish
+          <i class="material-icons">{{ isScheduledFuture ? 'event' : 'publish' }}</i>
+          {{ isSaving() ? 'Saving…' : (isScheduledFuture ? 'Schedule' : 'Publish') }}
         </button>
 
         <button
@@ -115,7 +123,12 @@
                 <i class="material-icons">schedule</i>
                 ~{{ estimatedReadTime }} min read
               </span>
-              @if (form.get('status')?.value === 'draft') {
+              @if (isScheduledFuture) {
+                <span class="meta-chip meta-chip--scheduled">
+                  <i class="material-icons">event</i>
+                  Scheduled {{ formatScheduleDate(form.get('scheduled_at')?.value) }}
+                </span>
+              } @else if (form.get('status')?.value === 'draft') {
                 <span class="meta-chip meta-chip--draft">Draft</span>
               }
             </div>
@@ -145,7 +158,14 @@
               <div class="preview-pane__content">
                 <h1 class="preview-title">{{ form.get('title')?.value || 'Untitled' }}</h1>
                 @if (form.get('cover_image_url')?.value) {
-                  <img [src]="form.get('cover_image_url')?.value" alt="Cover" class="preview-cover" />
+                  <div class="preview-cover-wrap">
+                    <img
+                      [src]="form.get('cover_image_url')?.value"
+                      alt="Cover"
+                      class="preview-cover"
+                      (error)="$any($event.target).style.display='none'"
+                    />
+                  </div>
                 }
                 <div class="preview-body ql-snow ql-editor" [innerHTML]="safePreviewContent"></div>
               </div>
@@ -208,12 +228,13 @@
                 </div>
               </div>
 
-              <!-- Featured + Cover in same section -->
+              <!-- Cover Image URL -->
               <div class="field">
                 <label class="field__label">Cover Image URL</label>
                 <input formControlName="cover_image_url" type="url" class="field__input" placeholder="https://…" />
               </div>
 
+              <!-- Upload Cover Image -->
               <div class="field">
                 <label class="field__label">Upload Cover Image</label>
                 <div class="cover-upload">
@@ -229,15 +250,28 @@
                     </button>
                   }
                 </div>
-                @if (form.get('cover_image_url')?.value) {
-                  <div class="cover-preview">
-                    <img [src]="form.get('cover_image_url')?.value" alt="Cover preview" />
-                    <button type="button" class="cover-preview__remove" (click)="removeCover()">
-                      <i class="material-icons">close</i>
+              </div>
+
+              <!-- Cover preview — visible when URL is set (from typing OR upload) -->
+              @if (form.get('cover_image_url')?.value) {
+                <div class="cover-preview-block">
+                  <div class="cover-preview-label">
+                    <i class="material-icons">image</i>
+                    Cover Preview
+                    <button type="button" class="cover-preview-remove" (click)="removeCover()" title="Remove cover">
+                      <i class="material-icons">delete_outline</i>
+                      Remove
                     </button>
                   </div>
-                }
-              </div>
+                  <div class="cover-preview-img-wrap">
+                    <img
+                      [src]="form.get('cover_image_url')?.value"
+                      alt="Cover preview"
+                      class="cover-preview-img"
+                    />
+                  </div>
+                </div>
+              }
 
               <div class="field field--checkbox">
                 <label class="checkbox-label">
@@ -278,7 +312,7 @@
               <!-- Preview card -->
               <div class="seo-preview-card">
                 <div class="seo-preview-card__label">Google Preview</div>
-                <div class="seo-preview-card__url">mintpixel.in › posts</div>
+                <div class="seo-preview-card__url">https://rohitnair-dev.onrender.com > posts</div>
                 <div class="seo-preview-card__title">
                   {{ form.get('seo_title')?.value || form.get('title')?.value || 'Your post title' }}
                 </div>

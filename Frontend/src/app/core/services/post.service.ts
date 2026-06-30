@@ -14,7 +14,7 @@ export interface Post {
   content_raw?: string;
   cover_image_url?: string;
   linkedin_url?: string;
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'published' | 'archived' | 'scheduled';
   is_featured: boolean;
   week_number?: number;
   tags: string[];
@@ -24,7 +24,8 @@ export interface Post {
   read_time: number;
   impressions: number;
   views: number;
-  published_at?: string;
+  published_at?: string | null;
+  scheduled_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,7 +45,7 @@ export interface PostCreateDTO {
   content: string;
   content_raw?: string;
   excerpt?: string;
-  status?: 'draft' | 'published' | 'archived';
+  status?: 'draft' | 'published' | 'archived' | 'scheduled';
   is_featured?: boolean;
   week_number?: number;
   tags?: string[];
@@ -53,6 +54,7 @@ export interface PostCreateDTO {
   seo_title?: string;
   seo_description?: string;
   og_image_url?: string;
+  scheduled_at?: string | null;
 }
 
 // ── Service ───────────────────────────────────────────────────

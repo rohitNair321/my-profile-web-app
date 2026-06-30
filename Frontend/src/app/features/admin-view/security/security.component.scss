@@ -25,6 +25,72 @@
   font-size: .72rem; font-weight: 700; margin-bottom: .375rem;
 }
 
+/* Save feedback */
+.save-error {
+  font-size: .78rem; color: #EF4444; margin-bottom: .75rem;
+  background: rgba(239,68,68,.08); border-radius: 6px; padding: .5rem .75rem;
+}
+.save-ok {
+  font-size: .78rem; color: #10B981; margin-bottom: .75rem;
+  background: rgba(16,185,129,.08); border-radius: 6px; padding: .5rem .75rem;
+}
+.spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Activity tab bar */
+.act-tab-bar {
+  display: flex; align-items: center; gap: .25rem;
+  border-bottom: 1px solid var(--admin-bdc); padding-bottom: .875rem;
+}
+
+.act-tab {
+  display: flex; align-items: center; gap: .375rem;
+  padding: .35rem .75rem; border-radius: 8px; border: none;
+  font-size: .78rem; font-weight: 600; cursor: pointer;
+  color: var(--admin-t2c); background: transparent;
+  transition: background .15s, color .15s;
+  .material-icons { font-size: .9rem; }
+
+  &:hover  { background: var(--admin-bg-s2); }
+  &.active { background: rgba(16,185,129,.12); color: #10B981; }
+}
+
+.act-refresh {
+  margin-left: auto; background: transparent; border: none;
+  cursor: pointer; color: var(--admin-t3c); padding: .3rem; border-radius: 6px;
+  transition: color .15s, background .15s;
+  &:hover { color: var(--admin-tc); background: var(--admin-bg-s2); }
+  .material-icons { font-size: 1rem; display: block; }
+}
+
+/* Skeleton loaders */
+.skel-box {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  background: var(--admin-bg-s2); animation: pulse 1.4s ease-in-out infinite;
+}
+.skel-line {
+  height: 10px; border-radius: 4px;
+  background: var(--admin-bg-s2); animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* Empty state */
+.log-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .5rem; padding: 2.5rem 1rem; color: var(--admin-t3c); font-size: .8rem;
+  .material-icons { font-size: 1.75rem; opacity: .4; }
+}
+.link-btn {
+  background: none; border: none; color: #10B981; cursor: pointer;
+  font-size: inherit; text-decoration: underline; padding: 0;
+}
+
+/* Change diff display */
+.change-detail { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; }
+.val-old { color: #EF4444; text-decoration: line-through; font-size: .7rem; }
+.val-new { color: #10B981; font-size: .7rem; }
+.log-ip  { font-family: monospace; font-size: .68rem; }
+
 /* Activity log */
 .log-row {
   display: flex;

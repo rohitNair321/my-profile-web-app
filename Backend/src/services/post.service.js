@@ -7,21 +7,40 @@ const { calculateReadTime } = require('../utils/readTime');
 const { sanitizeHtml } = require('../utils/sanitize');
 const ApiError = require('../utils/ApiError');
 
+// Map PostgreSQL/Supabase error codes to user-facing API errors.
+function mapDbError(error) {
+  switch (error.code) {
+    case '23514': // check_violation — value rejected by a CHECK constraint
+      return ApiError.badRequest(
+        'Invalid field value: ' + (error.message.includes('status')
+          ? "status must be one of: draft, published, archived, scheduled"
+          : error.message)
+      );
+    case '23505': // unique_violation
+      return ApiError.badRequest('A record with that value already exists.');
+    case '23503': // foreign_key_violation
+      return ApiError.badRequest('Referenced record does not exist.');
+    default:
+      return ApiError.internal(error.message);
+  }
+}
+
 class PostService {
 
   // ── GET ALL PUBLISHED ────────────────────────────────────────
   async getAllPublished({ page = 1, limit = 12, tag = null, search = null } = {}) {
-    const from = (page - 1) * limit;
-    const to   = from + limit - 1;
+    const from   = (page - 1) * limit;
+    const to     = from + limit - 1;
+    const nowIso = new Date().toISOString();
 
     let query = supabase
       .from('posts')
       .select(
-        'id, title, slug, excerpt, cover_image_url, tags, week_number, read_time, impressions, views, published_at, is_featured',
+        'id, title, slug, excerpt, cover_image_url, tags, week_number, read_time, impressions, views, published_at, scheduled_at, is_featured',
         { count: 'exact' }
       )
-      .eq('status', 'published')
-      .order('published_at', { ascending: false })
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${nowIso})`)
+      .order('published_at', { ascending: false, nullsFirst: false })
       .range(from, to);
 
     if (tag)    query = query.contains('tags', [tag]);
@@ -29,6 +48,13 @@ class PostService {
 
     const { data, error, count } = await query;
     if (error) throw ApiError.internal(error.message);
+
+    // Fire-and-forget: promote any past-due scheduled posts to published
+    supabase.from('posts')
+      .update({ status: 'published', published_at: nowIso, scheduled_at: null })
+      .eq('status', 'scheduled')
+      .lte('scheduled_at', nowIso)
+      .then(({ error: e }) => { if (e) console.warn('schedule promotion failed:', e.message); });
 
     return {
       posts: data ?? [],
@@ -43,24 +69,35 @@ class PostService {
 
   // ── GET BY SLUG ──────────────────────────────────────────────
   async getBySlug(slug) {
+    const nowIso = new Date().toISOString();
     const { data, error } = await supabase
       .from('posts')
       .select('*')
       .eq('slug', slug)
-      .eq('status', 'published')
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${nowIso})`)
       .maybeSingle();
 
     if (error) throw ApiError.internal(error.message);
     if (!data)  throw ApiError.notFound('Post not found');
+
+    // Lazy-promote if this post was still in 'scheduled' state
+    if (data.status === 'scheduled') {
+      supabase.from('posts')
+        .update({ status: 'published', published_at: nowIso, scheduled_at: null })
+        .eq('id', data.id)
+        .then(({ error: e }) => { if (e) console.warn('schedule promotion failed:', e.message); });
+    }
+
     return data;
   }
 
   // ── GET FEATURED ─────────────────────────────────────────────
   async getFeatured(limit = 3) {
+    const nowIso = new Date().toISOString();
     const { data, error } = await supabase
       .from('posts')
-      .select('id, title, slug, excerpt, cover_image_url, tags, read_time, published_at')
-      .eq('status', 'published')
+      .select('id, title, slug, excerpt, cover_image_url, tags, read_time, published_at, scheduled_at')
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${nowIso})`)
       .eq('is_featured', true)
       .order('published_at', { ascending: false })
       .limit(limit);
@@ -97,6 +134,10 @@ class PostService {
     const sanitizedContent = sanitizeHtml(body.content);
     const readTime         = calculateReadTime(body.content_raw || body.content);
 
+    const now            = new Date();
+    const schedDate      = body.scheduled_at ? new Date(body.scheduled_at) : null;
+    const isScheduledFuture = !!(schedDate && schedDate > now);
+
     const postData = {
       title:           body.title,
       slug,
@@ -105,7 +146,7 @@ class PostService {
       content_raw:     body.content_raw || '',
       cover_image_url: body.cover_image_url  || null,
       linkedin_url:    body.linkedin_url     || null,
-      status:          body.status           || 'draft',
+      status:          isScheduledFuture ? 'scheduled' : (body.status || 'draft'),
       is_featured:     body.is_featured      || false,
       week_number:     body.week_number      || null,
       tags:            Array.isArray(body.tags) ? body.tags : [],
@@ -114,7 +155,8 @@ class PostService {
       og_image_url:    body.og_image_url     || body.cover_image_url || null,
       read_time:       readTime,
       impressions:     body.impressions      || 0,
-      published_at:    body.status === 'published' ? new Date().toISOString() : null,
+      scheduled_at:    isScheduledFuture ? body.scheduled_at : null,
+      published_at:    (!isScheduledFuture && body.status === 'published') ? now.toISOString() : null,
     };
 
     const { data, error } = await supabase
@@ -123,7 +165,7 @@ class PostService {
       .select()
       .single();
 
-    if (error) throw ApiError.internal(error.message);
+    if (error) throw mapDbError(error);
     return data;
   }
 
@@ -143,9 +185,25 @@ class PostService {
       updates.excerpt = this._generateExcerpt(body.content_raw || body.content);
     }
 
-    // Set published_at only the first time the post goes live
-    if (body.status === 'published' && existing.status !== 'published') {
+    // Scheduling logic takes priority over plain status updates
+    if ('scheduled_at' in body) {
+      const schedDate = body.scheduled_at ? new Date(body.scheduled_at) : null;
+      if (schedDate && schedDate > new Date()) {
+        // Future schedule — override status to 'scheduled'
+        updates.scheduled_at = body.scheduled_at;
+        updates.status       = 'scheduled';
+        updates.published_at = null;
+      } else {
+        // Clearing or past-date schedule → unschedule
+        updates.scheduled_at = null;
+        if (existing.status === 'scheduled') {
+          updates.status = body.status || 'draft';
+        }
+      }
+    } else if (body.status === 'published' && existing.status !== 'published') {
+      // Normal publish (includes manual override: scheduled → published)
       updates.published_at = new Date().toISOString();
+      if (existing.status === 'scheduled') updates.scheduled_at = null;
     }
 
     const { data, error } = await supabase
@@ -155,7 +213,7 @@ class PostService {
       .select()
       .single();
 
-    if (error) throw ApiError.internal(error.message);
+    if (error) throw mapDbError(error);
     return data;
   }
 

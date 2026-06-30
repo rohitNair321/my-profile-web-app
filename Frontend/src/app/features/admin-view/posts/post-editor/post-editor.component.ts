@@ -8,6 +8,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { QuillEditorComponent } from 'src/app/shared/components/quill-editor/quill-editor.component';
 import { PostService, Post, PostCreateDTO } from 'src/app/core/services/post.service';
 import { CommonApp } from 'src/app/core/services/common';
+import { DateTimePickerComponent } from 'src/app/shared/components/ui/date-time-picker/date-time-picker.component';
 import { Subject, takeUntil } from 'rxjs';
 
 type TabId = 'editor' | 'seo';
@@ -16,7 +17,7 @@ type TabId = 'editor' | 'seo';
   selector: 'app-post-editor',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, QuillEditorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, QuillEditorComponent, DateTimePickerComponent],
   templateUrl: './post-editor.component.html',
   styleUrls: ['./post-editor.component.scss'],
 })
@@ -32,10 +33,10 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
   isEditMode = computed(() => !!this.editId());
 
   // UI State
-  isSaving  = signal(false);
-  isLoading = signal(false);
-  error     = signal<string | null>(null);
-  activeTab = signal<TabId>('editor');
+  isSaving    = signal(false);
+  isLoading   = signal(false);
+  error       = signal<string | null>(null);
+  activeTab   = signal<TabId>('editor');
   showPreview = signal(false);
 
   // Tags input helper
@@ -80,6 +81,7 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
       seo_title:       [''],
       seo_description: [''],
       og_image_url:    [''],
+      scheduled_at:    [null],
     });
 
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -129,6 +131,7 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
       seo_title:       post.seo_title || '',
       seo_description: post.seo_description || '',
       og_image_url:    post.og_image_url || '',
+      scheduled_at:    post.scheduled_at || null,
     });
   }
 
@@ -192,6 +195,28 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
     this.pendingCoverFile.set(null);
   }
 
+  // ── Schedule ─────────────────────────────────────────────────
+
+  get isScheduledFuture(): boolean {
+    const sa = this.form?.get('scheduled_at')?.value;
+    return !!sa && new Date(sa) > new Date();
+  }
+
+  get minScheduleIso(): string {
+    return new Date(Date.now() + 5 * 60000).toISOString();
+  }
+
+  onScheduledAtChange(iso: string | null): void {
+    this.form.patchValue({ scheduled_at: iso });
+  }
+
+  formatScheduleDate(iso: string | null | undefined): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
   // ── Preview ──────────────────────────────────────────────────
 
   get safePreviewContent(): SafeHtml {
@@ -214,15 +239,29 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
       return;
     }
 
-    // Upload pending cover first
     if (this.pendingCoverFile()) {
       await this.uploadCoverImage();
     }
 
-    const payload: PostCreateDTO = {
-      ...this.form.value,
-      status: publishNow ? 'published' : this.form.get('status')?.value,
-    };
+    const formVal = this.form.value;
+    const scheduled = this.isScheduledFuture;
+
+    let status: PostCreateDTO['status'];
+    let scheduled_at: string | null = null;
+
+    if (publishNow) {
+      status = 'published';
+    } else if (scheduled) {
+      status = 'scheduled';
+      scheduled_at = formVal.scheduled_at;
+    } else {
+      status = formVal.status || 'draft';
+    }
+
+    const successMsg = publishNow ? 'Post published!'
+      : (scheduled ? 'Post scheduled!' : 'Post saved!');
+
+    const payload: PostCreateDTO = { ...formVal, status, scheduled_at };
 
     this.isSaving.set(true);
     const request$ = this.isEditMode()
@@ -232,10 +271,7 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.isSaving.set(false);
-        this.alertService.showAlert(
-          publishNow ? 'Post published!' : 'Post saved!',
-          'success'
-        );
+        this.alertService.showAlert(successMsg, 'success');
         this.router.navigate(['/admin/posts']);
       },
       error: (err: any) => {

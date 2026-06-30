@@ -47,6 +47,10 @@
   --badge-ts: #e3f2fd;
   --badge-ts-text: #1976d2;
 
+  /* Preferences panel */
+  --pref-panel-w: 300px;
+  --anim-dur:     1s;
+
   /* ── Admin Layout V2 tokens — aliases to ThemeService tokens ── */
   --admin-em:          var(--primary,        #10B981);
   --admin-cy:          var(--accent,         #06B6D4);

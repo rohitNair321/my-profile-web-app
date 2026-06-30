@@ -8,7 +8,8 @@ const chatRoutes     = require('./chat/chat.routes');
 const profileRoutes  = require('./profile/profile.routes');
 const contactRoutes  = require('./contact/contact.routes');
 const analyticsRoutes = require('./analytics/analytics.routes');
-const postRoutes     = require('./posts/post.routes');
+const postRoutes      = require('./posts/post.routes');
+const activityRoutes  = require('./activity/activity.routes');
 
 // Mount routes
 router.use('/auth',      authRoutes);
@@ -17,6 +18,7 @@ router.use('/profile',   profileRoutes);
 router.use('/contact',   contactRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/posts',     postRoutes);
+router.use('/activity',  activityRoutes);
 
 // API v1 health check
 router.get('/health', (req, res) => {

@@ -64,6 +64,11 @@
       <ul class="nav-bar__menu-list d-flex align-items-center gap-3 list-unstyled mb-0">
         @for (item of menuItems; track item) {
 
+        <!-- Group divider — separates home-anchor links from Posts/Resume -->
+        @if (item.key === 'posts') {
+        <li class="nav-bar__divider" aria-hidden="true"></li>
+        }
+
         <!-- Type D: subMenu dropdown (checked first) -->
         @if (item.subMenu?.length) {
         <li class="nav-dropdown">
@@ -141,7 +146,7 @@
 
       <!-- Profile -->
       @if (config?.appConfiguration?.showUserProfileView) {
-      <app-profile-menu></app-profile-menu>
+      <!-- <app-profile-menu></app-profile-menu> -->
       }
 
     </div>
@@ -166,7 +171,7 @@
 
       <!-- Profile — rightmost, always last -->
       @if (config?.appConfiguration?.showUserProfileView) {
-      <app-profile-menu></app-profile-menu>
+      <!-- <app-profile-menu></app-profile-menu> -->
       }
 
     </div>
@@ -175,8 +180,13 @@
     <!-- ④ PROFILE + THEME — sidebar mode all screen sizes ──── -->
     @if (config?.appConfiguration?.type === 'sidebar') {
     <div class="ms-auto d-flex align-items-center gap-2">
+      @if (appService.role() !== 'ADMIN') {
+      <button class="nav-bar__btn-hire-me" (click)="scrollToSection($event, '#contact')" title="Get in touch">
+        Hire Me
+      </button>
+      }
       @if (config?.appConfiguration?.showUserProfileView) {
-      <app-profile-menu></app-profile-menu>
+      <!-- <app-profile-menu></app-profile-menu> -->
       }
     </div>
     }
@@ -193,6 +203,12 @@
 
       <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
         @for (item of menuItems; track item) {
+
+        <!-- Group divider — separates home-anchor links from Posts/Resume -->
+        @if (item.key === 'posts') {
+        <li class="nav-bar__mobile-divider" aria-hidden="true"></li>
+        }
+
         <li class="mobile-nav-group" [class.is-expanded]="item.expanded">
 
           <!-- Type D: subMenu -->
@@ -268,7 +284,13 @@
       </ul>
 
       <!-- Bottom actions -->
-      <div class="nav-bar__mobile-actions mt-auto pt-3">
+      <div class="nav-bar__mobile-actions mt-auto pt-3 d-flex flex-column gap-2">
+        @if (appService.role() !== 'ADMIN') {
+        <button class="nav-bar__btn-hire-me w-100 justify-content-center"
+          (click)="scrollToSection($event, '#contact'); isMenuOpen = false">
+          Hire Me
+        </button>
+        }
         <button class="mobile-theme-toggle w-100 d-flex align-items-center gap-3"
           (click)="themeService.toggleDarkMode()">
           <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>

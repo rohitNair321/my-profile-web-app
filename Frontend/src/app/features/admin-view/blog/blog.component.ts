@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { AdminPostsComponent } from '../../posts/admin-posts/admin-posts.component';
+import { AdminPostsComponent } from '../posts/admin-posts/admin-posts.component';
 
 @Component({
   selector: 'app-admin-blog',

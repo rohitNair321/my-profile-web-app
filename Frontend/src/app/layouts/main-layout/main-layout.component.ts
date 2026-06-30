@@ -49,6 +49,25 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   showScrollTop = signal(false);
   private isBrowser: boolean;
 
+  // ── Preferences panel state ───────────────────────────────────
+  currentAccent   = signal<string>('#10B981');
+  currentTextSize = signal<'sm' | 'md' | 'lg'>('md');
+  reduceMotion    = signal(false);
+
+  readonly accentOptions = [
+    { value: '#10B981', label: 'Emerald' },
+    { value: '#6366F1', label: 'Indigo'  },
+    { value: '#8B5CF6', label: 'Violet'  },
+    { value: '#F59E0B', label: 'Amber'   },
+    { value: '#EF4444', label: 'Rose'    },
+  ];
+
+  readonly textSizeOptions: Array<{ value: 'sm' | 'md' | 'lg'; label: string }> = [
+    { value: 'sm', label: 'S' },
+    { value: 'md', label: 'M' },
+    { value: 'lg', label: 'L' },
+  ];
+
   availableThemes = computed(() =>
     this.normalizeThemesResponse(this.appService.profile()?.themes ?? [])
   );
@@ -65,7 +84,7 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     this.appConfig.appConfiguration.type = 'sidebar';   // 'sidebar' | 'navbar'
     this.appConfig.appConfiguration.theme = 'light';
     this.appConfig.appConfiguration.sidebarPosition = 'left';      // always left
-    this.appConfig.appConfiguration.logoLocationHeader = false;       // brand in sidebar
+    this.appConfig.appConfiguration.logoLocationHeader = false;
     this.appConfig.appConfiguration.collapsed = true;        // sidebar icon-only by default
     this.appConfig.appConfiguration.showSidebarToggle = true;
     this.appConfig.appConfiguration.showAgentChat = true;
@@ -76,11 +95,23 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
 
   // ── Lifecycle ────────────────────────────────────────────────
 
+  get isDark(): boolean { return this.themeService.isDark(); }
+
   ngOnInit(): void {
     const resolvedId = THEME_NAME_MAP[this.appConfig.theme.name ?? 'theme-5'] ?? 'tron';
     this.themeService.setTheme(resolvedId);
     this.startSessionTimer();
     this._applyRoleLayout();
+
+    if (this.isBrowser) {
+      const savedAccent = localStorage.getItem('rn-pref-accent');
+      if (savedAccent) this.setAccent(savedAccent);
+
+      const savedSize = localStorage.getItem('rn-pref-size') as 'sm' | 'md' | 'lg' | null;
+      if (savedSize) this.setTextSize(savedSize);
+
+      if (localStorage.getItem('rn-pref-motion') === 'true') this.toggleReduceMotion();
+    }
   }
 
   private _applyRoleLayout(): void {
@@ -113,11 +144,33 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     }
   }
 
-  onBrandLocationChange(inHeader: boolean): void {
-    this.appConfig.appConfiguration.logoLocationHeader = inHeader;
+  toggleDark(): void {
+    this.themeService.toggleDarkMode();
+  }
 
-    if (this.appConfig.appConfiguration.isMobile) {
-      this.isSettingsPanelOpen = false;
+  setAccent(value: string): void {
+    this.currentAccent.set(value);
+    if (this.isBrowser) {
+      document.documentElement.style.setProperty('--primary', value);
+      localStorage.setItem('rn-pref-accent', value);
+    }
+  }
+
+  setTextSize(size: 'sm' | 'md' | 'lg'): void {
+    this.currentTextSize.set(size);
+    if (this.isBrowser) {
+      const map: Record<string, string> = { sm: '14px', md: '16px', lg: '18px' };
+      document.documentElement.style.fontSize = map[size];
+      localStorage.setItem('rn-pref-size', size);
+    }
+  }
+
+  toggleReduceMotion(): void {
+    this.reduceMotion.update(r => !r);
+    if (this.isBrowser) {
+      document.documentElement.classList.toggle('reduce-motion', this.reduceMotion());
+      document.documentElement.style.setProperty('--anim-dur', this.reduceMotion() ? '0s' : '1s');
+      localStorage.setItem('rn-pref-motion', String(this.reduceMotion()));
     }
   }
 

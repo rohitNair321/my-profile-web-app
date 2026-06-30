@@ -47,6 +47,7 @@ const {
 // Import routes
 const apiV1Routes = require('./api/v1');
 const { supabase: _supabase } = require('./db/supabaseClient');
+const { startScheduler } = require('./services/scheduler');
 
 // Legacy routes (backward compatibility — chat routes removed, auth/profile/contact kept)
 const oldAuthRoutes     = require('./routes/authRoutes');
@@ -257,6 +258,9 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
 
   // Test database connection on startup
   await testConnection();
+
+  // Start post scheduler (promotes scheduled posts to published on time)
+  startScheduler();
 });
 
 // Handle unhandled rejections

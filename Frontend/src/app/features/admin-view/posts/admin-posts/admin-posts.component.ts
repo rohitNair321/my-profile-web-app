@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { PostService, Post } from 'src/app/core/services/post.service';
 import { CommonApp } from 'src/app/core/services/common';
 
-type StatusFilter = '' | 'draft' | 'published' | 'archived';
+type StatusFilter = '' | 'draft' | 'published' | 'archived' | 'scheduled';
 
 @Component({
   selector: 'app-admin-posts',
@@ -128,19 +128,40 @@ export class AdminPostsComponent extends CommonApp implements OnInit {
     return Array.from({ length: this.totalPages() }, (_, i) => i + 1);
   }
 
+  publishNow(post: Post): void {
+    this.postService.update(post.id, {
+      status: 'published',
+      scheduled_at: null,
+    } as any).subscribe({
+      next: () => {
+        this.alertService.showAlert('Post published!', 'success');
+        this.loadPosts(this.currentPage());
+      },
+      error: () => this.alertService.showAlert('Failed to publish post.', 'error')
+    });
+  }
+
   statusClass(status: string): string {
     const map: Record<string, string> = {
-      draft: 'badge--draft',
+      draft:     'badge--draft',
       published: 'badge--published',
-      archived: 'badge--archived',
+      archived:  'badge--archived',
+      scheduled: 'badge--scheduled',
     };
     return map[status] || '';
   }
 
-  formatDate(date?: string): string {
+  formatDate(date?: string | null): string {
     if (!date) return '—';
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric', month: 'short', day: 'numeric'
+    });
+  }
+
+  formatScheduleDate(date?: string | null): string {
+    if (!date) return '';
+    return new Date(date).toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
     });
   }
 }

@@ -59,17 +59,11 @@
               box-shadow 0.35s ease, backdrop-filter 0.35s ease;
 }
 
-// ── Sidebar (admin) mode: indigo gradient topbar ─────────────
+// ── Sidebar (admin) mode: same surface as the rest of the shell ─
 .nav-bar--sidebar {
-  background: linear-gradient(90deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
-  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
-  box-shadow: 0 2px 20px rgba(99, 102, 241, 0.25);
-
-  // Override icon/link colors for the indigo bg
-  .nav-bar__icon-btn {
-    color: rgba(226, 232, 240, 0.85);
-    &:hover { color: #E2E8F0; background: rgba(255, 255, 255, 0.08); }
-  }
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 // ── Navbar mode: transparent at scroll=0, frosted when scrolled ─
@@ -135,6 +129,15 @@
   background: var(--border);
   opacity: 0.6;
   flex-shrink: 0;
+}
+
+// ── Horizontal divider between menu groups in mobile dropdown ─
+.nav-bar__mobile-divider {
+  height: 1px;
+  background: var(--border);
+  opacity: 0.6;
+  margin: 0.35rem 0.25rem;
+  list-style: none;
 }
 
 // ── Desktop menu list ────────────────────────────────────────
