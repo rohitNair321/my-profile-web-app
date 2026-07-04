@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, Injector, ChangeDetectionStrategy, signal } from '@angular/core';
 import { NavigationEnd, RouterOutlet } from '@angular/router';
 import { AlertComponent } from './shared/components/ui/alert-dialog/alert.component';
+import { ConfirmDialogComponent } from './shared/components/ui/confirm-dialog/confirm-dialog.component';
 import { ErrorBoundaryComponent } from './shared/components/ui/error-boundary/error-boundary.component';
 import { SpinnerComponent } from './shared/components/ui/spinner-overlay/spinner.component';
 import { AdminLoginModalComponent } from './shared/components/admin-login-modal/admin-login-modal.component';
@@ -13,7 +14,7 @@ import { CommonApp } from './core/services/common';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SpinnerComponent, AlertComponent, ErrorBoundaryComponent, AdminLoginModalComponent],
+  imports: [CommonModule, RouterOutlet, SpinnerComponent, AlertComponent, ConfirmDialogComponent, ErrorBoundaryComponent, AdminLoginModalComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

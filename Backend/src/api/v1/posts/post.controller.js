@@ -5,6 +5,7 @@ const postService  = require('../../../services/post.service');
 const ApiResponse  = require('../../../utils/ApiResponse');
 const catchAsync   = require('../../../utils/catchAsync');
 const crypto       = require('crypto');
+const sseManager   = require('./sse-manager');
 
 // ── PUBLIC CONTROLLERS ────────────────────────────────────────
 
@@ -129,15 +130,40 @@ const uploadCover = catchAsync(async (req, res) => {
   res.json(new ApiResponse(200, result, 'Cover image uploaded'));
 });
 
+/**
+ * GET /api/v1/posts/admin/:id
+ * Returns a single post (any status) — avoids fetching the whole admin list to edit one post.
+ */
+const getByIdAdmin = catchAsync(async (req, res) => {
+  const post = await postService.getById(req.params.id);
+  res.json(new ApiResponse(200, { post }, 'Post retrieved'));
+});
+
+// ── SSE — real-time scheduler notifications ────────────────────
+const streamSchedulerEvents = (req, res) => {
+  res.setHeader('Content-Type',       'text/event-stream');
+  res.setHeader('Cache-Control',      'no-cache');
+  res.setHeader('Connection',         'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // prevent nginx buffering
+  res.flushHeaders();
+
+  res.write('event: connected\ndata: {}\n\n');
+  sseManager.addClient(res);
+
+  req.on('close', () => sseManager.removeClient(res));
+};
+
 module.exports = {
   getAllPublished,
   getFeatured,
   getBySlug,
   trackView,
   getAllAdmin,
+  getByIdAdmin,
   create,
   update,
   updateImpressions,
   deletePost,
   uploadCover,
+  streamSchedulerEvents,
 };

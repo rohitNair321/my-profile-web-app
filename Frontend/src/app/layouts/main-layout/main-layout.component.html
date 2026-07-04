@@ -243,6 +243,90 @@
 </button>
 }
 
-<p-confirmDialog></p-confirmDialog>
 <app-christmas-animation></app-christmas-animation>
 <app-new-year-animation></app-new-year-animation>
+
+<!-- ⑧ PASSWORD EXPIRY WARNING BANNER — 5 days or fewer, dismissible -->
+@if (pwdWarning() && !pwdWarnDismissed() && appService.role() === 'ADMIN') {
+  <div class="pwd-warn-banner">
+    <span class="material-icons">warning_amber</span>
+    <span>Your admin password expires in <strong>{{ pwdDaysLeft() }} day{{ pwdDaysLeft() !== 1 ? 's' : '' }}</strong>.
+      <a routerLink="/admin/security" class="pwd-warn-link">Update now</a>
+    </span>
+    <button class="pwd-warn-close" (click)="pwdWarnDismissed.set(true)" aria-label="Dismiss">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+}
+
+<!-- ⑨ PASSWORD EXPIRED MODAL — non-dismissible, blocks all interaction -->
+@if (pwdExpired() && appService.role() === 'ADMIN') {
+  <div class="pwd-exp-overlay">
+    <div class="pwd-exp-modal">
+      <div class="pwd-exp-icon">
+        <span class="material-icons">lock</span>
+      </div>
+      <h2 class="pwd-exp-title">Password Expired</h2>
+      <p class="pwd-exp-sub">
+        Your admin password has expired. You must update it before continuing.
+        You will be logged out after a successful update.
+      </p>
+
+      <!-- Current password -->
+      <div class="pwd-exp-field">
+        <label class="pwd-exp-label">Current Password</label>
+        <div class="pwd-exp-input-wrap">
+          <input [type]="modalShowCurrent() ? 'text' : 'password'" class="pwd-exp-input"
+            [(ngModel)]="modalCurrentPwd" placeholder="••••••••">
+          <button class="pwd-exp-reveal" type="button" (click)="modalShowCurrent.set(!modalShowCurrent())">
+            <span class="material-icons">{{ modalShowCurrent() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- New password -->
+      <div class="pwd-exp-field">
+        <label class="pwd-exp-label">New Password</label>
+        <div class="pwd-exp-input-wrap">
+          <input [type]="modalShowNew() ? 'text' : 'password'" class="pwd-exp-input"
+            [(ngModel)]="modalNewPwd" placeholder="Min 8 characters">
+          <button class="pwd-exp-reveal" type="button" (click)="modalShowNew.set(!modalShowNew())">
+            <span class="material-icons">{{ modalShowNew() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        @if (modalNewPwd) {
+          <div class="pwd-exp-strength-bar">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="pwd-exp-seg" [class.filled]="i <= modalStrength"
+                [style.--seg-color]="strengthColors[modalStrength]"></div>
+            }
+          </div>
+          <div class="pwd-exp-strength-label" [style.color]="strengthColors[modalStrength]">
+            {{ strengthLabels[modalStrength] }}
+          </div>
+        }
+      </div>
+
+      <!-- Confirm password -->
+      <div class="pwd-exp-field">
+        <label class="pwd-exp-label">Confirm New Password</label>
+        <div class="pwd-exp-input-wrap">
+          <input [type]="modalShowConfirm() ? 'text' : 'password'" class="pwd-exp-input"
+            [(ngModel)]="modalConfirmPwd" placeholder="Repeat password">
+          <button class="pwd-exp-reveal" type="button" (click)="modalShowConfirm.set(!modalShowConfirm())">
+            <span class="material-icons">{{ modalShowConfirm() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      @if (modalError()) {
+        <div class="pwd-exp-error">{{ modalError() }}</div>
+      }
+
+      <button class="pwd-exp-btn" type="button" [disabled]="modalSaving()" (click)="onModalSavePassword()">
+        @if (modalSaving()) { <span class="material-icons spin">refresh</span> Saving… }
+        @else { <span class="material-icons">lock_reset</span> Update Password & Logout }
+      </button>
+    </div>
+  </div>
+}

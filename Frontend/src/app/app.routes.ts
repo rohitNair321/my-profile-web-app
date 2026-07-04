@@ -99,6 +99,15 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] },
       },
 
+      // ── Planner (Kanban tasks + timer) ────────────────
+      {
+        path: 'planner',
+        canActivate: [tokenGuard],
+        loadComponent: () =>
+          import('./features/admin-view/planner/planner.component').then(m => m.PlannerComponent),
+        data: { roles: ['ADMIN'] },
+      },
+
       // ── Settings (moved to admin-view) ───────────────
       {
         path: 'settings',

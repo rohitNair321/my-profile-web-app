@@ -12,10 +12,12 @@ export interface LoginEntry {
 
 export interface FieldChange {
   id: string;
+  event_type: string;
   entity: string;
-  field_name: string;
+  field_name: string | null;
   old_value: string | null;
   new_value: string | null;
+  meta: Record<string, any> | null;
   created_at: string;
 }
 
@@ -72,5 +74,24 @@ export class ActivityApiService {
     return this.http
       .get<{ data: ActivitySummary }>(`${this.baseUrl}/summary`, { withCredentials: true })
       .pipe(map(r => r.data));
+  }
+
+  getSchedulerEvents(since?: string) {
+    const params: any = {};
+    if (since) params.from = since;
+    return this.http
+      .get<{ data: { items: ActivityFeedItem[]; total: number; page: number; limit: number } }>(
+        `${this.baseUrl}/feed`,
+        { params: { ...params, event_type: 'scheduled_post_published,scheduled_post_failed', limit: 10 }, withCredentials: true }
+      )
+      .pipe(map(r => r.data));
+  }
+
+  deleteLog(id: string) {
+    return this.http.delete(`${this.baseUrl}/logs/${id}`, { withCredentials: true });
+  }
+
+  deleteAllLogs() {
+    return this.http.delete(`${this.baseUrl}/logs`, { withCredentials: true });
   }
 }

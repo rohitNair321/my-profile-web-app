@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('./auth.controller');
 const { authValidators, validate } = require('../../../utils/validators');
-const { verifyToken, optionalAuth } = require('../../../middleware/authMiddleware');
+const { verifyToken, optionalAuth, requireAdmin } = require('../../../middleware/authMiddleware');
 const { authLimiter } = require('../../../middleware/rateLimiter');
 
 /**
@@ -181,6 +181,21 @@ router.put(
   validate(authValidators.updatePassword),
   authController.updatePassword
 );
+
+/**
+ * @swagger
+ * /api/v1/auth/password-status:
+ *   get:
+ *     summary: Get password expiry status
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Password status returned
+ */
+router.get('/password-status', verifyToken, requireAdmin, authController.getPasswordStatus);
 
 /**
  * @swagger

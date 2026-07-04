@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, Injector, OnInit, signal 
 import { FormsModule } from '@angular/forms';
 import { CommonApp } from 'src/app/core/services/common';
 import { ActivityApiService, FieldChange, LoginEntry } from 'src/app/core/services/activity-api.service';
+import { StorageApiService, StorageFile } from 'src/app/core/services/storage-api.service';
+import { HealthApiService, HealthCheck } from 'src/app/core/services/health-api.service';
 
 type ActivityTab = 'logins' | 'changes';
 
@@ -49,6 +51,13 @@ export class AdminSecurityComponent extends CommonApp implements OnInit {
   saveError   = signal('');
   saveOk      = signal(false);
 
+  // Password expiry state
+  pwdLastUpdated   = signal<string | null>(null);
+  pwdDaysLeft      = signal<number>(30);
+  pwdIsExpired     = signal(false);
+  pwdIsWarning     = signal(false);
+  pwdStatusLoaded  = signal(false);
+
   // Activity log state
   activityTab    = signal<ActivityTab>('logins');
   logins         = signal<LoginEntry[]>([]);
@@ -57,6 +66,22 @@ export class AdminSecurityComponent extends CommonApp implements OnInit {
   logError       = signal(false);
 
   private activityApi: ActivityApiService;
+  private storageApi: StorageApiService;
+  private healthApi: HealthApiService;
+
+  // Storage state
+  storageImages   = signal<StorageFile[]>([]);
+  storageDocs     = signal<StorageFile[]>([]);
+  storageLoading  = signal(false);
+  storageError    = signal(false);
+  storageLoaded   = signal(false);
+
+  // Health state
+  healthChecks    = signal<HealthCheck[]>([]);
+  healthOverall   = signal<'healthy' | 'degraded' | null>(null);
+  healthUptime    = signal(0);
+  healthLoading   = signal(false);
+  healthLoaded    = signal(false);
 
   readonly strengthColors = ['', '#EF4444', '#F59E0B', '#F59E0B', '#10B981'];
   readonly strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -74,10 +99,33 @@ export class AdminSecurityComponent extends CommonApp implements OnInit {
   constructor(public override injector: Injector) {
     super(injector);
     this.activityApi = injector.get(ActivityApiService);
+    this.storageApi  = injector.get(StorageApiService);
+    this.healthApi   = injector.get(HealthApiService);
   }
 
   ngOnInit(): void {
     this.loadActivity();
+    this.loadPasswordStatus();
+  }
+
+  loadPasswordStatus(): void {
+    this.authService.getPasswordStatus().subscribe({
+      next: s => {
+        this.pwdLastUpdated.set(s.lastUpdatedAt);
+        this.pwdDaysLeft.set(s.daysUntilExpiry);
+        this.pwdIsExpired.set(s.isExpired);
+        this.pwdIsWarning.set(s.isWarning);
+        this.pwdStatusLoaded.set(true);
+      },
+      error: () => this.pwdStatusLoaded.set(true),
+    });
+  }
+
+  pwdLastUpdatedLabel(): string {
+    if (!this.pwdLastUpdated()) return 'Never updated';
+    return new Date(this.pwdLastUpdated()!).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    });
   }
 
   switchActivityTab(tab: ActivityTab): void {
@@ -98,7 +146,7 @@ export class AdminSecurityComponent extends CommonApp implements OnInit {
       error: ()  => { loginsDone = true; this.logError.set(true); check(); },
     });
 
-    this.activityApi.getFieldChanges({ entity: 'profile', limit: 50 }).subscribe({
+    this.activityApi.getFieldChanges({ limit: 50 }).subscribe({
       next: res => { this.changes.set(res.changes ?? []); changesDone = true; check(); },
       error: ()  => { changesDone = true; this.logError.set(true); check(); },
     });
@@ -143,6 +191,100 @@ export class AdminSecurityComponent extends CommonApp implements OnInit {
     return value.length > max ? value.slice(0, max) + '…' : value;
   }
 
+  // ── Activity log actions ───────────────────────────────────────
+
+  deleteLogEntry(id: string, tab: ActivityTab): void {
+    this.activityApi.deleteLog(id).subscribe({
+      next: () => {
+        if (tab === 'logins') {
+          this.logins.update(list => list.filter(e => e.id !== id));
+        } else {
+          this.changes.update(list => list.filter(e => e.id !== id));
+        }
+      },
+      error: () => this.alertService.showAlert('Failed to delete log entry.', 'error'),
+    });
+  }
+
+  clearAllLogs(): void {
+    this.activityApi.deleteAllLogs().subscribe({
+      next: () => {
+        this.logins.set([]);
+        this.changes.set([]);
+        this.alertService.showAlert('All activity logs cleared.', 'success');
+      },
+      error: () => this.alertService.showAlert('Failed to clear activity logs.', 'error'),
+    });
+  }
+
+  // ── Storage ────────────────────────────────────────────────────
+
+  loadStorage(): void {
+    this.storageLoading.set(true);
+    this.storageError.set(false);
+    this.storageApi.listFiles().subscribe({
+      next: d => {
+        this.storageImages.set(d.images ?? []);
+        this.storageDocs.set(d.docs ?? []);
+        this.storageLoaded.set(true);
+        this.storageLoading.set(false);
+      },
+      error: () => {
+        this.storageError.set(true);
+        this.storageLoading.set(false);
+      },
+    });
+  }
+
+  deleteStorageFile(file: StorageFile, type: 'image' | 'doc'): void {
+    this.storageApi.deleteFile(file.path).subscribe({
+      next: () => {
+        if (type === 'image') {
+          this.storageImages.update(list => list.filter(f => f.path !== file.path));
+        } else {
+          this.storageDocs.update(list => list.filter(f => f.path !== file.path));
+        }
+        this.alertService.showAlert(`"${file.name}" deleted.`, 'success');
+      },
+      error: () => this.alertService.showAlert('Failed to delete file.', 'error'),
+    });
+  }
+
+  // ── Health ─────────────────────────────────────────────────────
+
+  loadHealth(): void {
+    this.healthLoading.set(true);
+    this.healthApi.getStatus().subscribe({
+      next: d => {
+        this.healthChecks.set(d.checks ?? []);
+        this.healthOverall.set(d.overall);
+        this.healthUptime.set(d.uptime);
+        this.healthLoaded.set(true);
+        this.healthLoading.set(false);
+      },
+      error: () => {
+        this.healthLoading.set(false);
+      },
+    });
+  }
+
+  formatUptime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  formatBytes(bytes: number): string {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  }
+
   // ── Password ───────────────────────────────────────────────────
 
   onSavePassword(): void {
@@ -170,6 +312,7 @@ export class AdminSecurityComponent extends CommonApp implements OnInit {
         this.saving.set(false);
         this.saveOk.set(true);
         this.currentPwd = this.newPwd = this.confirmPwd = '';
+        this.loadPasswordStatus();
         setTimeout(() => this.saveOk.set(false), 3000);
       },
       error: (err: any) => {

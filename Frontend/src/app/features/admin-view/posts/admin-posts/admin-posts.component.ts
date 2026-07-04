@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PostService, Post } from 'src/app/core/services/post.service';
+import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
 import { CommonApp } from 'src/app/core/services/common';
 
 type StatusFilter = '' | 'draft' | 'published' | 'archived' | 'scheduled';
@@ -17,7 +18,8 @@ type StatusFilter = '' | 'draft' | 'published' | 'archived' | 'scheduled';
 })
 export class AdminPostsComponent extends CommonApp implements OnInit {
 
-  private postService = inject(PostService);
+  private postService   = inject(PostService);
+  private confirmDialog = inject(ConfirmDialogService);
 
   posts = signal<Post[]>([]);
   total = signal(0);
@@ -27,7 +29,6 @@ export class AdminPostsComponent extends CommonApp implements OnInit {
   currentPage = signal(1);
   totalPages = signal(0);
   statusFilter: StatusFilter = '';
-  deleteConfirm = signal<Post | null>(null);
   deletingId: string | null = null;
   editingImpressions: string | null = null;
   impressionsInput = 0;
@@ -75,15 +76,11 @@ export class AdminPostsComponent extends CommonApp implements OnInit {
     this.loadPosts(page);
   }
 
-  confirmDelete(post: Post): void {
-    this.deleteConfirm.set(post);
-  }
+  async confirmDelete(post: Post): Promise<void> {
+    const ok = await this.confirmDialog.confirmDelete(post.title, { title: 'Delete Post' });
+    if (!ok) return;
 
-  executeDelete(): void {
-    const post = this.deleteConfirm();
-    if (!post) return;
     this.deletingId = post.id;
-    this.deleteConfirm.set(null);
     this.postService.delete(post.id).subscribe({
       next: () => {
         this.deletingId = null;

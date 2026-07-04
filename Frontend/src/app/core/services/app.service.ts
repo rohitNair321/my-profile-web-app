@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable, Signal, signal } from "@angular/core";
-import { EMPTY, map, Observable, switchMap, tap, timer } from "rxjs";
+import { EMPTY, map, Observable, of, switchMap, tap, timer } from "rxjs";
 import { LocalStorageService } from "src/app/shared/services/local-storage.service";
 import { environment } from "src/environments/environments";
 
@@ -15,7 +15,7 @@ export class AppService {
     appState = signal<AppState>(initialState);
     role = signal<UserRole>(null);
     private readonly apiProfileUrl = environment.baseUrl + '/api/v1/profile';
-    private readonly apiContactUrl = environment.baseUrl + '/api/contact';
+    private readonly apiContactUrl = environment.baseUrl + '/api/v1/contact';
     private readonly apiAIChatUrl = environment.baseUrl + '/api/v1/chat/send';
 
     _profile = signal<Profile | null>(null);
@@ -24,17 +24,22 @@ export class AppService {
     _notifications = signal<Notification | null>(null);
     readonly notifications: Signal<Notification | null> = this._notifications;
 
-    token = signal<string | null>(this.localStorageService.getItem('auth_token'));
+    // Session is carried by the backend's httpOnly cookie — the JWT is never
+    // persisted to localStorage (XSS hardening). Role is restored via /auth/init.
+    token = signal<string | null>(null);
 
     hasValidToken(): boolean {
-        const token = localStorage.getItem('auth_token');
-        if (!token) return false;
-        return true;
+        return this.role() === 'ADMIN';
     }
 
 
-    // Fetch profile from server and update signal
-    getProfile(): Observable<Profile | null> {
+    // Fetch profile from server and update signal.
+    // Cached: once the signal is populated, callers get it without a network
+    // round-trip. Pass force=true to bypass (e.g. after out-of-band changes) —
+    // updateProfile() already refreshes the signal on save.
+    getProfile(force = false): Observable<Profile | null> {
+        const cached = this._profile();
+        if (cached && !force) return of(cached);
         return this.http.get<{ profile: Profile | null }>(`${this.apiProfileUrl}`, {withCredentials: true})
             .pipe(
                 map(r => r.profile || null),
@@ -103,9 +108,7 @@ export class AppService {
 
     // A simple check to see if we should allow entry to the app
     isAuthorized(): boolean {
-        const hasToken = !!this.localStorageService.getItem('auth_token');
-        const isGuest = this.role() === 'GUEST';
-        return hasToken || isGuest;
+        return this.role() === 'ADMIN' || this.role() === 'GUEST';
     }
 
     intialAppState() {

@@ -2,13 +2,25 @@
   @for (alert of alertService.alerts(); track alert.id) {
     <div class="alert-container" [ngClass]="alert.type" role="alert">
       <div class="alert-content">
-        <i class="material-icons">{{ iconFor(alert.type) }}</i>
-        <span class="message">{{ alert.message }}</span>
+        <i class="material-icons">{{ alert.icon || iconFor(alert.type) }}</i>
+        <div class="alert-text">
+          @if (alert.title) {
+            <span class="title">{{ alert.title }}</span>
+          }
+          <span class="message">{{ alert.message }}</span>
+          @if (alert.action) {
+            <button class="action-btn" type="button" (click)="alertService.runAction(alert.id)">
+              {{ alert.action.label }}
+            </button>
+          }
+        </div>
       </div>
       <button class="close-btn" (click)="alertService.dismiss(alert.id)" aria-label="Dismiss">
         <i class="material-icons">close</i>
       </button>
-      <div class="progress-bar"></div>
+      @if (alert.duration > 0) {
+        <div class="progress-bar" [style.animation-duration.ms]="alert.duration"></div>
+      }
     </div>
   }
 </div>

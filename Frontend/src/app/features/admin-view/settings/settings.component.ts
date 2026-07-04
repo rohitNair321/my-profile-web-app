@@ -6,12 +6,11 @@ import { CalendarModule } from 'primeng/calendar';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { RadioButtonModule } from 'primeng/radiobutton';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { CanComponentDeactivate } from 'src/app/core/app-gards/can-deactivate.guard';
 import { ExperienceDTO, Profile, } from 'src/app/core/services/app.service';
 import { CommonApp } from 'src/app/core/services/common';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { AnalyticsComponent } from 'src/app/shared/components/app-analytics/analytics-dashboard.component';
 import { AiUsageDashboardComponent } from 'src/app/shared/components/ai-usage-dashboard/ai-usage-dashboard.component';
@@ -30,14 +29,12 @@ import { MyLearningPostComponent } from 'src/app/shared/components/my-learning-p
     CalendarModule,
     DialogModule,
     RadioButtonModule,
-    ConfirmDialogModule,
     ToggleButtonModule,
     AnalyticsComponent,
     AiUsageDashboardComponent,
     AboutMeEditorComponent,
     MyLearningPostComponent
   ],
-  providers: [ConfirmationService],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,8 +72,11 @@ export class SettingsComponent extends CommonApp implements OnInit, OnDestroy, C
   activeSettingTab: 'profile' | 'aiChatMonitoring' | 'monitoring' | 'myLearningPosts' | 'aboutMeEditor' = 'profile';
   adminEmail: string = '';
 
-  constructor(public override injector: Injector, private fb: FormBuilder, private confirmationService: ConfirmationService, ) {
+  private confirmDialog!: ConfirmDialogService;
+
+  constructor(public override injector: Injector, private fb: FormBuilder) {
     super(injector);
+    this.confirmDialog = injector.get(ConfirmDialogService);
     this.route.queryParams.subscribe(_params => {
     });
 
@@ -99,27 +99,20 @@ export class SettingsComponent extends CommonApp implements OnInit, OnDestroy, C
 
     const confirmationSubject = new Subject<boolean>();
 
-    this.confirmationService.confirm({
-      header: 'Unsaved Changes',
-      message: 'You have pending changes. Would you like to save them before leaving, or discard them?',
-      acceptLabel: 'Save & Leave',
-      rejectLabel: 'Discard & Leave',
-      acceptButtonStyleClass: "p-button-danger p-button-text",
-      rejectButtonStyleClass: "p-button-text p-button-text",
-      acceptIcon: "none",
-      rejectIcon: "none",
-      closable: false,
-      accept: () => {
-        this.saveSettings(); // Call your existing save logic
-        confirmationSubject.next(true); // Allow navigation after save attempt
-        confirmationSubject.complete();
-      },
-
-      reject: () => {
-        this.resetDefaults(); // Reset state so guard doesn't trigger again
-        confirmationSubject.next(true); // Allow navigation
-        confirmationSubject.complete();
+    // Confirm = save then leave; Cancel (or ESC/backdrop) = stay on the page.
+    // Safer than the old dialog, where dismissing could silently discard changes.
+    this.confirmDialog.warning(
+      'You have unsaved changes. Save them before leaving?',
+      {
+        title: 'Unsaved Changes',
+        icon: 'save',
+        confirmLabel: 'Save & Leave',
+        cancelLabel: 'Stay',
       }
+    ).then(confirmed => {
+      if (confirmed) this.saveSettings();
+      confirmationSubject.next(confirmed);
+      confirmationSubject.complete();
     });
 
     return confirmationSubject.asObservable();
@@ -917,29 +910,26 @@ togglePasswordVisibility(field: 'current' | 'new'): void {
     this.profileForm.patchValue({ avatar: null });
   }
 
-  removeResume() {
-    this.confirmationService.confirm({
-      header: 'Delete Resume',
-      message: 'This will permanently remove your resume from storage. Continue?',
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
-      acceptButtonStyleClass: 'p-button-danger p-button-text',
-      rejectButtonStyleClass: 'p-button-text',
-      acceptIcon: 'none',
-      rejectIcon: 'none',
-      accept: () => {
-        this.isDeletingResume.set(true);
-        this.appService.deleteResume().pipe(take(1)).subscribe({
-          next: (profile) => {
-            this.patchFromProfile(profile);
-            this.isDeletingResume.set(false);
-            this.alertService.showAlert('Resume deleted successfully.', 'success');
-          },
-          error: () => {
-            this.isDeletingResume.set(false);
-            this.alertService.showAlert('Failed to delete resume. Try again.', 'error');
-          }
-        });
+  async removeResume(): Promise<void> {
+    const ok = await this.confirmDialog.confirm({
+      title:        'Delete Resume',
+      message:      'This will permanently remove your resume from storage. Continue?',
+      tone:         'danger',
+      icon:         'delete_forever',
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
+
+    this.isDeletingResume.set(true);
+    this.appService.deleteResume().pipe(take(1)).subscribe({
+      next: (profile) => {
+        this.patchFromProfile(profile);
+        this.isDeletingResume.set(false);
+        this.alertService.showAlert('Resume deleted successfully.', 'success');
+      },
+      error: () => {
+        this.isDeletingResume.set(false);
+        this.alertService.showAlert('Failed to delete resume. Try again.', 'error');
       }
     });
   }

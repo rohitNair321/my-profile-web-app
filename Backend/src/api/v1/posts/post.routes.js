@@ -4,7 +4,18 @@
 const express    = require('express');
 const multer     = require('multer');
 const router     = express.Router();
-const upload     = multer({ storage: multer.memoryStorage() });
+
+// Cover uploads: cap size and whitelist raster image types only.
+// SVG is deliberately excluded — it can carry scripts when served from the public bucket.
+const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024, files: 1 }, // 2 MB
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_IMAGE_MIMES.includes(file.mimetype)) return cb(null, true);
+    cb(new Error('Only JPEG, PNG, WebP, or AVIF images are allowed'));
+  },
+});
 
 const { verifyToken, requireAdmin, optionalAuth } = require('../../../middleware/authVerify');
 const {
@@ -13,11 +24,13 @@ const {
   getBySlug,
   trackView,
   getAllAdmin,
+  getByIdAdmin,
   create,
   update,
   updateImpressions,
   deletePost,
   uploadCover,
+  streamSchedulerEvents,
 } = require('./post.controller');
 
 // ─────────────────────────────────────────────────────────────────
@@ -98,6 +111,24 @@ router.get('/featured', getFeatured);
  *         description: Unauthorized
  */
 router.get('/admin/all', verifyToken, requireAdmin, getAllAdmin);
+
+// SSE stream — must be before any /:id routes
+router.get('/scheduler-stream', verifyToken, requireAdmin, streamSchedulerEvents);
+
+/**
+ * @swagger
+ * /api/v1/posts/admin/{id}:
+ *   get:
+ *     summary: Get a single post of any status by id (admin only)
+ *     tags: [Posts]
+ *     security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Post }
+ *       404: { description: Not found }
+ */
+router.get('/admin/:id', verifyToken, requireAdmin, getByIdAdmin);
 
 /**
  * @swagger

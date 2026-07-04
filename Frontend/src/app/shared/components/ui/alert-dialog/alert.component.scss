@@ -35,20 +35,56 @@
     i { color: var(--error); }
     background: color-mix(in oklab, var(--error) 4%, var(--surface));
   }
-  &.warning { 
+  &.warning {
     border-left: 6px solid var(--warning);
     i { color: var(--warning); }
+  }
+  &.info {
+    border-left: 6px solid var(--primary, #10B981);
+    i { color: var(--primary, #10B981); }
+  }
+  &.custom {
+    border-left: 6px solid var(--accent, #6366F1);
+    i { color: var(--accent, #6366F1); }
   }
 
   .alert-content {
     display: flex;
     align-items: center;
     gap: 12px;
-    
+
+    .alert-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .title {
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
     .message {
       color: var(--text-primary);
       font-weight: 500;
       font-size: 0.95rem;
+    }
+
+    .action-btn {
+      align-self: flex-start;
+      margin-top: 6px;
+      padding: 5px 14px;
+      border: none;
+      border-radius: 9999px;
+      background: var(--primary, #10B981);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: filter .15s;
+      &:hover { filter: brightness(1.1); }
     }
   }
 
@@ -68,7 +104,7 @@
   height: 3px;
   background: rgba(0,0,0,0.1);
   width: 100%;
-  animation: drain 5s linear forwards;
+  animation: drain linear forwards; /* duration set inline per alert */
 }
 
 @keyframes slideIn {

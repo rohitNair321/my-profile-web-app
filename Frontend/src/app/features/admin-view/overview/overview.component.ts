@@ -3,7 +3,10 @@ import { SlicePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CommonApp } from 'src/app/core/services/common';
 import { ChatApiService, UsageResponse } from 'src/app/core/services/chat-api.service';
+import { ActivityApiService, ActivityFeedItem } from 'src/app/core/services/activity-api.service';
 import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
+
+const SCHED_SEEN_KEY = 'sched-notif-seen-at';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
@@ -18,7 +21,8 @@ interface StatCard { icon: string; label: string; value: string; color: string; 
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OverviewComponent extends CommonApp implements OnInit, AfterViewInit, OnDestroy {
-  private chatApi = inject(ChatApiService);
+  private chatApi     = inject(ChatApiService);
+  private activityApi = inject(ActivityApiService);
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   private _chart: Chart | null = null;
@@ -29,11 +33,16 @@ export class OverviewComponent extends CommonApp implements OnInit, AfterViewIni
   stats     = signal<StatCard[]>(this._placeholderStats());
   chartData = signal<number[]>([65, 48, 72, 58, 81, 63, 77, 55, 69, 84, 71, 60, 88, 74]);
 
+  // Scheduler notifications
+  schedNotifs  = signal<ActivityFeedItem[]>([]);
+  schedVisible = signal(false);
+
   constructor(public override injector: Injector) {
     super(injector);
   }
 
   ngOnInit(): void {
+    this._checkSchedulerNotifications();
     this.chatApi.getUsage({ range: '30d' }).subscribe({
       next: (res: UsageResponse) => {
         const s    = res.summary;
@@ -111,6 +120,50 @@ export class OverviewComponent extends CommonApp implements OnInit, AfterViewIni
 
   getInitials(first: string, last: string): string {
     return ((first?.[0] ?? '') + (last?.[0] ?? '')).toUpperCase();
+  }
+
+  private _checkSchedulerNotifications(): void {
+    if (this.appService.role() !== 'ADMIN') return;
+    const lastSeen = typeof localStorage !== 'undefined'
+      ? localStorage.getItem(SCHED_SEEN_KEY) ?? undefined
+      : undefined;
+
+    this.activityApi.getSchedulerEvents(lastSeen).subscribe({
+      next: d => {
+        const items = d.items ?? [];
+        if (items.length > 0) {
+          this.schedNotifs.set(items);
+          this.schedVisible.set(true);
+          // Viewing counts as seen — advance the marker NOW so the notification
+          // doesn't reappear on the next login/refresh. The panel stays visible
+          // for this session until dismissed.
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(SCHED_SEEN_KEY, new Date().toISOString());
+          }
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  dismissSchedulerNotifs(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(SCHED_SEEN_KEY, new Date().toISOString());
+    }
+    this.schedVisible.set(false);
+    this.schedNotifs.set([]);
+  }
+
+  schedNotifIcon(type: string): string {
+    return type === 'scheduled_post_published' ? 'check_circle' : 'error_outline';
+  }
+
+  schedNotifMessage(item: ActivityFeedItem): string {
+    const title = item.meta?.['title'] ?? 'A scheduled post';
+    if (item.event_type === 'scheduled_post_published') {
+      return `"${title}" was published successfully.`;
+    }
+    return `"${title}" failed to publish. Check server logs.`;
   }
 
   private _placeholderStats(): StatCard[] {

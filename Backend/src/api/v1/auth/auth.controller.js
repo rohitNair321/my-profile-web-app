@@ -106,6 +106,13 @@ const updatePassword = catchAsync(async (req, res) => {
     newPassword
   );
 
+  logActivity({
+    userId:    req.user?.id,
+    eventType: 'password_update',
+    entity:    'auth',
+    meta:      { updatedAt: result.passwordUpdatedAt ?? new Date().toISOString() },
+  });
+
   const response = ApiResponse.success(null, result.message);
 
   res.status(response.statusCode).json(response);
@@ -142,11 +149,23 @@ const initApp = catchAsync(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
+/**
+ * @route   GET /api/v1/auth/password-status
+ * @desc    Return password expiry status for the logged-in admin
+ * @access  Admin
+ */
+const getPasswordStatus = catchAsync(async (req, res) => {
+  const status   = await authService.getPasswordStatus(req.user.id);
+  const response = ApiResponse.success(status, 'Password status retrieved');
+  res.status(response.statusCode).json(response);
+});
+
 module.exports = {
   login,
   logout,
   forgotPassword,
   resetPassword,
   updatePassword,
+  getPasswordStatus,
   initApp,
 };

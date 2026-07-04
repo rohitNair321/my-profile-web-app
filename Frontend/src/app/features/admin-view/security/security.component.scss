@@ -1,3 +1,53 @@
+/* Password expiry status bar */
+.pwd-status-bar {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  padding: .6rem .875rem;
+  border-radius: 10px;
+  background: rgba(16,185,129,.08);
+  border: 1px solid rgba(16,185,129,.2);
+  margin-bottom: 1.125rem;
+
+  &--warn {
+    background: rgba(245,158,11,.08);
+    border-color: rgba(245,158,11,.3);
+    .pwd-status-icon { color: #F59E0B; }
+    .pwd-status-main { color: #F59E0B; }
+  }
+
+  &--expired {
+    background: rgba(239,68,68,.08);
+    border-color: rgba(239,68,68,.3);
+    .pwd-status-icon { color: #EF4444; }
+    .pwd-status-main { color: #EF4444; }
+  }
+}
+
+.pwd-status-icon {
+  font-size: 1.15rem;
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.pwd-status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pwd-status-main {
+  font-size: .78rem;
+  font-weight: 700;
+  color: #10B981;
+  line-height: 1.3;
+}
+
+.pwd-status-sub {
+  font-size: .7rem;
+  color: var(--admin-t3c);
+}
+
 .inp-reveal-wrap { position: relative; }
 
 .reveal-btn {
@@ -36,6 +86,237 @@
 }
 .spin { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Storage section */
+.storage-card { padding: 1.375rem; }
+
+.storage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.125rem;
+}
+
+.storage-counts {
+  margin-left: .625rem;
+  font-size: .72rem;
+  font-weight: 500;
+  color: var(--admin-t3c);
+}
+
+.storage-load-prompt {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.5rem;
+  color: var(--admin-t3c);
+  font-size: .8rem;
+  .material-icons { font-size: 1.25rem; opacity: .5; }
+}
+
+.storage-section-title {
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--admin-tc);
+  margin: 0 0 .875rem;
+  .material-icons { font-size: 1rem; color: var(--admin-t2c); }
+}
+
+.storage-empty {
+  font-size: .78rem;
+  color: var(--admin-t3c);
+  padding: .5rem 0 .75rem;
+}
+
+.storage-img-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: .75rem;
+}
+
+.storage-img-card {
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid var(--admin-bdc);
+  overflow: hidden;
+  background: var(--admin-bg-s2);
+  transition: border-color .15s;
+
+  &:hover {
+    border-color: var(--primary);
+    .storage-del-btn { opacity: 1; }
+  }
+}
+
+.storage-img-thumb {
+  position: relative;
+  width: 100%; aspect-ratio: 1;
+  overflow: hidden;
+  img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+/* "In use" indicator — file is referenced by the app (avatar/resume/post cover) */
+.storage-inuse-badge {
+  position: absolute;
+  top: 6px; left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: .62rem;
+  font-weight: 700;
+  background: rgba(16, 185, 129, .9);
+  color: #fff;
+  .material-icons { font-size: .7rem; }
+
+  &--inline {
+    position: static;
+    margin-left: .375rem;
+    vertical-align: middle;
+    background: rgba(16, 185, 129, .14);
+    color: #10B981;
+  }
+}
+
+.storage-usedby {
+  color: #10B981;
+  font-weight: 600;
+}
+
+.storage-card--inuse {
+  border-color: rgba(16, 185, 129, .35) !important;
+}
+
+.storage-img-info {
+  padding: .4rem .5rem;
+}
+
+.storage-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: .375rem;
+}
+
+.storage-doc-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .625rem .75rem;
+  border-radius: 10px;
+  border: 1px solid var(--admin-bdc);
+  background: var(--admin-bg-s2);
+  transition: border-color .15s;
+
+  &:hover {
+    border-color: rgba(239,68,68,.3);
+    .storage-del-btn { opacity: 1; }
+  }
+}
+
+.storage-doc-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(239,68,68,.1);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  .material-icons { font-size: 1rem; color: #EF4444; }
+}
+
+.storage-file-name {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--admin-tc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.storage-file-meta {
+  font-size: .68rem;
+  color: var(--admin-t3c);
+  margin-top: 1px;
+}
+
+.storage-preview-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--admin-t3c);
+  padding: .25rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: color .15s;
+  &:hover { color: #10B981; }
+  .material-icons { font-size: 1rem; }
+}
+
+.storage-del-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--admin-t3c);
+  padding: .25rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color .15s, background .15s;
+  opacity: 0;
+
+  .storage-img-card:hover &,
+  .storage-doc-row:hover & { opacity: 1; }
+  &:hover { color: #EF4444; background: rgba(239,68,68,.1); }
+  .material-icons { font-size: 1rem; }
+}
+
+/* Health check section */
+.health-overall {
+  font-size: .72rem; font-weight: 700; margin-left: .625rem;
+  &--ok  { color: #10B981; }
+  &--err { color: #EF4444; }
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: .75rem;
+}
+
+.health-card {
+  display: flex;
+  gap: .625rem;
+  padding: .875rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--admin-bdc);
+  background: var(--admin-bg-s2);
+
+  &--ok   { border-color: rgba(16,185,129,.2); }
+  &--warn { border-color: rgba(245,158,11,.25); }
+  &--err  { border-color: rgba(239,68,68,.25);  }
+}
+
+.health-card-icon {
+  flex-shrink: 0;
+  .material-icons { font-size: 1.25rem; }
+
+  .health-card--ok   & .material-icons  { color: #10B981; }
+  .health-card--warn & .material-icons  { color: #F59E0B; }
+  .health-card--err  & .material-icons  { color: #EF4444; }
+}
+
+.health-card-name    { font-size: .8rem; font-weight: 700; color: var(--admin-tc); margin-bottom: 2px; }
+.health-card-detail  { font-size: .7rem; color: var(--admin-t3c); }
+.health-card-latency { font-size: .68rem; color: var(--admin-t2c); margin-top: 2px; font-family: monospace; }
 
 /* Activity tab bar */
 .act-tab-bar {
@@ -116,3 +397,53 @@
 .log-label  { font-size: .8rem; font-weight: 600; color: var(--admin-tc); }
 .log-detail { font-size: .72rem; color: var(--admin-t3c); margin-top: 1px; }
 .log-time   { font-size: .7rem; color: var(--admin-t3c); white-space: nowrap; flex-shrink: 0; }
+
+/* Scrollable log body */
+.log-scroll-body {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-bottom: .5rem;
+
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: var(--admin-bdc); border-radius: 4px; }
+}
+
+/* Per-row delete button */
+.log-del-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--admin-t3c);
+  padding: .25rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color .15s, background .15s;
+  opacity: 0;
+
+  .log-row:hover & { opacity: 1; }
+  &:hover { color: #EF4444; background: rgba(239,68,68,.1); }
+  .material-icons { font-size: 1rem; }
+}
+
+/* Clear All button in activity log header */
+.act-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(239,68,68,.3);
+  background: rgba(239,68,68,.07);
+  color: #EF4444;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+
+  &:hover:not(:disabled) { background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.5); }
+  &:disabled { opacity: .4; cursor: not-allowed; }
+  .material-icons { font-size: .95rem; }
+}

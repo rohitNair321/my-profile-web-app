@@ -15,6 +15,25 @@
         <span class="material-icons">lock_outline</span> Change Password
       </div>
 
+      <!-- Password expiry status bar -->
+      @if (pwdStatusLoaded()) {
+        <div class="pwd-status-bar"
+          [class.pwd-status-bar--warn]="pwdIsWarning()"
+          [class.pwd-status-bar--expired]="pwdIsExpired()">
+          <span class="material-icons pwd-status-icon">
+            {{ pwdIsExpired() ? 'lock' : pwdIsWarning() ? 'warning_amber' : 'verified_user' }}
+          </span>
+          <div class="pwd-status-text">
+            <span class="pwd-status-main">
+              @if (pwdIsExpired()) { Password expired }
+              @else if (pwdIsWarning()) { Expires in {{ pwdDaysLeft() }} day{{ pwdDaysLeft() !== 1 ? 's' : '' }} }
+              @else { Expires in {{ pwdDaysLeft() }} day{{ pwdDaysLeft() !== 1 ? 's' : '' }} }
+            </span>
+            <span class="pwd-status-sub">Last updated: {{ pwdLastUpdatedLabel() }}</span>
+          </div>
+        </div>
+      }
+
       <div class="field-group" style="margin-bottom:1rem">
         <label class="inp-label">Current Password</label>
         <div class="inp-reveal-wrap">
@@ -85,6 +104,11 @@
       <div style="padding:1.375rem 1.375rem 0">
         <div class="admin-card-title" style="margin-bottom:.875rem">
           <span class="material-icons">history</span> Activity Log
+          <button class="act-clear-btn ms-auto" type="button"
+            [disabled]="logLoading() || (logins().length === 0 && changes().length === 0)"
+            (click)="clearAllLogs()" title="Clear all logs">
+            <span class="material-icons">delete_sweep</span> Clear All
+          </button>
         </div>
         <div class="act-tab-bar">
           <button class="act-tab" [class.active]="activityTab() === 'logins'"
@@ -102,82 +126,288 @@
         </div>
       </div>
 
-      <!-- Loading skeleton -->
-      @if (logLoading()) {
-        @for (i of [1,2,3]; track i) {
-          <div class="log-row">
-            <div class="skel-box"></div>
-            <div style="flex:1;display:flex;flex-direction:column;gap:5px">
-              <div class="skel-line" style="width:55%"></div>
-              <div class="skel-line" style="width:75%"></div>
+      <!-- Scrollable log body -->
+      <div class="log-scroll-body">
+
+        <!-- Loading skeleton -->
+        @if (logLoading()) {
+          @for (i of [1,2,3]; track i) {
+            <div class="log-row">
+              <div class="skel-box"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+                <div class="skel-line" style="width:55%"></div>
+                <div class="skel-line" style="width:75%"></div>
+              </div>
+              <div class="skel-line" style="width:52px"></div>
             </div>
-            <div class="skel-line" style="width:52px"></div>
+          }
+        }
+
+        <!-- Error state -->
+        @else if (logError()) {
+          <div class="log-empty">
+            <span class="material-icons" style="font-size:1.5rem;color:#EF4444">error_outline</span>
+            <span>Could not load activity. <button class="link-btn" (click)="loadActivity()">Retry</button></span>
           </div>
         }
-      }
 
-      <!-- Error state -->
-      @else if (logError()) {
-        <div class="log-empty">
-          <span class="material-icons" style="font-size:1.5rem;color:#EF4444">error_outline</span>
-          <span>Could not load activity. <button class="link-btn" (click)="loadActivity()">Retry</button></span>
+        <!-- ── LOGINS TAB ── -->
+        @else if (activityTab() === 'logins') {
+          @if (logins().length === 0) {
+            <div class="log-empty">
+              <span class="material-icons">login</span>
+              <span>No login history yet.</span>
+            </div>
+          }
+          @for (entry of logins(); track entry.id) {
+            <div class="log-row">
+              <div class="log-icon-box ok">
+                <span class="material-icons">login</span>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div class="log-label">Admin Login</div>
+                <div class="log-detail">
+                  {{ parseBrowser(entry.browser) }}
+                  @if (entry.ip) { · <span class="log-ip">{{ entry.ip }}</span> }
+                </div>
+              </div>
+              <div class="log-time">{{ relativeTime(entry.timestamp) }}</div>
+              <button class="log-del-btn" type="button" title="Delete"
+                (click)="deleteLogEntry(entry.id, 'logins')">
+                <span class="material-icons">delete_outline</span>
+              </button>
+            </div>
+          }
+        }
+
+        <!-- ── PROFILE CHANGES TAB ── -->
+        @else if (activityTab() === 'changes') {
+          @if (changes().length === 0) {
+            <div class="log-empty">
+              <span class="material-icons">edit_off</span>
+              <span>No profile changes recorded yet.</span>
+            </div>
+          }
+          @for (entry of changes(); track entry.id) {
+            <div class="log-row">
+
+              @if (entry.event_type === 'password_update') {
+                <div class="log-icon-box ok" style="background:rgba(245,158,11,.12)">
+                  <span class="material-icons" style="color:#F59E0B">lock_reset</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div class="log-label">Password Updated</div>
+                  <div class="log-detail">Admin password was changed</div>
+                </div>
+              } @else if (entry.event_type === 'storage_delete') {
+                <div class="log-icon-box ok" style="background:rgba(239,68,68,.12)">
+                  <span class="material-icons" style="color:#EF4444">delete_forever</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div class="log-label">File Deleted</div>
+                  <div class="log-detail log-ip">{{ entry.meta?.['path'] ?? 'Unknown file' }}</div>
+                </div>
+              } @else {
+                <div class="log-icon-box ok" style="background:rgba(99,102,241,.12)">
+                  <span class="material-icons" style="color:#6366F1">edit</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div class="log-label">Updated {{ fieldLabel(entry.field_name ?? '') }}</div>
+                  <div class="log-detail change-detail">
+                    @if (entry.old_value) {
+                      <span class="val-old">{{ truncate(entry.old_value) }}</span>
+                      <span class="material-icons" style="font-size:.7rem;opacity:.5">arrow_forward</span>
+                    }
+                    <span class="val-new">{{ truncate(entry.new_value) }}</span>
+                  </div>
+                </div>
+              }
+
+              <div class="log-time">{{ relativeTime(entry.created_at) }}</div>
+              <button class="log-del-btn" type="button" title="Delete"
+                (click)="deleteLogEntry(entry.id, 'changes')">
+                <span class="material-icons">delete_outline</span>
+              </button>
+            </div>
+          }
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ── STORAGE SECTION ─────────────────────────────────────── -->
+  <div class="admin-card storage-card" style="margin-top:1.5rem">
+
+    <div class="storage-header">
+      <div class="admin-card-title" style="margin-bottom:0">
+        <span class="material-icons">storage</span> Storage
+        <span class="storage-counts">
+          {{ storageImages().length }} image{{ storageImages().length !== 1 ? 's' : '' }} ·
+          {{ storageDocs().length }} doc{{ storageDocs().length !== 1 ? 's' : '' }}
+        </span>
+      </div>
+      <button class="act-refresh" type="button" [disabled]="storageLoading()"
+        (click)="loadStorage()" title="Refresh storage">
+        <span class="material-icons" [class.spin]="storageLoading()">refresh</span>
+      </button>
+    </div>
+
+    @if (!storageLoaded() && !storageLoading()) {
+      <div class="storage-load-prompt">
+        <span class="material-icons">cloud_queue</span>
+        <span>Click refresh to load bucket files.</span>
+      </div>
+    }
+
+    @if (storageLoading()) {
+      <div class="log-empty"><span class="material-icons spin">refresh</span> Loading files…</div>
+    }
+
+    @if (storageError()) {
+      <div class="log-empty">
+        <span class="material-icons" style="color:#EF4444">error_outline</span>
+        <span>Failed to load storage. <button class="link-btn" (click)="loadStorage()">Retry</button></span>
+      </div>
+    }
+
+    @if (storageLoaded() && !storageLoading()) {
+
+      <!-- Images -->
+      <h4 class="storage-section-title">
+        <span class="material-icons">image</span> Images ({{ storageImages().length }})
+      </h4>
+      @if (storageImages().length === 0) {
+        <div class="storage-empty">No images found.</div>
+      } @else {
+        <div class="storage-img-grid">
+          @for (img of storageImages(); track img.path) {
+            <div class="storage-img-card" [class.storage-card--inuse]="img.inUse">
+              <div class="storage-img-thumb">
+                <img [src]="img.publicUrl" [alt]="img.name" loading="lazy">
+                @if (img.inUse) {
+                  <span class="storage-inuse-badge" [title]="'Used by: ' + (img.usedBy ?? 'the app')">
+                    <span class="material-icons">link</span> In use
+                  </span>
+                }
+              </div>
+              <div class="storage-img-info">
+                <div class="storage-file-name" [title]="img.name">{{ img.name }}</div>
+                <div class="storage-file-meta">{{ formatBytes(img.size) }}
+                  @if (img.inUse && img.usedBy) { · <span class="storage-usedby" [title]="img.usedBy">{{ img.usedBy }}</span> }
+                </div>
+              </div>
+              <button class="storage-del-btn" type="button" title="Delete"
+                (click)="deleteStorageFile(img, 'image')">
+                <span class="material-icons">delete_outline</span>
+              </button>
+            </div>
+          }
         </div>
       }
 
-      <!-- ── LOGINS TAB ── -->
-      @else if (activityTab() === 'logins') {
-        @if (logins().length === 0) {
-          <div class="log-empty">
-            <span class="material-icons">login</span>
-            <span>No login history yet.</span>
-          </div>
-        }
-        @for (entry of logins(); track entry.id) {
-          <div class="log-row">
-            <div class="log-icon-box ok">
-              <span class="material-icons">login</span>
-            </div>
-            <div style="flex:1;min-width:0">
-              <div class="log-label">Admin Login</div>
-              <div class="log-detail">
-                {{ parseBrowser(entry.browser) }}
-                @if (entry.ip) { · <span class="log-ip">{{ entry.ip }}</span> }
+      <!-- Documents -->
+      <h4 class="storage-section-title" style="margin-top:1.5rem">
+        <span class="material-icons">picture_as_pdf</span> Documents ({{ storageDocs().length }})
+      </h4>
+      @if (storageDocs().length === 0) {
+        <div class="storage-empty">No documents found.</div>
+      } @else {
+        <div class="storage-doc-list">
+          @for (doc of storageDocs(); track doc.path) {
+            <div class="storage-doc-row" [class.storage-card--inuse]="doc.inUse">
+              <div class="storage-doc-icon">
+                <span class="material-icons">picture_as_pdf</span>
               </div>
+              <div style="flex:1;min-width:0">
+                <div class="storage-file-name" [title]="doc.name">
+                  {{ doc.name }}
+                  @if (doc.inUse) {
+                    <span class="storage-inuse-badge storage-inuse-badge--inline"
+                      [title]="'Used by: ' + (doc.usedBy ?? 'the app')">
+                      <span class="material-icons">link</span> In use
+                    </span>
+                  }
+                </div>
+                <div class="storage-file-meta">{{ formatBytes(doc.size) }}
+                  @if (doc.createdAt) { · {{ relativeTime(doc.createdAt) }} }
+                  @if (doc.inUse && doc.usedBy) { · <span class="storage-usedby" [title]="doc.usedBy">{{ doc.usedBy }}</span> }
+                </div>
+              </div>
+              <a [href]="doc.publicUrl" target="_blank" rel="noopener" class="storage-preview-btn" title="Preview">
+                <span class="material-icons">open_in_new</span>
+              </a>
+              <button class="storage-del-btn" type="button" title="Delete"
+                (click)="deleteStorageFile(doc, 'doc')">
+                <span class="material-icons">delete_outline</span>
+              </button>
             </div>
-            <div class="log-time">{{ relativeTime(entry.timestamp) }}</div>
-          </div>
-        }
+          }
+        </div>
       }
 
-      <!-- ── PROFILE CHANGES TAB ── -->
-      @else if (activityTab() === 'changes') {
-        @if (changes().length === 0) {
-          <div class="log-empty">
-            <span class="material-icons">edit_off</span>
-            <span>No profile changes recorded yet.</span>
-          </div>
-        }
-        @for (entry of changes(); track entry.id) {
-          <div class="log-row">
-            <div class="log-icon-box ok" style="background:rgba(99,102,241,.12)">
-              <span class="material-icons" style="color:#6366F1">edit</span>
-            </div>
-            <div style="flex:1;min-width:0">
-              <div class="log-label">Updated {{ fieldLabel(entry.field_name) }}</div>
-              <div class="log-detail change-detail">
-                @if (entry.old_value) {
-                  <span class="val-old">{{ truncate(entry.old_value) }}</span>
-                  <span class="material-icons" style="font-size:.7rem;opacity:.5">arrow_forward</span>
-                }
-                <span class="val-new">{{ truncate(entry.new_value) }}</span>
-              </div>
-            </div>
-            <div class="log-time">{{ relativeTime(entry.created_at) }}</div>
-          </div>
-        }
-      }
+    }
 
+  </div>
+
+  <!-- ── HEALTH CHECK SECTION ────────────────────────────────── -->
+  <div class="admin-card" style="margin-top:1.5rem;padding:1.375rem">
+
+    <div class="storage-header">
+      <div class="admin-card-title" style="margin-bottom:0">
+        <span class="material-icons">monitor_heart</span> System Health
+        @if (healthOverall()) {
+          <span class="health-overall" [class.health-overall--ok]="healthOverall() === 'healthy'"
+            [class.health-overall--err]="healthOverall() === 'degraded'">
+            {{ healthOverall() === 'healthy' ? '● Healthy' : '● Degraded' }}
+          </span>
+        }
+        @if (healthLoaded()) {
+          <span class="storage-counts">Uptime: {{ formatUptime(healthUptime()) }}</span>
+        }
+      </div>
+      <button class="act-refresh" type="button" [disabled]="healthLoading()"
+        (click)="loadHealth()" title="Refresh health">
+        <span class="material-icons" [class.spin]="healthLoading()">refresh</span>
+      </button>
     </div>
+
+    @if (!healthLoaded() && !healthLoading()) {
+      <div class="storage-load-prompt">
+        <span class="material-icons">health_and_safety</span>
+        <span>Click refresh to run health checks.</span>
+      </div>
+    }
+
+    @if (healthLoading()) {
+      <div class="log-empty"><span class="material-icons spin">refresh</span> Running checks…</div>
+    }
+
+    @if (healthLoaded() && !healthLoading()) {
+      <div class="health-grid">
+        @for (check of healthChecks(); track check.name) {
+          <div class="health-card"
+            [class.health-card--ok]="check.status === 'ok'"
+            [class.health-card--warn]="check.status === 'warning'"
+            [class.health-card--err]="check.status === 'error'">
+            <div class="health-card-icon">
+              <span class="material-icons">
+                {{ check.status === 'ok' ? 'check_circle' : check.status === 'warning' ? 'warning_amber' : 'cancel' }}
+              </span>
+            </div>
+            <div class="health-card-body">
+              <div class="health-card-name">{{ check.name }}</div>
+              <div class="health-card-detail">{{ check.detail }}</div>
+              @if (check.latencyMs > 0) {
+                <div class="health-card-latency">{{ check.latencyMs }}ms</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
 
   </div>
 

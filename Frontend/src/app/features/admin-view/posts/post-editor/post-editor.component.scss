@@ -674,6 +674,19 @@
   color: #d97706;
 }
 
+// Character-count chip states
+.meta-chip--warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  font-weight: 600;
+}
+
+.meta-chip--over {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  font-weight: 700;
+}
+
 // ── Responsive ────────────────────────────────────────────
 @media (max-width: 768px) {
   .editor-topbar { padding: 10px 16px; }

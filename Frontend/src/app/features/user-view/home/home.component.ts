@@ -17,6 +17,8 @@ import { SeoService } from 'src/app/core/services/seo.service';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 import { ChatBotComponent } from 'src/app/shared/components/chat-bot/chat-bot.component';
 import { ChatTooltipComponent } from 'src/app/shared/components/chat-tooltip/chat-tooltip.component';
+import { PostService, Post } from 'src/app/core/services/post.service';
+import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
 
 interface Hero {
   name: string;
@@ -44,6 +46,7 @@ interface HomeData { hero: Hero; aboutTeaser?: AboutTeaser; contact?: ContactInf
     TagModule,
     ChatBotComponent,
     ChatTooltipComponent,
+    RouterLink,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
@@ -68,6 +71,12 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
 
   private sanitizer = inject(DomSanitizer);
   private seo = inject(SeoService);
+  private postService = inject(PostService);
+  private confirmDialog = inject(ConfirmDialogService);
+
+  // Featured posts — admin-curated via the "Feature on homepage" checkbox.
+  // Served from the PostService signal cache after the first fetch.
+  featuredPosts = signal<Post[]>([]);
   private platformId = inject(PLATFORM_ID);
 
   homeData: any = { experiences: [] };
@@ -163,6 +172,10 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
       url: 'https://www.mintpixel.in/#/home',
     });
     this.startTypewriter();
+    this.postService.getFeatured(3).pipe(take(1)).subscribe({
+      next: r => this.featuredPosts.set(r.data?.posts ?? []),
+      error: () => {}, // section simply stays hidden
+    });
     const profile = this.profileData();
     if (profile) {
       this.homeData = profile;
@@ -180,6 +193,10 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
         this.loading.hide();
         this.contactForm.reset();
         this.contactSent = true;
+        this.confirmDialog.success(
+          'Your message has been sent successfully. I will get back to you soon!',
+          { title: 'Message sent', icon: 'mark_email_read', confirmLabel: 'Great!' }
+        );
       },
       error: (err) => {
         this.loading.hide();

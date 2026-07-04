@@ -307,6 +307,41 @@
       </div>
     </section>
 
+    <!-- FEATURED POSTS SECTION — admin-curated via "Feature on homepage" -->
+    @if (featuredPosts().length > 0) {
+      <section id="featured-posts" class="featured-posts-section animate-section">
+        <div class="container">
+          <div class="section-header centered">
+            <span class="section-badge">From the Blog</span>
+            <h2 class="section-title">Featured writing</h2>
+          </div>
+          <div class="featured-posts-grid">
+            @for (post of featuredPosts(); track post.id) {
+              <a class="featured-post-card" [routerLink]="['/posts', post.slug]">
+                @if (post.cover_image_url) {
+                  <div class="fp-cover">
+                    <img [src]="post.cover_image_url" [alt]="post.title" loading="lazy">
+                  </div>
+                }
+                <div class="fp-body">
+                  <div class="fp-meta">
+                    @if (post.tags.length) { <span class="fp-tag">{{ post.tags[0] }}</span> }
+                    <span class="fp-read">{{ post.read_time }} min read</span>
+                  </div>
+                  <h3 class="fp-title">{{ post.title }}</h3>
+                  <p class="fp-excerpt">{{ post.excerpt }}</p>
+                  <span class="fp-more">Read post <span class="material-icons">arrow_forward</span></span>
+                </div>
+              </a>
+            }
+          </div>
+          <div class="featured-posts-all">
+            <a routerLink="/posts" class="fp-all-link">View all posts</a>
+          </div>
+        </div>
+      </section>
+    }
+
     <!-- CONTACT SECTION - Split Modern Form -->
     <section id="contact" class="contact-section animate-section">
       <div class="container">

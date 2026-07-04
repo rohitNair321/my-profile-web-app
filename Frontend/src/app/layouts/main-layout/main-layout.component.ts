@@ -11,7 +11,7 @@ import {
   ChangeDetectionStrategy
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { THEME_NAME_MAP } from 'src/app/core/config/theme.config';
 import { CommonApp } from 'src/app/core/services/common';
@@ -20,8 +20,10 @@ import { NewYearAnimationComponent } from 'src/app/core/theme/ThemeAnimationsCom
 import { FooterComponent } from 'src/app/shared/components/footer/footer.component';
 import { NavigationComponent } from 'src/app/shared/components/navigation/navigation.component';
 import { SidebarComponent } from 'src/app/shared/components/sidebar/sidebar.component';
-import { ConfirmationService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { AuthService } from 'src/app/auth/services/auth.service';
+import { SchedulerNotificationService } from 'src/app/core/services/scheduler-notification.service';
+import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
+import { Subscription } from 'rxjs';
 
 const MOBILE_BREAKPOINT = 900;
 
@@ -30,15 +32,14 @@ const MOBILE_BREAKPOINT = 900;
   standalone: true,
   imports: [
     RouterOutlet,
+    RouterLink,
     FormsModule,
     NavigationComponent,
     SidebarComponent,
     FooterComponent,
     ChristmasAnimationComponent,
     NewYearAnimationComponent,
-    ConfirmDialogModule,
   ],
-  providers: [ConfirmationService],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,6 +49,33 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   isSettingsPanelOpen = false;
   showScrollTop = signal(false);
   private isBrowser: boolean;
+
+  // ── Password expiry ───────────────────────────────────────────
+  pwdExpired      = signal(false);
+  pwdWarning      = signal(false);
+  pwdDaysLeft     = signal(30);
+  pwdWarnDismissed = signal(false);
+
+  // Modal password form
+  modalCurrentPwd  = '';
+  modalNewPwd      = '';
+  modalConfirmPwd  = '';
+  modalShowCurrent = signal(false);
+  modalShowNew     = signal(false);
+  modalShowConfirm = signal(false);
+  modalSaving      = signal(false);
+  modalError       = signal('');
+
+  get modalStrength(): number {
+    let s = 0;
+    if (this.modalNewPwd.length >= 8)           s++;
+    if (/[A-Z]/.test(this.modalNewPwd))         s++;
+    if (/[0-9]/.test(this.modalNewPwd))         s++;
+    if (/[^A-Za-z0-9]/.test(this.modalNewPwd)) s++;
+    return s;
+  }
+  readonly strengthColors = ['', '#EF4444', '#F59E0B', '#F59E0B', '#10B981'];
+  readonly strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
 
   // ── Preferences panel state ───────────────────────────────────
   currentAccent   = signal<string>('#10B981');
@@ -72,13 +100,20 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     this.normalizeThemesResponse(this.appService.profile()?.themes ?? [])
   );
 
+  private authSvc: AuthService;
+  private schedNotifSvc: SchedulerNotificationService;
+  private confirmDialog: ConfirmDialogService;
+  private _schedSub: Subscription | null = null;
+
   constructor(
     public override injector: Injector,
-    private confirmationService: ConfirmationService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     super(injector);
     this.isBrowser = isPlatformBrowser(this.platformId);
+    this.authSvc = injector.get(AuthService);
+    this.schedNotifSvc = injector.get(SchedulerNotificationService);
+    this.confirmDialog = injector.get(ConfirmDialogService);
 
     this.appConfig.theme.name = 'theme-6';
     this.appConfig.appConfiguration.type = 'sidebar';   // 'sidebar' | 'navbar'
@@ -102,6 +137,8 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     this.themeService.setTheme(resolvedId);
     this.startSessionTimer();
     this._applyRoleLayout();
+    this._checkPasswordExpiry();
+    this._connectSchedulerNotifications();
 
     if (this.isBrowser) {
       const savedAccent = localStorage.getItem('rn-pref-accent');
@@ -122,6 +159,9 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   }
 
   ngOnDestroy(): void {
+    this._schedSub?.unsubscribe();
+    this.schedNotifSvc.disconnect();
+    if (this._sessionTimerHandle) clearTimeout(this._sessionTimerHandle);
   }
 
   initSidebarMenu(collapsed: boolean): void {
@@ -212,20 +252,70 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     return typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT;
   }
 
+  private _connectSchedulerNotifications(): void {
+    if (!this.isBrowser || this.appService.role() !== 'ADMIN') return;
+    this.schedNotifSvc.connect();
+    this._schedSub = this.schedNotifSvc.published$.subscribe(event => {
+      this.alertService.showAlert(
+        `Post published: "${event.title}"`,
+        'success'
+      );
+    });
+  }
+
+  private _checkPasswordExpiry(): void {
+    if (this.appService.role() !== 'ADMIN') return;
+    this.authSvc.getPasswordStatus().subscribe({
+      next: s => {
+        this.pwdDaysLeft.set(s.daysUntilExpiry);
+        this.pwdExpired.set(s.isExpired);
+        this.pwdWarning.set(s.isWarning);
+      },
+      error: () => {},
+    });
+  }
+
+  onModalSavePassword(): void {
+    this.modalError.set('');
+    const email = this.appService.profile()?.email ?? this.authSvc.user()?.email ?? '';
+    if (!this.modalCurrentPwd || !this.modalNewPwd || !this.modalConfirmPwd) {
+      this.modalError.set('All fields are required.'); return;
+    }
+    if (this.modalNewPwd !== this.modalConfirmPwd) {
+      this.modalError.set('New passwords do not match.'); return;
+    }
+    if (this.modalStrength < 2) {
+      this.modalError.set('Password is too weak.'); return;
+    }
+    this.modalSaving.set(true);
+    this.authSvc.updatePassword({
+      email,
+      currentPassword: this.modalCurrentPwd,
+      newPassword: this.modalNewPwd,
+    }).subscribe({
+      next: () => {
+        this.modalSaving.set(false);
+        this.pwdExpired.set(false);
+        // Force logout so admin re-authenticates with new password
+        this.authSvc.logout();
+      },
+      error: (err: any) => {
+        this.modalSaving.set(false);
+        this.modalError.set(err?.error?.message ?? 'Failed to update password.');
+      },
+    });
+  }
+
+  private _sessionTimerHandle: ReturnType<typeof setTimeout> | null = null;
+
   startSessionTimer() {
-    if (this.appService.role() !== 'ADMIN') {
-      setTimeout(() => {
-        this.confirmationService.confirm({
-          header: 'App session expiring',
-          message: 'Your session is about to expire. Do you want to refresh the session?',
-          acceptLabel: 'Ok',
-          acceptIcon: "none",
-          rejectVisible: false,
-          closeOnEscape: false,
-          closable: false,
-          accept: () => {
-            window.location.reload();
-          },
+    if (this.appService.role() !== 'ADMIN' && this.isBrowser) {
+      this._sessionTimerHandle = setTimeout(() => {
+        this.confirmDialog.info(
+          'Your session is about to expire. Refresh to continue browsing.',
+          { title: 'Session expiring', icon: 'schedule', confirmLabel: 'Refresh session' }
+        ).then(confirmed => {
+          if (confirmed) window.location.reload();
         });
       }, 10 * 60 * 1000);
     }

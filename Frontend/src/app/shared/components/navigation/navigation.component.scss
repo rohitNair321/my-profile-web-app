@@ -66,9 +66,15 @@
   box-shadow: 0 2px 8px var(--primary-glow);
 }
 
-// ── Navbar mode: transparent at scroll=0, frosted when scrolled ─
+// ── Navbar mode: subtle gradient at scroll=0, frosted when scrolled ─
+// Gradient vignette ensures text is readable on any hero-section colour,
+// critical in dark mode where nav links are near-white.
 .nav-bar--navbar {
-  background: transparent;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--background) 40%, transparent) 0%,
+    transparent 100%
+  );
   border-bottom-color: transparent;
   box-shadow: none;
 
@@ -368,7 +374,7 @@
   letter-spacing: 0;
 }
 
-.logo-rohit  { color: var(--text-primary); }
+.logo-rohit  { color: var(--primary); }
 .logo-dot    { color: var(--primary); }
 .logo-dev    { color: var(--text-secondary); }
 

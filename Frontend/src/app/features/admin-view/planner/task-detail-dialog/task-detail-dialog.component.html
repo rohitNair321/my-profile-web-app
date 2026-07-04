@@ -1,0 +1,107 @@
+<div class="dialog-backdrop" (click)="closed.emit()">
+  <div class="dialog-card td-card" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="dialog-header">
+      <h3>{{ task().title }}</h3>
+      <button class="dialog-close" type="button" (click)="closed.emit()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Meta chips -->
+    <div class="td-chips">
+      <span class="td-pr" [style.--pr-color]="prColor()">{{ prLabel() }}</span>
+      @if (task().dueDate) {
+        <span class="td-chip">
+          <span class="material-icons">event</span>{{ task().dueDate | date:'MMM dd, yyyy' }}
+        </span>
+      }
+      @for (tag of task().tags; track tag) {
+        <span class="td-tag">{{ tag }}</span>
+      }
+    </div>
+
+    <!-- Description -->
+    @if (task().description) {
+      <div class="admin-section-label">Description</div>
+      <p class="td-desc">{{ task().description }}</p>
+    }
+
+    <!-- Time tracked -->
+    <div class="td-time-sec">
+      <div class="admin-section-label">Time Tracked</div>
+
+      <div class="td-time-head">
+        <div class="td-time-big">
+          <span class="material-icons">timer</span>
+          {{ rounded() }}
+          @if (running()) { <span class="td-live-badge">LIVE {{ liveClock() }}</span> }
+        </div>
+        @if (task().column !== 'done') {
+          <button class="td-timer-cta" type="button"
+                  [class.td-timer-cta--stop]="running()"
+                  (click)="toggleTimer()">
+            <span class="material-icons">{{ running() ? 'pause' : 'play_arrow' }}</span>
+            {{ running() ? 'Stop' : 'Start' }}
+          </button>
+        }
+      </div>
+
+      <div class="td-time-sub">
+        raw: {{ rawTime() }}
+        @if (task().estimateMin) { · estimate: {{ estimateLabel() }} · {{ pct() }}% }
+      </div>
+
+      @if (progress() !== null) {
+        <div class="td-bar-track">
+          <div class="td-bar-fill" [style.width.%]="progress()! * 100"
+               [class.td-bar-fill--over]="progress()! >= 1"></div>
+        </div>
+      }
+
+      <!-- Session log -->
+      <div class="td-log">
+        @for (log of logs(); track log.startedAt) {
+          <div class="td-log-row">
+            <span class="td-log-date">{{ log.startedAt | date:'MMM dd HH:mm' }}</span>
+            <span class="td-log-arrow">→</span>
+            <span class="td-log-date">
+              {{ log.stoppedAt ? (log.stoppedAt | date:'HH:mm') : 'running…' }}
+            </span>
+            <span class="td-log-dur" [class.td-log-dur--live]="!log.stoppedAt">
+              {{ logDuration(log) }}
+            </span>
+          </div>
+        }
+        @if (task().timeLogs.length === 0) {
+          <div class="td-log-empty">No time tracked yet — hit Start.</div>
+        }
+      </div>
+    </div>
+
+    <!-- Move to column -->
+    <div class="admin-section-label">Move To</div>
+    <div class="td-move-row">
+      @for (col of columns; track col.id) {
+        <button class="td-move-btn" type="button"
+                [class.td-move-btn--active]="task().column === col.id"
+                [disabled]="task().column === col.id"
+                (click)="moveTo(col.id)">
+          {{ col.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="dialog-footer td-footer">
+      <button class="btn-danger" type="button" (click)="deleteTask()">
+        <span class="material-icons">delete_outline</span> Delete
+      </button>
+      <button class="btn-primary" type="button" (click)="edit.emit()">
+        <span class="material-icons">edit</span> Edit
+      </button>
+    </div>
+
+  </div>
+</div>

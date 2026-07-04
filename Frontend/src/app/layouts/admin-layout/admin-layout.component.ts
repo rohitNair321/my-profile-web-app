@@ -13,15 +13,19 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, RouterOutlet } from '@angular/router';
-import { filter, Subject, take, takeUntil } from 'rxjs';
+import { filter, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
 import { AdminSideNavComponent } from 'src/app/features/admin-view/admin-side-nav/admin-side-nav.component';
 import { AdminTopbarComponent } from 'src/app/features/admin-view/admin-topbar/admin-topbar.component';
+import { ActivityApiService } from 'src/app/core/services/activity-api.service';
+import { SchedulerNotificationService } from 'src/app/core/services/scheduler-notification.service';
+import { PostService } from 'src/app/core/services/post.service';
 
 const MOBILE_BREAKPOINT = 900;
 
 const PAGE_LABELS: Record<string, string> = {
   overview:      'Dashboard',
+  planner:       'Planner',
   settings:      'Profile',
   profile:       'Profile',
   experience:    'Experience',
@@ -58,12 +62,20 @@ export class AdminLayoutComponent extends CommonApp implements OnInit, OnDestroy
   private readonly isBrowser: boolean;
   private readonly destroy$ = new Subject<void>();
 
+  private activityApi:   ActivityApiService;
+  private schedNotifSvc: SchedulerNotificationService;
+  private postApi:       PostService;
+  private _schedSub: Subscription | null = null;
+
   constructor(
     public override injector: Injector,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     super(injector);
     this.isBrowser = isPlatformBrowser(this.platformId);
+    this.activityApi   = injector.get(ActivityApiService);
+    this.schedNotifSvc = injector.get(SchedulerNotificationService);
+    this.postApi       = injector.get(PostService);
 
     if (this.isBrowser) {
       const mobile = window.innerWidth <= MOBILE_BREAKPOINT;
@@ -116,11 +128,93 @@ export class AdminLayoutComponent extends CommonApp implements OnInit, OnDestroy
       },
       error: () => {},
     });
+
+    if (this.isBrowser) {
+      this._checkPublishedWhileAway();
+      this._checkUpcomingScheduled();
+      this._connectRealtimePublish();
+    }
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this._schedSub?.unsubscribe();
+    this.schedNotifSvc.disconnect();
+  }
+
+  // ── Scheduled-post notifications ─────────────────────────────
+
+  /** Posts published in the background since the admin last dismissed the
+   *  scheduler panel (same last-seen key the Overview panel uses). */
+  private _checkPublishedWhileAway(): void {
+    const lastSeen = localStorage.getItem('sched-notif-seen-at') ?? undefined;
+    this.activityApi.getSchedulerEvents(lastSeen).subscribe({
+      next: d => {
+        const items     = d.items ?? [];
+        const published = items.filter(i => i.event_type === 'scheduled_post_published');
+        const failed    = items.filter(i => i.event_type === 'scheduled_post_failed');
+
+        if (published.length > 0) {
+          const firstTitle = published[0].meta?.['title'] ?? 'A scheduled post';
+          this.alertService.success(
+            published.length === 1
+              ? `"${firstTitle}" was published while you were away.`
+              : `${published.length} scheduled posts were published while you were away.`,
+            {
+              title: 'Scheduled publishing',
+              icon: 'rocket_launch',
+              duration: 10000,
+              action: {
+                label: 'View details',
+                handler: () => {
+                  // Clicking through counts as seen — never re-notify for these events
+                  localStorage.setItem('sched-notif-seen-at', new Date().toISOString());
+                  this.router.navigate(['/admin/overview']);
+                },
+              },
+            }
+          );
+        }
+        if (failed.length > 0) {
+          this.alertService.warning(
+            `${failed.length} scheduled publish${failed.length > 1 ? 'es' : ''} failed. Check the Overview panel.`,
+            { title: 'Scheduled publishing', duration: 0 }
+          );
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  /** Info alert when a scheduled post is due to publish within 15 minutes */
+  private _checkUpcomingScheduled(): void {
+    this.postApi.getAllAdmin({ status: 'scheduled', limit: 10 }).subscribe({
+      next: res => {
+        const SOON_MS = 15 * 60 * 1000;
+        const now = Date.now();
+        for (const p of res.data?.posts ?? []) {
+          if (!p.scheduled_at) continue;
+          const untilMs = new Date(p.scheduled_at).getTime() - now;
+          if (untilMs > 0 && untilMs <= SOON_MS) {
+            const mins = Math.max(1, Math.round(untilMs / 60000));
+            this.alertService.info(
+              `"${p.title}" publishes in ~${mins} minute${mins > 1 ? 's' : ''}.`,
+              { title: 'Upcoming scheduled post', icon: 'schedule_send', duration: 10000 }
+            );
+          }
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  /** Live SSE toast when the scheduler publishes a post while the admin is on an admin page */
+  private _connectRealtimePublish(): void {
+    this.schedNotifSvc.connect();
+    this._schedSub = this.schedNotifSvc.published$.subscribe(ev => {
+      this.alertService.success(`Post published: "${ev.title}"`, { icon: 'rocket_launch' });
+    });
   }
 
   @HostListener('window:resize')

@@ -123,6 +123,13 @@
                 <i class="material-icons">schedule</i>
                 ~{{ estimatedReadTime }} min read
               </span>
+              <span class="meta-chip"
+                [class.meta-chip--warn]="contentNearLimit() && !contentOverLimit()"
+                [class.meta-chip--over]="contentOverLimit()"
+                title="Posts are capped to keep them small/medium">
+                <i class="material-icons">notes</i>
+                {{ contentChars().toLocaleString() }} / {{ MAX_CONTENT_CHARS.toLocaleString() }}
+              </span>
               @if (isScheduledFuture) {
                 <span class="meta-chip meta-chip--scheduled">
                   <i class="material-icons">event</i>
@@ -222,8 +229,9 @@
                     class="tags-input"
                     [(ngModel)]="tagInput"
                     [ngModelOptions]="{ standalone: true }"
-                    placeholder="Add tag and press Enter…"
+                    placeholder="Add tags — Enter or comma-separated paste…"
                     (keydown)="onTagKeydown($event)"
+                    (paste)="onTagPaste($event)"
                   />
                 </div>
               </div>

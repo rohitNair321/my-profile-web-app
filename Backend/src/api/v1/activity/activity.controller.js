@@ -21,7 +21,10 @@ const getFeed = catchAsync(async (req, res) => {
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (event_type) query = query.eq('event_type', event_type);
+  if (event_type) {
+    const types = event_type.split(',').map(t => t.trim()).filter(Boolean);
+    query = types.length === 1 ? query.eq('event_type', types[0]) : query.in('event_type', types);
+  }
   if (entity)     query = query.eq('entity', entity);
   if (from)       query = query.gte('created_at', from);
   if (to)         query = query.lte('created_at', to);
@@ -79,8 +82,8 @@ const getFieldChanges = catchAsync(async (req, res) => {
 
   let query = supabase
     .from('activity_log')
-    .select('id, entity, field_name, old_value, new_value, created_at')
-    .eq('event_type', 'field_update')
+    .select('id, event_type, entity, field_name, old_value, new_value, meta, created_at')
+    .in('event_type', ['field_update', 'password_update', 'storage_delete'])
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -137,4 +140,41 @@ const getSummary = catchAsync(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
-module.exports = { getFeed, getLogins, getFieldChanges, getSummary };
+/**
+ * @route   DELETE /api/v1/activity/logs/:id
+ * @desc    Delete a single activity log entry
+ * @access  Admin
+ */
+const deleteLog = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const { error } = await supabase
+    .from('activity_log')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw ApiError.internal('Failed to delete activity log entry');
+
+  const response = ApiResponse.success(null, 'Log entry deleted');
+  res.status(response.statusCode).json(response);
+});
+
+/**
+ * @route   DELETE /api/v1/activity/logs
+ * @desc    Delete ALL activity log entries
+ * @access  Admin
+ */
+const deleteAllLogs = catchAsync(async (req, res) => {
+  // Supabase requires a filter to allow mass-delete; neq on a nullable column covers all rows
+  const { error } = await supabase
+    .from('activity_log')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (error) throw ApiError.internal('Failed to clear activity logs');
+
+  const response = ApiResponse.success(null, 'All activity logs cleared');
+  res.status(response.statusCode).json(response);
+});
+
+module.exports = { getFeed, getLogins, getFieldChanges, getSummary, deleteLog, deleteAllLogs };

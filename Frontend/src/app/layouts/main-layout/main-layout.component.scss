@@ -729,3 +729,189 @@
     .material-icons { font-size: 1.25rem; }
   }
 }
+
+/* =============================================================
+   PASSWORD EXPIRY — WARNING BANNER
+   ============================================================= */
+.pwd-warn-banner {
+  position: fixed;
+  top: var(--topbar-height, 64px);
+  left: 0; right: 0;
+  z-index: calc(var(--topbar-z, 1060) + 1);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .625rem 1.25rem;
+  background: rgba(245,158,11,.92);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 500;
+
+  .material-icons { font-size: 1.1rem; flex-shrink: 0; }
+
+  strong { font-weight: 700; }
+
+  .pwd-warn-link {
+    color: #fff;
+    text-decoration: underline;
+    margin-left: .375rem;
+    font-weight: 700;
+    &:hover { opacity: .85; }
+  }
+
+  .pwd-warn-close {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    padding: .2rem;
+    border-radius: 4px;
+    opacity: .85;
+    &:hover { opacity: 1; background: rgba(0,0,0,.15); }
+    .material-icons { font-size: 1rem; }
+  }
+}
+
+/* =============================================================
+   PASSWORD EXPIRED — MODAL OVERLAY (non-dismissible)
+   ============================================================= */
+.pwd-exp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.pwd-exp-modal {
+  background: var(--surface, #1E293B);
+  border: 1px solid rgba(239,68,68,.25);
+  border-radius: 20px;
+  padding: 2rem 2rem 1.75rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(239,68,68,.1);
+}
+
+.pwd-exp-icon {
+  width: 52px; height: 52px;
+  border-radius: 16px;
+  background: rgba(239,68,68,.12);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.125rem;
+  .material-icons { font-size: 1.75rem; color: #EF4444; }
+}
+
+.pwd-exp-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary, #F1F5F9);
+  text-align: center;
+  margin: 0 0 .5rem;
+}
+
+.pwd-exp-sub {
+  font-size: .78rem;
+  color: var(--text-secondary, #94A3B8);
+  text-align: center;
+  margin: 0 0 1.5rem;
+  line-height: 1.55;
+}
+
+.pwd-exp-field {
+  margin-bottom: .875rem;
+}
+
+.pwd-exp-label {
+  display: block;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-secondary, #94A3B8);
+  margin-bottom: .3rem;
+  letter-spacing: .02em;
+}
+
+.pwd-exp-input-wrap {
+  position: relative;
+}
+
+.pwd-exp-input {
+  width: 100%;
+  padding: .625rem .75rem;
+  padding-right: 2.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+  color: var(--text-primary, #F1F5F9);
+  font-size: .85rem;
+  outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+
+  &:focus { border-color: #EF4444; }
+  &::placeholder { color: rgba(255,255,255,.25); }
+}
+
+.pwd-exp-reveal {
+  position: absolute;
+  right: .75rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,.4); display: flex; padding: 2px;
+  &:hover { color: rgba(255,255,255,.8); }
+  .material-icons { font-size: 1.1rem; }
+}
+
+.pwd-exp-strength-bar {
+  display: flex; gap: 3px; margin-top: .375rem;
+}
+
+.pwd-exp-seg {
+  flex: 1; height: 3px; border-radius: 9999px; background: rgba(255,255,255,.1);
+  &.filled { background: var(--seg-color); }
+}
+
+.pwd-exp-strength-label {
+  font-size: .68rem; font-weight: 700; margin-top: .2rem;
+}
+
+.pwd-exp-error {
+  font-size: .75rem;
+  color: #EF4444;
+  background: rgba(239,68,68,.08);
+  border-radius: 8px;
+  padding: .45rem .75rem;
+  margin-bottom: .75rem;
+}
+
+.pwd-exp-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375rem;
+  padding: .75rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: .25rem;
+  transition: opacity .15s;
+  .material-icons { font-size: 1rem; }
+
+  &:hover:not(:disabled) { opacity: .9; }
+  &:disabled { opacity: .55; cursor: not-allowed; }
+}
+
+.spin { animation: layoutSpin .8s linear infinite; }
+@keyframes layoutSpin { to { transform: rotate(360deg); } }

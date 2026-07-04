@@ -1,0 +1,27 @@
+@if (dialog.active(); as cfg) {
+  <div class="cdlg-backdrop" (click)="dialog.resolve(false)">
+    <div class="cdlg-card" [class]="'cdlg-card--' + (cfg.tone ?? 'info')"
+         role="alertdialog" aria-modal="true"
+         (click)="$event.stopPropagation()">
+
+      <div class="cdlg-icon-wrap">
+        <span class="material-icons">{{ iconFor(cfg.tone, cfg.icon) }}</span>
+      </div>
+
+      <h3 class="cdlg-title">{{ titleFor(cfg.tone, cfg.title) }}</h3>
+      <p class="cdlg-message">{{ cfg.message }}</p>
+
+      <div class="cdlg-footer">
+        @if (cfg.showCancel !== false) {
+          <button class="cdlg-btn cdlg-btn--ghost" type="button" (click)="dialog.resolve(false)">
+            {{ cfg.cancelLabel ?? 'Cancel' }}
+          </button>
+        }
+        <button class="cdlg-btn cdlg-btn--confirm" type="button" (click)="dialog.resolve(true)">
+          {{ cfg.confirmLabel ?? 'Confirm' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

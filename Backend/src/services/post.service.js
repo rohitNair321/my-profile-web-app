@@ -25,6 +25,56 @@ function mapDbError(error) {
   }
 }
 
+// Field size caps — keep posts small/medium; DB CHECK constraints mirror these
+// (see src/db/migrations/002_post_size_limits.sql)
+const LIMITS = {
+  TITLE_MAX:        120,
+  CONTENT_MAX:      60000,  // sanitized HTML chars (~15k words of plain text)
+  EXCERPT_MAX:      300,
+  SEO_TITLE_MAX:    120,
+  SEO_DESC_MAX:     300,
+  URL_MAX:          500,
+  TAGS_MAX:         8,
+  TAG_LEN_MAX:      30,
+};
+
+function validatePostSizes(body) {
+  const check = (val, max, field) => {
+    if (val != null && String(val).length > max) {
+      throw ApiError.badRequest(`${field} must be ${max} characters or fewer`);
+    }
+  };
+
+  check(body.title,           LIMITS.TITLE_MAX,     'title');
+  check(body.excerpt,         LIMITS.EXCERPT_MAX,   'excerpt');
+  check(body.seo_title,       LIMITS.SEO_TITLE_MAX, 'seo_title');
+  check(body.seo_description, LIMITS.SEO_DESC_MAX,  'seo_description');
+  check(body.cover_image_url, LIMITS.URL_MAX,       'cover_image_url');
+  check(body.linkedin_url,    LIMITS.URL_MAX,       'linkedin_url');
+  check(body.og_image_url,    LIMITS.URL_MAX,       'og_image_url');
+
+  if (body.content != null && String(body.content).length > LIMITS.CONTENT_MAX) {
+    throw ApiError.badRequest(
+      `Post content is too large (max ${LIMITS.CONTENT_MAX.toLocaleString()} characters of HTML). ` +
+      'Keep posts small/medium — move images to storage, split very long write-ups.'
+    );
+  }
+
+  if (body.tags != null) {
+    if (!Array.isArray(body.tags) || body.tags.length > LIMITS.TAGS_MAX ||
+        body.tags.some(t => typeof t !== 'string' || t.length > LIMITS.TAG_LEN_MAX)) {
+      throw ApiError.badRequest(
+        `tags must be an array of at most ${LIMITS.TAGS_MAX} strings, each ≤ ${LIMITS.TAG_LEN_MAX} characters`
+      );
+    }
+  }
+}
+
+/** Plain text derived from sanitized HTML — replaces stored content_raw */
+function htmlToPlainText(html = '') {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 class PostService {
 
   // ── GET ALL PUBLISHED ────────────────────────────────────────
@@ -129,10 +179,13 @@ class PostService {
   async create(body) {
     if (!body.title) throw ApiError.badRequest('title is required');
     if (!body.content) throw ApiError.badRequest('content is required');
+    validatePostSizes(body);
 
     const slug             = await this._generateUniqueSlug(body.title);
     const sanitizedContent = sanitizeHtml(body.content);
-    const readTime         = calculateReadTime(body.content_raw || body.content);
+    // Derive plain text server-side — content_raw is no longer stored (≈50% row size saving)
+    const plainText        = htmlToPlainText(sanitizedContent);
+    const readTime         = calculateReadTime(plainText);
 
     const now            = new Date();
     const schedDate      = body.scheduled_at ? new Date(body.scheduled_at) : null;
@@ -141,9 +194,9 @@ class PostService {
     const postData = {
       title:           body.title,
       slug,
-      excerpt:         body.excerpt || this._generateExcerpt(body.content_raw || body.content),
+      excerpt:         body.excerpt || this._generateExcerpt(plainText),
       content:         sanitizedContent,
-      content_raw:     body.content_raw || '',
+      content_raw:     '',
       cover_image_url: body.cover_image_url  || null,
       linkedin_url:    body.linkedin_url     || null,
       status:          isScheduledFuture ? 'scheduled' : (body.status || 'draft'),
@@ -172,17 +225,20 @@ class PostService {
   // ── UPDATE ───────────────────────────────────────────────────
   async update(id, body) {
     const existing = await this._findById(id);
+    validatePostSizes(body);
     const updates  = { ...body };
 
     // Re-sanitize and recalculate read time if content changed
     if (body.content) {
-      updates.content   = sanitizeHtml(body.content);
-      updates.read_time = calculateReadTime(body.content_raw || body.content);
-    }
+      updates.content     = sanitizeHtml(body.content);
+      const plainText     = htmlToPlainText(updates.content);
+      updates.read_time   = calculateReadTime(plainText);
+      updates.content_raw = ''; // no longer stored — derived server-side
 
-    // Auto-generate excerpt if content changed but excerpt not provided
-    if (body.content && !body.excerpt) {
-      updates.excerpt = this._generateExcerpt(body.content_raw || body.content);
+      // Auto-generate excerpt if content changed but excerpt not provided
+      if (!body.excerpt) {
+        updates.excerpt = this._generateExcerpt(plainText);
+      }
     }
 
     // Scheduling logic takes priority over plain status updates
@@ -269,8 +325,11 @@ class PostService {
   // ── UPLOAD COVER IMAGE ───────────────────────────────────────
   async uploadCover(buffer, mimeType, originalName) {
     const BUCKET = process.env.ASSET_BUCKET || 'assets';
-    const ext    = originalName.split('.').pop() || 'jpg';
-    const path   = `posts/covers/${Date.now()}.${ext}`;
+    // Extension derived from the validated mime type — never from the client filename
+    const EXT_BY_MIME = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' };
+    const ext = EXT_BY_MIME[mimeType];
+    if (!ext) throw ApiError.badRequest('Unsupported image type');
+    const path = `posts/covers/${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage
       .from(BUCKET)
@@ -280,6 +339,11 @@ class PostService {
 
     const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return { url: urlData.publicUrl, path };
+  }
+
+  // ── GET BY ID (ADMIN) ────────────────────────────────────────
+  async getById(id) {
+    return this._findById(id);
   }
 
   // ── PRIVATE HELPERS ──────────────────────────────────────────

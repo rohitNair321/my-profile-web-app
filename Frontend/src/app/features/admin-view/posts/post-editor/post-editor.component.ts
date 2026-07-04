@@ -39,6 +39,13 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
   activeTab   = signal<TabId>('editor');
   showPreview = signal(false);
 
+  // Content size cap — keep posts small/medium (backend enforces 60k HTML chars;
+  // this plain-text cap is the author-facing limit)
+  readonly MAX_CONTENT_CHARS = 15000;
+  contentChars = signal(0);
+  contentNearLimit = computed(() => this.contentChars() >= this.MAX_CONTENT_CHARS * 0.8);
+  contentOverLimit = computed(() => this.contentChars() > this.MAX_CONTENT_CHARS);
+
   // Tags input helper
   tagInput = '';
 
@@ -94,14 +101,9 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
 
   loadPost(id: string): void {
     this.isLoading.set(true);
-    // We call getAllAdmin to get by ID since there's no public GET by ID
-    // Instead we'll use the admin update flow — load all and find, or just patch
-    // Actually the cleanest is to call update with no changes and read back.
-    // For simplicity we use getBySlug — but we need ID, not slug.
-    // Use admin endpoint:
-    this.postService.getAllAdmin({ limit: 1000 }).pipe(takeUntil(this.destroy$)).subscribe({
+    this.postService.getAdminById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
-        const post = res.data.posts.find(p => p.id === id);
+        const post = res.data?.post;
         if (post) {
           this.patchForm(post);
         } else {
@@ -133,12 +135,17 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
       og_image_url:    post.og_image_url || '',
       scheduled_at:    post.scheduled_at || null,
     });
+
+    // Seed the character counter from the loaded HTML
+    const plain = (post.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    this.contentChars.set(plain.length);
   }
 
   onEditorChanged(event: any): void {
     // Sync plain-text content_raw for SEO and read time
     if (event?.text !== undefined) {
       this.form.patchValue({ content_raw: event.text }, { emitEvent: false });
+      this.contentChars.set(event.text.trim().length);
     }
   }
 
@@ -148,11 +155,60 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
     return this.form.get('tags')?.value || [];
   }
 
+  // Mirrors the backend caps (post.service.js LIMITS)
+  private readonly MAX_TAGS = 8;
+  private readonly MAX_TAG_LEN = 30;
+
   addTag(): void {
-    const tag = this.tagInput.trim();
-    if (!tag || this.tags.includes(tag)) { this.tagInput = ''; return; }
-    this.form.patchValue({ tags: [...this.tags, tag] });
+    this.addTagsFromText(this.tagInput);
     this.tagInput = '';
+  }
+
+  /**
+   * Accepts a single tag OR a pasted list ("Angular, TypeScript, Web Development")
+   * and adds each entry as an individual tag — split on commas/semicolons/newlines,
+   * trimmed, de-duplicated (case-insensitive), capped at MAX_TAGS × MAX_TAG_LEN.
+   */
+  private addTagsFromText(text: string): void {
+    const incoming = (text || '')
+      .split(/[,;\n]/)
+      .map(t => t.trim())
+      .filter(Boolean);
+    if (incoming.length === 0) return;
+
+    const current = [...this.tags];
+    const existingLower = new Set(current.map(t => t.toLowerCase()));
+    let skipped = 0;
+
+    for (const tag of incoming) {
+      if (existingLower.has(tag.toLowerCase())) continue;      // duplicate
+      if (tag.length > this.MAX_TAG_LEN || current.length >= this.MAX_TAGS) {
+        skipped++;
+        continue;
+      }
+      current.push(tag);
+      existingLower.add(tag.toLowerCase());
+    }
+
+    this.form.patchValue({ tags: current });
+
+    if (skipped > 0) {
+      this.alertService.showAlert(
+        `${skipped} tag${skipped > 1 ? 's' : ''} skipped — max ${this.MAX_TAGS} tags, ${this.MAX_TAG_LEN} characters each.`,
+        'warning'
+      );
+    }
+  }
+
+  onTagPaste(event: ClipboardEvent): void {
+    const text = event.clipboardData?.getData('text') ?? '';
+    // Only intercept when the paste contains separators — plain single-word
+    // pastes keep the normal type-then-Enter flow
+    if (/[,;\n]/.test(text)) {
+      event.preventDefault();
+      this.addTagsFromText(text);
+      this.tagInput = '';
+    }
   }
 
   removeTag(tag: string): void {
@@ -236,6 +292,15 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.alertService.showAlert('Please fill in the required fields.', 'error');
+      return;
+    }
+
+    if (this.contentOverLimit()) {
+      this.alertService.showAlert(
+        `Post is too long — keep it under ${this.MAX_CONTENT_CHARS.toLocaleString()} characters ` +
+        `(currently ${this.contentChars().toLocaleString()}).`,
+        'error'
+      );
       return;
     }
 

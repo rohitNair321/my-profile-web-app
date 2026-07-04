@@ -8,6 +8,27 @@
     </div>
   </div>
 
+  <!-- Scheduler notifications -->
+  @if (schedVisible() && schedNotifs().length > 0) {
+    <div class="sched-notif-panel">
+      <div class="sched-notif-header">
+        <span class="material-icons">schedule_send</span>
+        <span>Post Scheduler</span>
+        <button class="sched-notif-close" type="button" (click)="dismissSchedulerNotifs()" title="Dismiss">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      @for (item of schedNotifs(); track item.id) {
+        <div class="sched-notif-item"
+          [class.sched-notif-item--ok]="item.event_type === 'scheduled_post_published'"
+          [class.sched-notif-item--err]="item.event_type === 'scheduled_post_failed'">
+          <span class="material-icons sched-notif-ic">{{ schedNotifIcon(item.event_type) }}</span>
+          <span>{{ schedNotifMessage(item) }}</span>
+        </div>
+      }
+    </div>
+  }
+
   <!-- Stat cards -->
   <div class="ov-stats">
     @for (s of stats(); track s.label) {

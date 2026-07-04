@@ -22,6 +22,7 @@ export interface AdminNavItem {
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { icon: 'dashboard', label: 'Overview', route: '/admin/overview', key: 'overview' },
+  { icon: 'view_kanban', label: 'Planner', route: '/admin/planner', key: 'planner' },
   { icon: 'person', label: 'Profile', route: '/admin/profile', key: 'profile' },
   { icon: 'work', label: 'Experience', route: '/admin/experience', key: 'experience' },
   { icon: 'folder_special', label: 'Projects', route: '/admin/projects', key: 'projects' },
