@@ -40,6 +40,11 @@ const sanitize = (dirty = '') =>
         'text-align':      [/.*/],
       },
     },
+    // Explicit scheme whitelist — keeps data: URIs (base64 images) out of the DB
+    // and javascript: out of links, even if library defaults ever change.
+    allowedSchemes: ['http', 'https', 'mailto'],
+    allowedSchemesByTag: { img: ['http', 'https'] },
+    allowProtocolRelative: false,
   });
 
 module.exports = { sanitizeHtml: sanitize };

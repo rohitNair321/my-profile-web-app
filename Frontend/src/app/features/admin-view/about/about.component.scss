@@ -1,0 +1,92 @@
+.mode-bar {
+  display: flex;
+  gap: .375rem;
+  background: var(--admin-bg-dp);
+  border: 1px solid var(--admin-bdc);
+  border-radius: 12px;
+  padding: .25rem;
+  width: fit-content;
+  margin-bottom: 1.25rem;
+}
+
+.mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem 1rem;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+  background: transparent;
+  color: var(--admin-t3c);
+  .material-icons { font-size: .9rem; }
+
+  &.active {
+    background: var(--admin-bg-s2);
+    color: #10B981;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+}
+
+.editor-pane, .preview-pane {
+  background: var(--admin-bg-sf);
+  border: 1px solid var(--admin-bdc);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.editor-header, .preview-header {
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--admin-bdc);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: var(--admin-bg-dp);
+}
+
+.editor-textarea {
+  width: 100%;
+  min-height: 420px;
+  padding: 1.125rem;
+  background: var(--admin-bg-dp);
+  border: none;
+  color: var(--admin-tc);
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  font-size: .85rem;
+  line-height: 1.7;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.preview-body {
+  padding: 1.5rem;
+  line-height: 1.8;
+  color: var(--admin-t2c);
+  font-size: .9rem;
+  min-height: 420px;
+
+  h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: var(--admin-tc);
+    font-size: 1.25rem;
+    margin: 0 0 .875rem;
+  }
+  h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: var(--admin-tc);
+    font-size: 1rem;
+    margin: 1.125rem 0 .5rem;
+  }
+  strong { color: var(--admin-tc); }
+  em     { color: var(--admin-t2c); }
+  ul     { padding-left: 1.25rem; list-style: disc; }
+  li     { margin-bottom: .375rem; }
+  p      { margin-bottom: .875rem; }
+}

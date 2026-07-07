@@ -1,128 +1,163 @@
-const OpenAI = require("openai");
+const OpenAI = require('openai');
 const { supabase } = require('../db/supabaseClient');
+const logger = require('../config/logger');
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// ── Profile cache (10-min TTL to avoid DB hit per request) ───────────────────
+let _profileCache = null;
+let _profileCachedAt = 0;
+const PROFILE_TTL_MS = 10 * 60 * 1000;
 
 async function getProfile() {
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
+  const now = Date.now();
+  if (_profileCache && now - _profileCachedAt < PROFILE_TTL_MS) {
+    return _profileCache;
+  }
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
     .limit(1)
     .single();
-
+  if (error) throw error;
+  _profileCache = data;
+  _profileCachedAt = now;
   return data;
 }
 
-async function askAI(message, role, guestId, sessionId, userId, isGuest) {
-  const profile = await getProfile();
-  const systemPrompt = await buildSystemPrompt(profile, role);
-  const response = await client.responses.create({
-    model: "o4-mini",
-    input: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: message,
-      },
-    ],
-  });
-
-  await supabase.from("ai_usage").insert({
-    session_id: sessionId,
-    user_id: userId,
-    role: role,
-    is_guest: isGuest,
-    guest_id: guestId,
-
-    model: response.model,
-
-    input_tokens: response.usage?.input_tokens,
-    output_tokens: response.usage?.output_tokens,
-    total_tokens: response.usage?.total_tokens,
-
-    request_id: response.id
-  });
-
-  return response.output_text;
+/** Force-expire the cache (call after admin profile update) */
+function invalidateProfileCache() {
+  _profileCache = null;
+  _profileCachedAt = 0;
 }
 
-// ── Prompt builder ────────────────────────────────────────────────────────────
+// ── Main AI call ──────────────────────────────────────────────────────────────
+/**
+ * @param {string}   message             - Current user message
+ * @param {string}   role                - 'admin' | 'guest'
+ * @param {string}   [guestId]
+ * @param {string}   [sessionId]
+ * @param {string}   [userId]
+ * @param {boolean}  [isGuest]
+ * @param {Array}    [conversationHistory] - Prior {sender,text} messages from session
+ */
+async function askAI(
+  message,
+  role,
+  guestId,
+  sessionId,
+  userId,
+  isGuest,
+  conversationHistory = []
+) {
+  const profile = await getProfile();
+  const systemPrompt = buildSystemPrompt(profile, role);
+
+  // Map stored messages to OpenAI roles; cap at last 8 messages (4 turns)
+  const priorMessages = conversationHistory
+    .slice(-8)
+    .map(m => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text,
+    }));
+
+  const completion = await client.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...priorMessages,
+      { role: 'user', content: message },
+    ],
+    max_tokens: 600,
+    temperature: 0.4,
+  });
+
+  const reply = completion.choices[0].message.content;
+  const usage = completion.usage;
+
+  // Fire-and-forget — do not block the reply on DB write
+  supabase
+    .from('ai_usage')
+    .insert({
+      session_id:    sessionId   ?? null,
+      user_id:       userId      ?? null,
+      role:          role        ?? 'guest',
+      is_guest:      isGuest     ?? true,
+      guest_id:      guestId     ?? null,
+      model:         completion.model,
+      input_tokens:  usage?.prompt_tokens     ?? 0,
+      output_tokens: usage?.completion_tokens ?? 0,
+      total_tokens:  usage?.total_tokens      ?? 0,
+      request_id:    completion.id,
+    })
+    .then(({ error }) => {
+      if (error) logger.warn('ai_usage insert failed', { error: error.message });
+    });
+
+  return reply;
+}
+
+// ── System prompt (compact — keeps token cost low) ───────────────────────────
 function buildSystemPrompt(profile, role) {
-  const currentExp = profile.experiences?.find(e => e.present);
+  const currentExp = (profile.experiences ?? []).find(e => e.present);
   const currentRole = currentExp
     ? `${currentExp.role} at ${currentExp.company}`
-    : profile.currentCompany ?? "N/A";
+    : (profile.currentCompany ?? 'N/A');
 
-  const companyNames = (profile.experiences ?? [])
-    .map(e => e.company)
-    .join(", ");
+  const skillsList = (profile.skills ?? []).join(', ');
 
-  const skillsList = (profile.skills ?? []).join(", ");
+  const openToWork = profile.open_to_work
+    ? `Yes — open to new opportunities.`
+    : `Not actively looking but open to the right fit. Reach out at ${profile.email}.`;
 
-  const themeNames = (profile.themes ?? [])
-    .map(t => t.name)
-    .join(", ");
-
-  const experienceSections = (profile.experiences ?? [])
+  // Compact experience block: role · company · period | key projects (title + tech only)
+  const expBlock = (profile.experiences ?? [])
     .map(exp => {
       const period = exp.present
-        ? `${exp.startDate} Present`
-        : `${exp.startDate} ${exp.endDate}`;
-
+        ? `${exp.startDate} – Present`
+        : `${exp.startDate} – ${exp.endDate}`;
       const projects = (exp.projects ?? [])
-        .map(p =>
-          `      - **${p.title}** [${p.projectProgress}]
-          Tech: ${p.technologies?.join(", ") ?? "N/A"}
-          ${p.description}`
-        )
-        .join("\n");
-
-      return `
-  ### ${exp.role} — ${exp.company} (${period})
-  ${exp.description}
- 
-  **Projects:**
-${projects}`;
+        .map(p => `${p.title} (${(p.technologies ?? []).join(', ')})`)
+        .join('; ');
+      return `• ${exp.role} — ${exp.company} | ${period}${projects ? `\n  Projects: ${projects}` : ''}`;
     })
-    .join("\n");
+    .join('\n');
 
-  const openToWorkLine = profile.open_to_work
-    ? `Yes, ${profile.full_name} is open to new opportunities.`
-    : `${profile.full_name} is not actively looking but open to the right opportunity—${profile.email}.`;
+  const greeting = role === 'admin'
+    ? `Welcome back, ${profile.full_name}! How can I assist you today?`
+    : `Hi! I'm FolioAI, ${profile.full_name}'s personal AI assistant. Ask me anything about his work, skills, or projects.`;
 
-  return `You are FolioAI, ${profile.full_name}'s technical rep. Professional, finance/wealth-tech savvy. Help visitors explore skills, projects, and value; nudge toward contact when natural.
+  return `You are FolioAI, the AI representative for ${profile.full_name}. Professional, concise, finance/wealth-tech savvy. Help visitors explore skills, projects, and value; nudge toward contact when natural.
 
-Greetings: if role is admin (${role}): "Welcome back, ${profile.full_name}! How can I assist you with your profile today?" If guest (${role}): "Hello! I'm FolioAI, ${profile.full_name}'s personal AI assistant. Ask me anything about his work, skills, or projects."
+Greeting (use only on first message): "${greeting}"
 
-Facts: Name ${profile.full_name} | Role ${currentRole} | ${profile.location} | ${profile.email} | ${profile.primary_phone} | LinkedIn ${profile.linkedin} | GitHub N/A | Site ${profile.website} | Companies ${profile.companyCount} | Projects ${profile.projectCount} | Company list: ${companyNames} | Skills: ${skillsList} | Themes (${(profile.themes ?? []).length}): ${themeNames} | Current theme: ${profile.currenttheme}
+## Key Facts
+Name: ${profile.full_name} | Current: ${currentRole} | Location: ${profile.location}
+Contact: ${profile.email} | Phone: ${profile.primary_phone} | LinkedIn: ${profile.linkedin} | Site: ${profile.website}
+Companies: ${profile.companyCount} | Projects: ${profile.projectCount}
+Open to work: ${openToWork}
 
-"This app" (Rohit profile site): showcase + FolioAI. Stack: Angular, Node, Express, Supabase, OpenAI. Built Angular 16→17→18→19. Use via ${profile.website}; guest: "Continue as Guest". Admin: ${profile.full_name} only. Contact: ${profile.email} or site form. Guest limit: 5 FolioAI questions; then email/form.
+## Skills
+${skillsList}
 
-Summary:
+## Summary
 ${profile.description}
 
-Experience & projects:
-${experienceSections}
+## Experience
+${expBlock}
 
-Format (match depth to question):
-1) Lists (skills, companies, project titles, tech, themes): bullets only—names/titles, no blurbs or CTA.
-2) Explain/describe/tell about X: header + context + bullets with tech/outcomes as needed.
-3) Single fact: one line, no extras. Email→${profile.email}. Project count→${profile.projectCount} across ${profile.companyCount} companies. Theme count→${(profile.themes ?? []).length}: ${themeNames}. Open to work→${openToWorkLine}
-4) Hi/hello: short greeting + one line on what you help with. "Who are you?"→FolioAI intro for ${profile.full_name}.
-5) Hiring/collab intent: 3–4 strength bullets + one CTA (${profile.email} or LinkedIn).
+## This App
+Stack: Angular 19, Node.js, Express, Supabase, OpenAI. Built by ${profile.full_name}.
+Guest limit: 5 FolioAI questions, then email/form.
 
-Tone: enterprise polish; verbs like Engineered, Delivered, Implemented. No "Great question!" fillers. Markdown for UI.
-
-When relevant, stress finance context: SSO/IdP, Highcharts, ag-Grid/PrimeNG/Material, production work (e.g. BofA, Handelsbanken, Fiserv).
-
-Guardrails: only facts in this prompt; no invented credentials/salary/metrics. Missing detail→"I don't have that specific detail. You can reach ${profile.full_name} at ${profile.email} or LinkedIn." No raw HTML. No extra prose after list or one-line answers.`;
+## Format Rules
+- Simple fact (email, count, location): one line, no extras.
+- List request (skills, companies, projects): bullet names only, no blurbs.
+- Describe/explain: short intro + bullets with tech/outcomes.
+- Greeting / "who are you": brief + one line on what you help with.
+- Hiring/collab: 3–4 strength bullets + one CTA (${profile.email} or LinkedIn).
+- Tone: enterprise polish. Verbs: Engineered, Delivered, Implemented. No filler phrases. Markdown OK.
+- Guardrails: only facts from this prompt. Missing detail → "I don't have that. Reach ${profile.full_name} at ${profile.email}." No raw HTML.`;
 }
 
-module.exports = { askAI, buildSystemPrompt };
+module.exports = { askAI, buildSystemPrompt, invalidateProfileCache };

@@ -1,0 +1,93 @@
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  @media (max-width: 1023px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 479px)  { grid-template-columns: 1fr; }
+}
+
+.metric-card {
+  background: var(--admin-bg-sf);
+  border: 1px solid var(--admin-bdc);
+  border-radius: 16px;
+  padding: 1.25rem;
+  transition: border-color .25s;
+  &:hover { border-color: color-mix(in oklab, var(--sc) 44%, transparent); }
+}
+
+.ov-stat__icon {
+  width: 40px; height: 40px; border-radius: 11px;
+  background: color-mix(in oklab, var(--sc) 15%, transparent);
+  display: flex; align-items: center; justify-content: center; margin-bottom: .875rem;
+  .material-icons { font-size: 1.25rem; color: var(--sc); }
+}
+.ov-stat__val {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+  font-size: 1.625rem; color: var(--admin-tc); line-height: 1;
+}
+.ov-stat__lbl { font-size: .75rem; color: var(--admin-t3c); margin-top: 3px; }
+
+.metric-delta {
+  font-size: .7rem; font-weight: 700;
+  &.positive { color: #10B981; }
+  &.negative { color: #EF4444; }
+}
+
+/* Chart row */
+.an-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+
+/* Bottom row */
+.an-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+
+/* Bar chart */
+.bar-chart-wrap {
+  display: flex; align-items: flex-end; gap: 4px; height: 88px;
+}
+.bar {
+  flex: 1; background: linear-gradient(to top, #10B981, #06B6D4);
+  border-radius: 4px 4px 0 0; opacity: .8; transition: opacity .2s; min-width: 0;
+  &:hover { opacity: 1; }
+}
+
+/* Small progress bar */
+.bar-track-sm {
+  height: 5px; background: var(--admin-bg-s2); border-radius: 9999px; overflow: hidden;
+}
+.bar-fill-sm {
+  height: 100%; border-radius: 9999px; transition: width .6s ease;
+}
+
+/* Top pages */
+.top-page-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .625rem 0;
+  border-bottom: 1px solid var(--admin-bdc);
+  &:last-child { border-bottom: none; }
+}
+
+.page-path {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: .8rem;
+  color: var(--admin-t2c);
+}
+
+.page-views-count {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--admin-tc);
+}

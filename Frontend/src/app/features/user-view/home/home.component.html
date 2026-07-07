@@ -1,0 +1,557 @@
+@if (homeData) {
+  <div class="home-page-container" @pageAnimations>
+
+    <!-- HERO SECTION - Modern Split Layout -->
+    <section id="home" class="hero-section animate-section">
+      <canvas #particleCanvas class="particle-canvas" aria-hidden="true"></canvas>
+      <div class="hero-bg-pattern"></div>
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <div class="hero-badge">
+              <span class="badge-dot"></span>
+              <span class="badge-text">{{ profileData()?.open_to_work ? 'OPEN FOR WORK' : 'AVAILABLE FOR HIRE' }}</span>
+            </div>
+            
+            <h1 class="hero-title">
+              <span class="title-greeting">Hi, I'm</span>
+              <span class="title-name">{{ homeData?.full_name }}</span>
+            </h1>
+
+            <div class="hero-role">
+              <span class="typewriter-text">{{ typewriterText() }}</span><span class="typewriter-cursor">|</span>
+            </div>
+
+            <p class="hero-description">
+              {{ homeData?.short_bio || 'Building exceptional digital experiences with modern web technologies. Specialized in creating scalable, performant applications.' }}
+            </p>
+            
+            <div class="hero-stats">
+              <div class="stat">
+                <span class="stat-number">{{ experienceYears }}+</span>
+                <span class="stat-label">Years Experience</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat">
+                <span class="stat-number">{{ totalProjects }}+</span>
+                <span class="stat-label">Projects Delivered</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat">
+                <span class="stat-number">100%</span>
+                <span class="stat-label">Client Satisfaction</span>
+              </div>
+            </div>
+            
+            <div class="hero-actions">
+              <button class="btn-primary" (click)="scrollToSection($event, '#projects')">
+                <span>View Projects</span>
+                <i class="material-icons">arrow_forward</i>
+              </button>
+              <button class="btn-secondary" (click)="scrollToSection($event, '#contact')">
+                <span>Contact Me</span>
+                <i class="material-icons">mail_outline</i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="hero-visual">
+            <div class="hero-image-wrapper">
+              <div class="image-glow"></div>
+              <img [src]="homeData?.avatar_url" [alt]="homeData?.full_name || 'Rohit Nair — Full Stack Developer'" loading="eager" class="hero-image">
+              <div class="hero-chip hero-chip--tl">
+                <i class="material-icons" style="font-size:14px;color:#10B981">bolt</i>Angular 19
+              </div>
+              <div class="hero-chip hero-chip--tr">
+                <i class="material-icons" style="font-size:14px;color:#3178C6">code</i>TypeScript
+              </div>
+              <div class="hero-chip hero-chip--bl">
+                <i class="material-icons" style="font-size:14px;color:#06B6D4">hub</i>RxJS
+              </div>
+              <div class="hero-chip hero-chip--br">
+                <i class="material-icons" style="font-size:14px;color:#6366F1">account_balance</i>Finance
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Hero scroll-down indicator — V2 style -->
+      <a href="#about" class="hero-scroll-down" (click)="scrollToSection($event, '#about')">
+        <span>Scroll</span>
+        <i class="material-icons">expand_more</i>
+      </a>
+    </section>
+
+    <!-- ABOUT SECTION - Minimal & Impactful -->
+    <section id="about" class="about-section animate-section">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-content">
+            <div class="section-header">
+              <span class="section-badge">About Me</span>
+              <h2 class="section-title">Crafting Code,<br>Building Experiences</h2>
+            </div>
+            
+            <div class="about-text" [innerHTML]="safeDescription"></div>
+            
+            <div class="about-skills">
+              <h3 class="skills-title">Core Expertise</h3>
+              <div class="skills-cloud">
+                @if ((homeData?.skills?.length ?? 0) > 0) {
+                  @for (skill of homeData.skills; track skill) {
+                    <span class="skill-tag">{{ skill }}</span>
+                  }
+                } @else {
+                  <span class="skill-tag">Angular</span>
+                  <span class="skill-tag">TypeScript</span>
+                  <span class="skill-tag">Node.js</span>
+                  <span class="skill-tag">RxJS</span>
+                  <span class="skill-tag">REST APIs</span>
+                }
+              </div>
+            </div>
+            
+            <div class="about-actions">
+              <button class="btn-outline" (click)="downloadResume(profileData()?.resume_url)">
+                <i class="material-icons">file_download</i>
+                <span>Download Resume</span>
+              </button>
+              <!-- <button class="btn-link" (click)="aboutMe()">
+                <span>More About Me</span>
+                <i class="material-icons">arrow_forward</i>
+              </button> -->
+            </div>
+          </div>
+          
+          <div class="about-highlights">
+            <div class="highlight-card" style="--hc: #10B981">
+              <div class="highlight-icon">
+                <i class="material-icons">account_balance</i>
+              </div>
+              <h4>Finance Domain</h4>
+              <p>4.5 years building banking and wealth management platforms for Fiserv and Handelsbanken — two of the industry's leading financial institutions.</p>
+            </div>
+            <div class="highlight-card" style="--hc: #06B6D4">
+              <div class="highlight-icon">
+                <i class="material-icons">architecture</i>
+              </div>
+              <h4>Angular Architecture</h4>
+              <p>Expert in Angular Signals, standalone components, NgRx state management, HTTP interceptors, and SSO integration patterns.</p>
+            </div>
+            <div class="highlight-card" style="--hc: #6366F1">
+              <div class="highlight-icon">
+                <i class="material-icons">verified_user</i>
+              </div>
+              <h4>ADA Compliance</h4>
+              <p>Built accessible UIs meeting WCAG 2.1 AA for enterprise financial applications serving users with disabilities.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS SECTION - 4-Column Category Grid -->
+    <section id="skills" class="skills-section animate-section">
+      <div class="container">
+        <div class="section-header centered">
+          <span class="section-badge">Tech Stack</span>
+          <h2 class="section-title">The tools I build with</h2>
+        </div>
+        <div class="skills-grid">
+          @for (cat of SKILL_CATEGORIES; track cat.name) {
+            <div class="skill-card">
+              <div class="skill-card__icon" [style.background]="cat.color + '18'" [style.color]="cat.color">
+                <i class="material-icons">{{ cat.icon }}</i>
+              </div>
+              <h4 class="skill-card__name">{{ cat.name }}</h4>
+              <div class="skill-tags">
+                @for (s of cat.skills; track s) {
+                  <span class="skill-mono">{{ s }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE SECTION - Vertical Timeline -->
+    <section id="experience" class="experience-section animate-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge">Work History</span>
+          <h2 class="section-title">Where I've built things</h2>
+        </div>
+        @if ((homeData?.experiences?.length ?? 0) > 0) {
+          <div class="timeline">
+            @for (exp of homeData.experiences; track exp; let i = $index) {
+              <div class="timeline-item" [class.timeline-item--expanded]="expandedExp() === i" (click)="toggleExp(i)">
+                <div class="timeline-node" [style.borderColor]="i % 2 === 0 ? '#10B981' : '#06B6D4'"></div>
+                <div class="timeline-card" [style.borderLeftColor]="i % 2 === 0 ? '#10B981' : '#06B6D4'">
+                  <div class="timeline-header">
+                    <div class="timeline-badge" [style.background]="i % 2 === 0 ? '#10B98122' : '#06B6D422'" [style.color]="i % 2 === 0 ? '#10B981' : '#06B6D4'">
+                      {{ exp.company?.substring(0, 2)?.toUpperCase() || 'CO' }}
+                    </div>
+                    <div class="timeline-meta">
+                      <div class="timeline-role">{{ exp.role }}</div>
+                      <div class="timeline-company">{{ exp.company }}</div>
+                    </div>
+                    <div class="timeline-right">
+                      <span class="timeline-period">{{ exp.startDate }} – {{ exp.present ? 'Present' : exp.endDate }}</span>
+                      @if (exp.location) {
+                        <span class="timeline-location">{{ exp.location }}</span>
+                      }
+                    </div>
+                    <i class="material-icons timeline-chevron">{{ expandedExp() === i ? 'expand_less' : 'expand_more' }}</i>
+                  </div>
+                  @if (expandedExp() === i && exp.description) {
+                    <div class="timeline-body">
+                      <p>{{ exp.description }}</p>
+                      @if ((exp.projects?.length ?? 0) > 0) {
+                        <div class="timeline-tech">
+                          @for (proj of exp.projects; track proj.name) {
+                            <span class="tech-tag">{{ proj.name }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- PROJECTS SECTION - V2 Left-border accent cards -->
+    <section id="projects" class="projects-section animate-section">
+      <div class="container">
+
+        <div class="projects-section-top">
+          <div class="section-header">
+            <span class="section-badge">Selected Work</span>
+            <h2 class="section-title">Production applications</h2>
+            <p class="section-subtitle">Enterprise software serving real users in banking and wealth management.</p>
+          </div>
+          <button class="projects-all-btn" (click)="goToProjects()">
+            All projects <i class="material-icons">arrow_forward</i>
+          </button>
+        </div>
+
+        <div class="projects-grid">
+          @for (exp of homeData?.experiences || []; track exp; let ei = $index) {
+            @for (project of exp.projects || []; track project; let pi = $index) {
+              @if ((ei * 10 + pi) < 4) {
+                <article class="v2-project-card"
+                  [style.border-left-color]="ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1'">
+                  <div class="v2-project-card__body">
+                    <div class="v2-project-card__head">
+                      <span class="v2-project-card__company-chip"
+                        [style.background]="'color-mix(in oklab, ' + (ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1') + ' 10%, transparent)'"
+                        [style.color]="ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1'"
+                        [style.border-color]="'color-mix(in oklab, ' + (ei === 0 ? '#10B981' : ei === 1 ? '#06B6D4' : '#6366F1') + ' 22%, transparent)'">
+                        <span class="material-icons">business</span>{{ exp.company }}
+                      </span>
+                      <span class="v2-project-card__status">
+                        <span></span>{{ project.projectProgress === 'completed' ? 'Completed' : 'Live' }}
+                      </span>
+                    </div>
+                    <h3 class="v2-project-card__title">{{ project.title }}</h3>
+                    <p class="v2-project-card__desc">{{ project.description | slice:0:140 }}{{ project.description.length > 140 ? '…' : '' }}</p>
+                    <div class="v2-project-card__tech">
+                      @for (tech of (project.technologies | slice:0:5); track tech) {
+                        <span class="v2-project-card__tech-pill">{{ tech }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="v2-project-card__foot">
+                    <button class="v2-project-card__btn v2-project-card__btn--primary" (click)="goToProjects()">
+                      <i class="material-icons">open_in_new</i>Details
+                    </button>
+                    <button class="v2-project-card__btn v2-project-card__btn--ghost" (click)="goToProjects()">
+                      <i class="material-icons">grid_view</i>All
+                    </button>
+                  </div>
+                </article>
+              }
+            }
+          }
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS SECTION - 3-Column Quote Grid -->
+    <section id="testimonials" class="testimonials-section animate-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge">Testimonials</span>
+          <h2 class="section-title">What colleagues say</h2>
+        </div>
+        <div class="testimonials-grid">
+          @for (t of TESTIMONIALS; track t.name) {
+            <div class="testimonial-card">
+              <div class="testimonial-quote-mark" [style.color]="t.color">"</div>
+              <p class="testimonial-text">{{ t.quote }}</p>
+              <div class="testimonial-author">
+                <div class="testimonial-avatar" [style.background]="t.color + '22'" [style.color]="t.color">{{ t.initials }}</div>
+                <div class="testimonial-info">
+                  <span class="testimonial-name">{{ t.name }}</span>
+                  <span class="testimonial-role">{{ t.role }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURED POSTS SECTION — admin-curated via "Feature on homepage" -->
+    @if (featuredPosts().length > 0) {
+      <section id="featured-posts" class="featured-posts-section animate-section">
+        <div class="container">
+          <div class="section-header centered">
+            <span class="section-badge">From the Blog</span>
+            <h2 class="section-title">Featured writing</h2>
+          </div>
+          <div class="featured-posts-grid">
+            @for (post of featuredPosts(); track post.id) {
+              <a class="featured-post-card" [routerLink]="['/posts', post.slug]">
+                @if (post.cover_image_url) {
+                  <div class="fp-cover">
+                    <img [src]="post.cover_image_url" [alt]="post.title" loading="lazy">
+                  </div>
+                }
+                <div class="fp-body">
+                  <div class="fp-meta">
+                    @if (post.tags.length) { <span class="fp-tag">{{ post.tags[0] }}</span> }
+                    <span class="fp-read">{{ post.read_time }} min read</span>
+                  </div>
+                  <h3 class="fp-title">{{ post.title }}</h3>
+                  <p class="fp-excerpt">{{ post.excerpt }}</p>
+                  <span class="fp-more">Read post <span class="material-icons">arrow_forward</span></span>
+                </div>
+              </a>
+            }
+          </div>
+          <div class="featured-posts-all">
+            <a routerLink="/posts" class="fp-all-link">View all posts</a>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- CONTACT SECTION - Split Modern Form -->
+    <section id="contact" class="contact-section animate-section">
+      <div class="container">
+        <div class="contact-container">
+          <div class="contact-info">
+            <div class="section-header">
+              <span class="section-badge">Get In Touch</span>
+              <h2 class="section-title">Let's Work<br>Together</h2>
+            </div>
+            
+            <p class="contact-description">
+              Have a project in mind? I'd love to hear about it. Whether it's a full-scale application or a small feature enhancement, I'm ready to help bring your ideas to life.
+            </p>
+            
+            <div class="contact-details">
+              <div class="contact-detail-item">
+                <div class="detail-icon">
+                  <i class="material-icons">location_on</i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Location</span>
+                  <span class="detail-value">{{ homeData?.location || 'Remote / Worldwide' }}</span>
+                </div>
+              </div>
+              
+              <div class="contact-detail-item">
+                <div class="detail-icon">
+                  <i class="material-icons">email</i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Email</span>
+                  <a [href]="'mailto:' + homeData?.email" class="detail-value detail-link">{{ homeData?.email }}</a>
+                </div>
+              </div>
+              
+              <div class="contact-detail-item">
+                <div class="detail-icon">
+                  <i class="material-icons">schedule</i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Availability</span>
+                  <span class="detail-value">{{ profileData()?.open_to_work ? 'Available for opportunities' : 'Currently booked until March 2026' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right column — tabbed: form | chat -->
+          <div class="contact-right-card">
+
+            <!-- Tab toggle bar -->
+            <div class="contact-tab-bar">
+              <!-- Cloud tooltip — visible only when form tab is active -->
+              <app-chat-tooltip [visible]="contactTab !== 'chat'"></app-chat-tooltip>
+
+              <button
+                class="contact-tab-btn"
+                [class.active]="contactTab === 'form'"
+                (click)="setContactTab('form')">
+                <span class="material-icons">mail_outline</span>
+                Send a message
+              </button>
+              <button
+                class="contact-tab-btn"
+                [class.active]="contactTab === 'chat'"
+                (click)="setContactTab('chat')">
+                <span class="material-icons">smart_toy</span>
+                Chat with AI Rohit
+              </button>
+            </div>
+
+            <!-- ── TAB: Send a message ─────────────────────────── -->
+            @if (contactTab === 'form') {
+              <div class="contact-form-wrap">
+                @if (contactSent) {
+                  <div class="contact-success-state">
+                    <i class="material-icons" style="font-size:3rem;color:var(--success)">check_circle</i>
+                    <h3>Message sent!</h3>
+                    <p>Thank you for reaching out. I'll get back to you within 24 hours.</p>
+                    <button class="btn-outline" (click)="contactSent = false">Send another message</button>
+                  </div>
+                }
+                @if (!contactSent) {
+                  <form [formGroup]="contactForm" (ngSubmit)="onSubmitContact()" class="contact-form-modern">
+                    <div class="form-header">
+                      <h3>Send a Message</h3>
+                      <p>I'll get back to you within 24 hours</p>
+                    </div>
+
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="contact-firstName" class="form-label">First Name</label>
+                        <input id="contact-firstName" formControlName="firstName" type="text" class="form-input" placeholder="John" [class.error]="firstName?.invalid && firstName?.touched" aria-required="true">
+                        @if (firstName?.invalid && firstName?.touched) {
+                          <span class="error-message" role="alert">First name is required</span>
+                        }
+                      </div>
+
+                      <div class="form-group">
+                        <label for="contact-lastName" class="form-label">Last Name</label>
+                        <input id="contact-lastName" formControlName="lastName" type="text" class="form-input" placeholder="Doe" [class.error]="lastName?.invalid && lastName?.touched" aria-required="true">
+                        @if (lastName?.invalid && lastName?.touched) {
+                          <span class="error-message" role="alert">Last name is required</span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="contact-email" class="form-label">Email Address</label>
+                      <input id="contact-email" formControlName="email" type="email" class="form-input" placeholder="hello@example.com" [class.error]="email?.invalid && email?.touched" aria-required="true">
+                      @if (email?.invalid && email?.touched) {
+                        <span class="error-message" role="alert">Please enter a valid email address</span>
+                      }
+                    </div>
+
+                    <div class="form-group">
+                      <label for="contact-subject" class="form-label">Subject</label>
+                      <input id="contact-subject" formControlName="subject" type="text" class="form-input" placeholder="Project Inquiry" [class.error]="subject?.invalid && subject?.touched" aria-required="true">
+                      @if (subject?.invalid && subject?.touched) {
+                        <span class="error-message" role="alert">Subject is required</span>
+                      }
+                    </div>
+
+                    <div class="form-group">
+                      <label for="contact-message" class="form-label">Message</label>
+                      <textarea id="contact-message" formControlName="message" rows="5" class="form-textarea" placeholder="Tell me about your project..." [class.error]="message?.invalid && message?.touched" aria-required="true"></textarea>
+                      @if (message?.invalid && message?.touched) {
+                        <span class="error-message" role="alert">Message is required (max 500 characters)</span>
+                      }
+                      <span class="char-count">{{ message?.value?.length || 0 }}/500</span>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-full" [disabled]="contactForm.invalid || send">
+                      <span>{{ send ? 'Sending...' : 'Send Message' }}</span>
+                      <i class="material-icons">{{ send ? 'hourglass_empty' : 'send' }}</i>
+                    </button>
+                  </form>
+                }
+              </div>
+            }
+
+            <!-- ── TAB: Chat with AI Rohit ────────────────────── -->
+            @if (contactTab === 'chat') {
+              <div class="contact-chat-wrap">
+                <div class="chat-inline-badge">
+                  <span class="material-icons">smart_toy</span>
+                  <span>Powered by FolioAI — ask me anything about Rohit</span>
+                </div>
+                <app-chat-bot
+                  [inline]="true"
+                  [title]="'FolioAI Assistant'"
+                  [placeholder]="'Ask about Rohit\'s experience, skills, projects…'">
+                </app-chat-bot>
+              </div>
+            }
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECT DIALOG - Modern Minimal -->
+    <p-dialog [(visible)]="showProjectDialog" [modal]="true" 
+      [header]="selectedProject?.title" 
+      [draggable]="false" 
+      [resizable]="false"
+      styleClass="modern-dialog responsive-dialog">
+        @if (selectedProject) {
+          <div class="dialog-content-modern">
+            <div class="dialog-image-area">
+              <img [src]="selectedProject.image" [alt]="selectedProject?.title || 'Project screenshot'" loading="lazy" class="dialog-image">
+              <div class="dialog-status-badge" [class.status-completed]="selectedProject?.projectProgress === 'completed'" [class.status-progress]="selectedProject?.projectProgress === 'in-progress'">
+                <span class="status-dot"></span>
+                {{ selectedProject?.projectProgress === 'completed' ? 'Completed' : 'In Progress' }}
+              </div>
+            </div>
+            
+            <div class="dialog-body">
+              <h3 class="dialog-title">{{ selectedProject.title }}</h3>
+              <p class="dialog-description">{{ selectedProject.description }}</p>
+              
+              <div class="dialog-section">
+                <h4 class="dialog-section-title">Technologies Used</h4>
+                <div class="tech-list-modern">
+                  @for (tech of selectedProject.technologies; track $index) {
+                    <span class="tech-chip">{{ tech }}</span>
+                  }
+                </div>
+              </div>
+              
+              @if (selectedProject.highlights?.length) {
+                <div class="dialog-section">
+                  <h4 class="dialog-section-title">Key Features</h4>
+                  <ul class="features-list">
+                    @for (highlight of selectedProject.highlights; track $index) {
+                      <li>{{ highlight }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+              
+              <div class="dialog-actions-modern">
+                <button class="btn-secondary-small" (click)="showProjectDialog = false">
+                  <i class="material-icons">close</i>
+                  <span>Close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+    </p-dialog>
+  </div>
+}

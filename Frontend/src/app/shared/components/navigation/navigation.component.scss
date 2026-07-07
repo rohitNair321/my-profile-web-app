@@ -59,9 +59,22 @@
               box-shadow 0.35s ease, backdrop-filter 0.35s ease;
 }
 
-// ── Navbar mode: transparent at scroll=0, frosted when scrolled ─
+// ── Sidebar (admin) mode: same surface as the rest of the shell ─
+.nav-bar--sidebar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+// ── Navbar mode: subtle gradient at scroll=0, frosted when scrolled ─
+// Gradient vignette ensures text is readable on any hero-section colour,
+// critical in dark mode where nav links are near-white.
 .nav-bar--navbar {
-  background: transparent;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--background) 40%, transparent) 0%,
+    transparent 100%
+  );
   border-bottom-color: transparent;
   box-shadow: none;
 
@@ -124,9 +137,19 @@
   flex-shrink: 0;
 }
 
+// ── Horizontal divider between menu groups in mobile dropdown ─
+.nav-bar__mobile-divider {
+  height: 1px;
+  background: var(--border);
+  opacity: 0.6;
+  margin: 0.35rem 0.25rem;
+  list-style: none;
+}
+
 // ── Desktop menu list ────────────────────────────────────────
 .nav-bar__menu-list {
   // list-unstyled + d-flex from Bootstrap
+  gap: 1.75rem !important; // V2 design: 28px between nav items
 }
 
 .nav-bar__link {
@@ -319,68 +342,41 @@
   &:hover { color: var(--error) !important; }
 }
 
-// ── Logo ──────────────────────────────────────────────────────
-.logo-initials {
-  font-family: var(--font-family-heading);
-  font-weight: 900;
-  font-size: 2rem;
-  width: 46px;
-  height: 46px;
+// ── Logo circle (V2 style — matches footer brand) ───────────
+.logo-circle {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  // Gradient uses logo-primary → logo-secondary tokens from API
-  background: linear-gradient(135deg, var(--logo-primary) 0%, var(--logo-secondary) 100%);
-  // logo-border token for the outer ring
-  border: 2.5px solid var(--logo-border);
-  // logo-shadow for depth; background inset for the inner pop
-  box-shadow: 0 4px 15px 0 var(--logo-shadow),
-              0 1.5px 0 var(--background) inset;
-  letter-spacing: -3px;
-  user-select: none;
-  display: inline-flex;
+  background: linear-gradient(135deg, var(--primary), #06B6D4);
+  display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-family-heading);
+  font-weight: 900;
+  font-size: .85rem;
+  color: #fff;
+  letter-spacing: -1px;
   flex-shrink: 0;
-  transition: box-shadow 0.25s ease-out, border-color 0.25s ease-out;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, .35);
+  transition: box-shadow .25s ease;
 
-  &:hover {
-    box-shadow: 0 7px 22px 0 var(--logo-shadow);
-    // logo-border-hover: brightened ring on hover
-    border-color: var(--logo-border-hover);
-  }
+  &:hover { box-shadow: 0 7px 20px rgba(16, 185, 129, .5); }
 }
 
-// R — logo-primary token (#FF5252 in dark mode)
-.rn-r {
-  color: var(--logo-primary);
-  font-size: 2rem;
-  position: relative;
-  z-index: 2;
-  letter-spacing: 0;
-  text-shadow: 0 0 6px var(--primary-glow);
-}
-
-// N — logo-secondary token (#4CAF50 in dark mode)
-.rn-n {
-  color: var(--logo-secondary);
-  font-size: 1.8rem;
-  position: relative;
-  z-index: 1;
-  letter-spacing: 0;
-  text-shadow: 0 0 6px var(--primary-glow);
-}
-
+// ── Logo wordmark ─────────────────────────────────────────────
 .logo-name {
   font-family: var(--font-family-heading);
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 700;
   display: inline-flex;
   align-items: baseline;
-  gap: 0.2rem;
-  letter-spacing: 0.5px;
+  gap: 0;
+  letter-spacing: 0;
 }
 
-.logo-rohit     { color: var(--text-primary); }
-.logo-portfolio { color: var(--text-secondary); }
+.logo-rohit  { color: var(--primary); }
+.logo-dot    { color: var(--primary); }
+.logo-dev    { color: var(--text-secondary); }
 
 // ── Entrance animations ───────────────────────────────────────
 @keyframes navFadeIn {
@@ -504,4 +500,28 @@
     background: var(--primary-glow) !important;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   }
+}
+
+/* ── Nav responsive V2 ─────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .nav-bar__inner {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .nav-bar__mobile-inner {
+    padding: 0.875rem;
+    gap: 0.375rem;
+  }
+  .nav-bar__mobile-link {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  :host       { height: 56px; }
+  .nav-bar    { height: 56px; }
+  .logo-name  { font-size: 0.875rem; }
+  .logo-initials { width: 32px; height: 32px; font-size: 0.75rem; }
 }

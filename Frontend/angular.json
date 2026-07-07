@@ -21,7 +21,7 @@
             "tsConfig": "tsconfig.app.json",
             "browser": "src/main.ts",
             "ssr": {
-              "entry": "server.ts"
+              "entry": "src/server.ts"
             },
             "server": "src/main.server.ts",
             "assets": [

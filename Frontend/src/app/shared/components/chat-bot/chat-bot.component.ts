@@ -63,6 +63,8 @@ export class ChatBotComponent extends CommonApp implements OnInit, OnDestroy {
   @Input() position: ChatPosition = 'bottom-right';
   @Input() title = 'AiNg Assistant';
   @Input() placeholder = 'Ask about Rohit…';
+  /** When true: renders the chat window directly (no FAB, no positioning). */
+  @Input() inline = false;
 
   // ── Template refs ────────────────────────────────────────────
   @ViewChild('messagesEnd') private messagesEnd!: ElementRef<HTMLDivElement>;
@@ -114,6 +116,10 @@ export class ChatBotComponent extends CommonApp implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._loadHistory();
+    if (this.inline) {
+      this.isOpen.set(true);
+      this.showWelcome.set(false);
+    }
   }
 
   ngOnDestroy(): void {

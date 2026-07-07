@@ -1,0 +1,225 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Projects</h1>
+      <p class="page-sub">All projects across your professional and personal work.</p>
+    </div>
+    <button class="btn-primary" type="button" (click)="openAddProject()">
+      <span class="material-icons">add</span> Add Project
+    </button>
+  </div>
+
+  <div class="projects-grid">
+    @for (p of projects(); track p.title) {
+      <div class="proj-card" [style.--accent]="p.accent">
+        <div class="proj-card-body">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap">
+            <span class="company-chip">
+              <span class="material-icons">business</span>{{ p.company }}
+            </span>
+            <span class="status-badge" [class]="'status-badge--' + p.status">
+              {{ statusLabel(p.status) }}
+            </span>
+          </div>
+          <h3 class="proj-title">{{ p.title }}</h3>
+          <p class="proj-desc">{{ p.desc }}</p>
+          <div class="proj-tech">
+            @for (t of p.tech; track t) {
+              <span class="tech-tag-in">{{ t }}</span>
+            }
+          </div>
+        </div>
+        <div class="proj-card-foot">
+          <button class="btn-ghost" style="padding:.45rem .875rem;font-size:.78rem" type="button"
+            (click)="openDrawer(p)">
+            Details
+          </button>
+          @if (p.url) {
+            <a [href]="p.url" target="_blank" class="btn-ghost"
+              style="padding:.45rem .875rem;font-size:.78rem;text-decoration:none">
+              <span class="material-icons" style="font-size:.875rem">open_in_new</span> Live
+            </a>
+          }
+          <button class="proj-del-btn" type="button" title="Delete"
+            (click)="confirmDelete(p)">
+            <span class="material-icons">delete_outline</span>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- @if (savedOk()) {
+  <div class="save-toast">
+    <span class="material-icons">check_circle</span> Saved successfully
+  </div>
+} -->
+
+<!-- ── Add Project dialog ──────────────────────────────────────────────────── -->
+@if (showAddDialog()) {
+  <div class="dialog-backdrop" (click)="showAddDialog.set(false)">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>Add Project</h3>
+        <button class="dialog-close" type="button" (click)="showAddDialog.set(false)">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Experience *</label>
+        <select class="admin-inp" [(ngModel)]="addExpIdx">
+          @for (exp of experiences(); track $index; let i = $index) {
+            <option [value]="i">{{ exp.role }} · {{ exp.company }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Project Title *</label>
+        <input class="admin-inp" [(ngModel)]="addTitle" placeholder="e.g. Portfolio Site">
+      </div>
+
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Description</label>
+        <textarea class="admin-inp" [(ngModel)]="addDesc" rows="3"
+          placeholder="Brief project description…"></textarea>
+      </div>
+
+      <div class="field-row-2" style="margin-bottom:1rem">
+        <div class="field-group">
+          <label class="inp-label">Technologies (comma-separated)</label>
+          <input class="admin-inp" [(ngModel)]="addTech" placeholder="Angular, Node.js, Supabase">
+        </div>
+        <div class="field-group">
+          <label class="inp-label">Status</label>
+          <select class="admin-inp" [(ngModel)]="addStatus">
+            <option value="live">Live</option>
+            <option value="in-progress">In Progress</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group" style="margin-bottom:0">
+        <label class="inp-label">Live URL (optional)</label>
+        <input class="admin-inp" [(ngModel)]="addUrl" placeholder="https://…" type="url">
+      </div>
+
+      <div class="dialog-footer">
+        <button class="btn-ghost" type="button" (click)="showAddDialog.set(false)">Cancel</button>
+        <button class="btn-primary" type="button"
+          [disabled]="!addTitle.trim() || saving()"
+          (click)="saveNewProject()">
+          <span class="material-icons">save</span>
+          {{ saving() ? 'Saving…' : 'Add Project' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Delete confirmation ─────────────────────────────────────────────────── -->
+@if (deleteConfirm()) {
+  <div class="dialog-backdrop" (click)="deleteConfirm.set(null)">
+    <div class="dialog-card" style="max-width:400px" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>Delete Project</h3>
+        <button class="dialog-close" type="button" (click)="deleteConfirm.set(null)">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <p style="color:var(--admin-t2c);font-size:.875rem;margin-bottom:1.5rem">
+        Are you sure you want to delete <strong style="color:var(--admin-tc)">{{ deleteConfirm()!.title }}</strong>?
+        This cannot be undone.
+      </p>
+      <div class="dialog-footer">
+        <button class="btn-ghost" type="button" (click)="deleteConfirm.set(null)">Cancel</button>
+        <button class="btn-danger" type="button" (click)="deleteProject(deleteConfirm()!)">
+          <span class="material-icons">delete</span> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit drawer -->
+@if (activeProject()) {
+  <div class="proj-drawer">
+    <div class="backdrop" (click)="closeDrawer()"></div>
+    <div class="drawer-panel">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.375rem">
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.125rem;font-weight:700;color:var(--admin-tc);margin:0">
+          Edit Project
+        </h2>
+        <button class="dialog-close" type="button" (click)="closeDrawer()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <!-- Experience context (read-only) -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
+        <span class="company-chip" [style.--accent]="activeProject()!.accent">
+          <span class="material-icons">business</span>{{ activeProject()!.company }}
+        </span>
+      </div>
+
+      <!-- Title -->
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Project Title *</label>
+        <input class="admin-inp" [(ngModel)]="editTitle" placeholder="Project title">
+      </div>
+
+      <!-- Description -->
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Description</label>
+        <textarea class="admin-inp" [(ngModel)]="editDesc" rows="4"
+          placeholder="Brief project description…"></textarea>
+      </div>
+
+      <!-- Technologies + Status -->
+      <div class="field-row-2" style="margin-bottom:1rem">
+        <div class="field-group">
+          <label class="inp-label">Technologies (comma-separated)</label>
+          <input class="admin-inp" [(ngModel)]="editTech" placeholder="Angular, Node.js…">
+        </div>
+        <div class="field-group">
+          <label class="inp-label">Status</label>
+          <select class="admin-inp" [(ngModel)]="editStatus">
+            <option value="live">Live</option>
+            <option value="in-progress">In Progress</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live URL -->
+      <div class="field-group" style="margin-bottom:1.5rem">
+        <label class="inp-label">Live URL (optional)</label>
+        <input class="admin-inp" [(ngModel)]="editUrl" placeholder="https://…" type="url">
+      </div>
+
+      <!-- Footer actions -->
+      <div style="display:flex;gap:.625rem;justify-content:flex-end">
+        @if (editUrl.trim()) {
+          <a [href]="editUrl" target="_blank" class="btn-ghost"
+            style="padding:.55rem 1rem;font-size:.82rem;text-decoration:none;display:inline-flex;align-items:center;gap:.375rem">
+            <span class="material-icons" style="font-size:.9rem">open_in_new</span> Preview
+          </a>
+        }
+        <button class="btn-ghost" type="button" (click)="closeDrawer()">Cancel</button>
+        <button class="btn-primary" type="button"
+          [disabled]="!editTitle.trim() || saving() || activeProject()!._expIdx < 0"
+          (click)="saveCurrentProject()">
+          <span class="material-icons">save</span>
+          {{ saving() ? 'Saving…' : 'Save Changes' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

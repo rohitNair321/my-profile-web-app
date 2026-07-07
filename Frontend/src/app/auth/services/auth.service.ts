@@ -26,9 +26,6 @@ export class AuthService {
   public appService = inject(AppService);
 
   role = signal<UserRole>(null);
-private readonly baseUrl = ''; //api/auth
-private readonly apiBaseUrl = environment.baseUrl + '/api/auth';
-// New V1 API endpoints
 private readonly apiV1BaseUrl = environment.baseUrl + '/api/v1/auth';
   private httpOptions = {
     withCredentials: true
@@ -55,11 +52,13 @@ private readonly apiV1BaseUrl = environment.baseUrl + '/api/v1/auth';
   login(payload: LoginRequest): Observable<any> {
     return this.http.post<any>(`${this.apiV1BaseUrl}/login`, payload, this.httpOptions).pipe(
       map((res) => {
+        // Token kept in-memory only; the httpOnly cookie set by the backend is
+        // the persistent credential. Never write the JWT to localStorage —
+        // anything there is readable by any XSS payload.
         this.token.set(res.data.token);
         this.user.set(res.data.user);
         this.role.set(res.data.user.role === 'admin' ? 'ADMIN' : 'GUEST');
         this.appService.setRole(res.data.user.role === 'admin' ? 'ADMIN' : 'GUEST');
-        this.localStorageService.setItem('auth_token', res.data.token);
       })
     );
   }
@@ -116,11 +115,23 @@ initiateApp(): Observable<any> {
   }
 
   resetPassword(token?: string, password?: string): Observable<any> {
-    return this.http.post(`${this.apiV1BaseUrl}/reset-password`, { token: this.localStorageService.getItem('auth_token'), password });
+    // token comes from the emailed reset link's query param — never the session JWT
+    return this.http.post(`${this.apiV1BaseUrl}/reset-password`, { token, password });
   }
 
-  updatePassword(passwordData: FormData): Observable<any> {
+  updatePassword(passwordData: any): Observable<any> {
     return this.http.put(`${this.apiV1BaseUrl}/update-password`, passwordData, this.httpOptions);
+  }
+
+  getPasswordStatus(): Observable<{
+    lastUpdatedAt: string | null;
+    daysUntilExpiry: number;
+    isExpired: boolean;
+    isWarning: boolean;
+  }> {
+    return this.http
+      .get<any>(`${this.apiV1BaseUrl}/password-status`, this.httpOptions)
+      .pipe(map((r: any) => r.data));
   }
 
   logoutState(): void {

@@ -1,0 +1,264 @@
+/* =============================================================
+   ADMIN TOPBAR — indigo gradient, avatar pill, page label
+   ============================================================= */
+
+:host {
+  display: block;
+  width: 100%;
+  height: var(--admin-topbar-h, 60px);
+}
+
+.admin-topbar {
+  width: 100%;
+  height: var(--admin-topbar-h, 60px);
+  background: linear-gradient(90deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 20px rgba(99, 102, 241, 0.25);
+  display: flex;
+  align-items: center;
+  padding: 0 1.25rem;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.admin-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.admin-topbar__center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.admin-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+// ── Shared icon button ────────────────────────────────────────
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(226, 232, 240, 0.75);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  min-width: 38px;
+  min-height: 38px;
+  transition: color 0.2s, background 0.2s;
+  text-decoration: none;
+  position: relative;
+  font-family: inherit;
+
+  .material-icons { font-size: 1.35rem; }
+
+  &:hover {
+    color: #E2E8F0;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// ── Logo / brand ──────────────────────────────────────────────
+.tb-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #E2E8F0;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.85; }
+}
+
+.tb-logo-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--admin-em, #10B981), var(--admin-cy, #06B6D4));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 0.78rem;
+  letter-spacing: -1px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+}
+
+.tb-r { color: #fff; }
+.tb-n { color: rgba(255, 255, 255, 0.75); }
+
+.tb-wordmark {
+  font-family: 'Space Grotesk', 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #E2E8F0;
+  white-space: nowrap;
+}
+.tb-dot { color: var(--admin-em, #10B981); }
+.tb-dev { color: #94A3B8; font-weight: 500; }
+
+// ── Page label ────────────────────────────────────────────────
+.tb-page-label {
+  font-size: 0.8125rem;
+  color: rgba(226, 232, 240, 0.45);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+// ── Notification bell ─────────────────────────────────────────
+.tb-bell { position: relative; }
+
+.tb-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #EF4444;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  pointer-events: none;
+}
+
+// ── Avatar pill + dropdown ────────────────────────────────────
+.tb-avatar-wrap {
+  position: relative;
+}
+
+.tb-avatar-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.3rem 0.625rem;
+  cursor: pointer;
+  color: #E2E8F0;
+  font-family: inherit;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.tb-avatar-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--admin-em, #10B981), var(--admin-cy, #06B6D4));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tb-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tb-chevron {
+  font-size: 1rem !important;
+  color: rgba(226, 232, 240, 0.5);
+}
+
+// ── Backdrop (transparent, closes dropdown on outside click) ──
+.tb-drop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+}
+
+// ── Dropdown menu ─────────────────────────────────────────────
+.tb-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 190px;
+  background: var(--admin-bg-sf);
+  border: 1px solid var(--admin-bdc);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  z-index: 999;
+  overflow: hidden;
+  animation: tbDropIn 0.18s ease;
+}
+
+@keyframes tbDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tb-drop-user {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--admin-bdc);
+}
+
+.tb-drop-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--admin-tc);
+}
+
+.tb-drop-role {
+  font-size: 0.7rem;
+  color: var(--admin-t3c);
+  margin-top: 2px;
+}
+
+.tb-drop-logout {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #EF4444;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: background 0.2s;
+
+  &:hover { background: rgba(239, 68, 68, 0.08); }
+  .material-icons { font-size: 1.1rem; }
+}
+
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .tb-name    { display: none; }
+  .tb-chevron { display: none; }
+  .tb-avatar-pill { padding: 0.3rem; border-radius: 50%; }
+  .tb-page-label  { display: none; }
+}
+
+@media (max-width: 480px) {
+  :host { height: 56px; }
+  .admin-topbar { height: 56px; padding: 0 0.875rem; gap: 0.375rem; }
+}

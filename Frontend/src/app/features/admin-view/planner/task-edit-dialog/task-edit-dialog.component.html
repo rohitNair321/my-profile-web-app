@@ -1,0 +1,105 @@
+<div class="dialog-backdrop" (click)="closed.emit()">
+  <div class="dialog-card te-card" (click)="$event.stopPropagation()">
+
+    <div class="dialog-header">
+      <h3>{{ isEdit ? 'Edit Task' : 'New Task' }}</h3>
+      <button class="dialog-close" type="button" (click)="closed.emit()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Title -->
+    <div class="field-group" style="margin-bottom:1rem">
+      <label class="inp-label">Title *</label>
+      <input class="admin-inp" [(ngModel)]="title" placeholder="What needs doing?" maxlength="200">
+    </div>
+
+    <!-- Description -->
+    <div class="field-group" style="margin-bottom:1rem">
+      <label class="inp-label">Description</label>
+      <textarea class="admin-textarea" rows="4" [(ngModel)]="description"
+        placeholder="Details, links, notes…" maxlength="5000"></textarea>
+    </div>
+
+    <!-- Priority -->
+    <div class="field-group" style="margin-bottom:1rem">
+      <label class="inp-label">Priority</label>
+      <div class="te-seg">
+        @for (p of priorities; track p.id) {
+          <button type="button" class="te-seg-btn"
+                  [class.te-seg-btn--active]="priority === p.id"
+                  [class.te-seg-btn--low]="p.id === 'low' && priority === p.id"
+                  [class.te-seg-btn--med]="p.id === 'med' && priority === p.id"
+                  [class.te-seg-btn--high]="p.id === 'high' && priority === p.id"
+                  (click)="priority = p.id">
+            {{ p.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="field-row-2">
+      <!-- Due date -->
+      <div class="field-group">
+        <label class="inp-label">Due Date</label>
+        <input class="admin-inp" type="date" [(ngModel)]="dueDate">
+      </div>
+
+      <!-- Estimate -->
+      <div class="field-group">
+        <label class="inp-label">Estimate</label>
+        <div class="te-est-row">
+          <input class="admin-inp" type="number" min="1" [(ngModel)]="estimateVal" placeholder="—">
+          <select class="admin-inp te-est-unit" [(ngModel)]="estimateUnit">
+            <option value="min">min</option>
+            <option value="hr">hours</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="field-group" style="margin-bottom:1rem">
+      <label class="inp-label">Tags <span class="te-hint">(Enter to add)</span></label>
+      <div class="te-tags-box">
+        @for (tag of tags(); track tag) {
+          <span class="te-tag">
+            {{ tag }}
+            <button type="button" class="te-tag-x" (click)="removeTag(tag)">
+              <span class="material-icons">close</span>
+            </button>
+          </span>
+        }
+        <input class="te-tag-inp" [(ngModel)]="tagInput"
+          (keydown.enter)="addTag($event)" placeholder="Add tag…" maxlength="30">
+      </div>
+    </div>
+
+    <!-- Column -->
+    <div class="field-group" style="margin-bottom:.5rem">
+      <label class="inp-label">Column</label>
+      <div class="te-seg">
+        @for (col of columns; track col.id) {
+          <button type="button" class="te-seg-btn"
+                  [class.te-seg-btn--active]="column === col.id"
+                  (click)="column = col.id">
+            {{ col.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="te-error">{{ error() }}</div>
+    }
+
+    <div class="dialog-footer">
+      <button class="btn-ghost" type="button" (click)="closed.emit()">Cancel</button>
+      <button class="btn-primary" type="button" [disabled]="saving()" (click)="save()">
+        <span class="material-icons">{{ saving() ? 'hourglass_empty' : 'save' }}</span>
+        {{ isEdit ? 'Save Changes' : 'Create Task' }}
+      </button>
+    </div>
+
+  </div>
+</div>

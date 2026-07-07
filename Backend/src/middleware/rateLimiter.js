@@ -12,30 +12,15 @@ const apiLimiter = rateLimit({
   max: RATE_LIMIT.API_MAX_REQUESTS,
 
   skip: (req) => {
-    const allowedHosts = [
-      'rohit-nair296.onrender.com',
-      'localhost',
-      '127.0.0.1'
-    ];
+    // Only skip /init (critical for app startup).
+    // NOTE: previous skips on Host header and User-Agent were removed —
+    // Host is the SERVER's own hostname (matched every prod request, disabling
+    // the limiter entirely) and User-Agent is attacker-controlled (spoofable).
+    // Local dev/SSR traffic from loopback is still exempted via req.ip.
+    if (req.path === '/api/v1/auth/init') return true;
 
-    const host = req.headers.host?.split(':')[0]; // Remove port
-    const userAgent = (req.headers['user-agent'] || '').toLowerCase();
-    const isInitEndpoint = req.path === '/api/v1/auth/init';
-
-    // ✅ Always skip /init endpoint (critical for app startup)
-    if (isInitEndpoint) {
-      return true;
-    }
-
-    // ✅ Skip SSR requests (Node/Angular SSR)
-    if (userAgent.includes('node') || userAgent.includes('axios')) {
-      return true;
-    }
-
-    // ✅ Skip your own frontend domains
-    if (allowedHosts.some(allowedHost => host?.includes(allowedHost))) {
-      return true;
-    }
+    const ip = req.ip || '';
+    if (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1') return true;
 
     return false;
   },

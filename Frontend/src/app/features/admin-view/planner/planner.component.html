@@ -1,0 +1,84 @@
+<div class="page-wrap">
+
+  <!-- Heading -->
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Planner</h1>
+      <p class="page-sub">Organize tasks, track time, ship things.</p>
+    </div>
+    <div class="plnr-head-actions">
+      <div class="plnr-filter">
+        @for (f of filters; track f.id) {
+          <button type="button" class="plnr-filter-pill"
+                  [class.plnr-filter-pill--active]="filter() === f.id"
+                  (click)="filter.set(f.id)">
+            {{ f.label }}
+          </button>
+        }
+      </div>
+      <button class="btn-primary" type="button" (click)="openNewTask()">
+        <span class="material-icons">add</span> New Task
+      </button>
+    </div>
+  </div>
+
+  <!-- Kanban board -->
+  <div class="planner-grid">
+    @for (col of columns; track col.id) {
+      <div class="plnr-col" [style.--col-color]="col.color">
+
+        <!-- Column header -->
+        <div class="plnr-col-head">
+          <span class="material-icons plnr-col-icon">{{ col.icon }}</span>
+          <span class="plnr-col-label">{{ col.label }}</span>
+          <span class="plnr-col-count">{{ tasksIn(col.id).length }}</span>
+        </div>
+
+        <!-- Drop list -->
+        <div class="plnr-col-body"
+             cdkDropList
+             [id]="col.id"
+             [cdkDropListData]="col.id"
+             [cdkDropListConnectedTo]="allColIds"
+             (cdkDropListDropped)="onDrop($event)">
+
+          @for (task of tasksIn(col.id); track task.id) {
+            <app-task-card cdkDrag [cdkDragData]="task"
+              [task]="task" (open)="openDetail(task)" />
+          }
+
+          @if (tasksIn(col.id).length === 0) {
+            <div class="plnr-empty">No tasks — drop here</div>
+          }
+        </div>
+
+        <!-- Quick add -->
+        @if (quickAddCol() === col.id) {
+          <input class="admin-inp plnr-quick-inp" [(ngModel)]="quickAddText"
+                 placeholder="Task title… (Enter to save)" autofocus
+                 (keydown.enter)="saveQuickAdd()"
+                 (keydown.escape)="cancelQuickAdd()"
+                 (blur)="cancelQuickAdd()">
+        } @else {
+          <button class="plnr-quick-btn" type="button" (click)="openQuickAdd(col.id)">
+            <span class="material-icons">add</span> Add task
+          </button>
+        }
+
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- Detail dialog -->
+@if (detailTask(); as task) {
+  <app-task-detail-dialog [task]="task"
+    (closed)="closeDetail()" (edit)="openEditFromDetail()" />
+}
+
+<!-- Add / Edit dialog -->
+@if (editOpen()) {
+  <app-task-edit-dialog [task]="editTask()" [defaultColumn]="editDefaultCol()"
+    (closed)="closeEdit()" />
+}

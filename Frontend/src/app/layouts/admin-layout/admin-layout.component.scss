@@ -1,0 +1,102 @@
+/* =============================================================
+   ADMIN LAYOUT — independent shell for all /admin/* routes
+   Completely separate from main-layout; owns its grid and tokens.
+   ============================================================= */
+
+// ── Admin design tokens (scoped — don't pollute :root) ────────
+:host {
+  --adm-bg:                var(--background, #020617);
+  --adm-topbar-h:          64px;
+  --adm-sidebar-w:         240px;
+  --adm-sidebar-w-col:      72px;
+  --adm-transition:         0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+  min-height: 100dvh;
+}
+
+// ── Shell grid ────────────────────────────────────────────────
+.admin-shell {
+  display: grid;
+  min-height: 100dvh;
+  background: var(--adm-bg);
+
+  // Default: sidebar expanded
+  grid-template-rows: var(--adm-topbar-h) 1fr;
+  grid-template-columns: var(--adm-sidebar-w) 1fr;
+  grid-template-areas:
+    "topbar  topbar"
+    "sidebar content";
+  transition: grid-template-columns var(--adm-transition);
+
+  // Sidebar collapsed → narrow column
+  &--collapsed {
+    grid-template-columns: var(--adm-sidebar-w-col) 1fr;
+  }
+
+  // Mobile: sidebar is fixed overlay, no column needed
+  @media (max-width: 900px) {
+    grid-template-columns: 0 1fr;
+  }
+}
+
+// ── Topbar cell ───────────────────────────────────────────────
+.admin-shell__topbar {
+  grid-area: topbar;
+  grid-column: 1 / -1;    // always spans full width
+  position: sticky;
+  top: 0;
+  z-index: 1060;
+  width: 100%;
+}
+
+// ── Sidebar cell ──────────────────────────────────────────────
+.admin-shell__sidebar {
+  grid-area: sidebar;
+  height: calc(100dvh - var(--adm-topbar-h));
+  position: sticky;
+  top: var(--adm-topbar-h);
+  overflow: hidden;
+
+  // On mobile the column is 0 but the sidebar component itself
+  // uses position:fixed, so we only need to hide the empty slot.
+  @media (max-width: 900px) {
+    display: contents;
+  }
+}
+
+// ── Content cell ──────────────────────────────────────────────
+.admin-shell__content {
+  grid-area: content;
+  min-width: 0;
+  overflow: auto;
+}
+
+.admin-shell__page {
+  padding: 1.5rem 2rem;
+  min-height: 100%;
+}
+
+// ── Mobile backdrop ───────────────────────────────────────────
+.admin-shell__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 1040;
+}
+
+// ── Responsive content padding ────────────────────────────────
+@media (max-width: 900px) {
+  .admin-shell__page { padding: 1rem 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  :host { --adm-topbar-h: 56px; }
+  .admin-shell__page { padding: 0.75rem 1rem; }
+}
+
+// ── Reduced motion ────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell { transition: none; }
+}

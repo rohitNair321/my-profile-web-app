@@ -1,0 +1,37 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Social Links</h1>
+      <p class="page-sub">Manage your public social profiles and links.</p>
+    </div>
+    <button class="btn-primary" type="button" [disabled]="!isDirty() || saving()" (click)="onSave()">
+      <span class="material-icons">{{ saving() ? 'hourglass_empty' : (saved() ? 'check' : 'save') }}</span>
+      {{ saving() ? 'Saving…' : (saved() ? 'Saved!' : 'Save Changes') }}
+    </button>
+  </div>
+
+  <div class="social-list">
+    @for (link of socials; track link.platform) {
+      <div class="social-row" [class.enabled]="link.enabled">
+        <div class="social-icon-box" [style.background]="link.bgColor">
+          <span class="material-icons" [style.color]="link.color">{{ link.icon }}</span>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="social-platform">
+            {{ link.platform }}
+            @if (link.enabled) {
+              <span class="social-active-badge">ACTIVE</span>
+            }
+          </div>
+          <input class="admin-inp social-handle-inp" [(ngModel)]="link.handle"
+            [placeholder]="'Your ' + link.platform + ' handle'">
+        </div>
+        <div class="toggle-switch" [class.on]="link.enabled" (click)="toggle(link)">
+          <div class="toggle-thumb"></div>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>

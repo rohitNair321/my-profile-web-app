@@ -1,0 +1,99 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-sub">Website traffic and performance overview.</p>
+    </div>
+  </div>
+
+  <!-- Metric cards -->
+  <div class="metrics-grid">
+    @for (m of metrics(); track m.label) {
+      <div class="metric-card" [style.--sc]="m.color">
+        <div class="ov-stat__icon"><span class="material-icons">{{ m.icon }}</span></div>
+        <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:2px">
+          <div class="ov-stat__val">{{ m.value }}</div>
+          <span class="metric-delta" [class.positive]="m.positive" [class.negative]="!m.positive">
+            {{ m.delta }}
+          </span>
+        </div>
+        <div class="ov-stat__lbl">{{ m.label }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Chart row -->
+  <div class="an-charts">
+
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#10B981">bar_chart</span>
+        Page Views — 14 Days
+      </div>
+      <div class="bar-chart-wrap">
+        @for (v of chartData(); track $index) {
+          <div class="bar" [style.height.px]="barHeight(v)"></div>
+        }
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--admin-t3c);margin-top:.5rem">
+        <span>14 days ago</span><span>Today</span>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#6366F1">devices</span>
+        Devices
+      </div>
+      @for (d of devices(); track d.label) {
+        <div style="margin-bottom:.875rem">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.35rem">
+            <span style="color:var(--admin-tc);font-weight:500">{{ d.label }}</span>
+            <span style="color:var(--admin-t3c);font-weight:700">{{ d.pct }}%</span>
+          </div>
+          <div class="bar-track-sm">
+            <div class="bar-fill-sm" [style.width.%]="d.pct" [style.background]="d.color"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Sources + Top pages -->
+  <div class="an-bottom">
+
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#F59E0B">alt_route</span>
+        Traffic Sources
+      </div>
+      @for (s of sources(); track s.label) {
+        <div style="margin-bottom:.875rem">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.35rem">
+            <span style="color:var(--admin-tc);font-weight:500">{{ s.label }}</span>
+            <span style="color:var(--admin-t3c);font-weight:700">{{ s.pct }}%</span>
+          </div>
+          <div class="bar-track-sm">
+            <div class="bar-fill-sm" [style.width.%]="s.pct" [style.background]="s.color"></div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#06B6D4">list_alt</span>
+        Top Pages
+      </div>
+      @for (p of topPages(); track p.path) {
+        <div class="top-page-row">
+          <span class="page-path">{{ p.path }}</span>
+          <span class="page-views-count">{{ p.views | number }}</span>
+        </div>
+      }
+    </div>
+
+  </div>
+
+</div>

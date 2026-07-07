@@ -17,7 +17,7 @@ const MOBILE_BREAKPOINT = 900;
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.Default,
   imports: [
     CommonModule,
     FormsModule,

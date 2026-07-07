@@ -1,0 +1,198 @@
+.alm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: almFade 0.25s ease;
+}
+
+.alm-card {
+  background: #0F172A;
+  border: 1px solid #1E293B;
+  border-radius: 24px;
+  padding: 2.25rem 2.5rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.65);
+  animation: almSlide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+// ── Header ────────────────────────────────────────────────────
+.alm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 1.75rem;
+}
+
+.alm-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10B981, #06B6D4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: -1px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+  flex-shrink: 0;
+}
+
+.alm-r { color: #fff; }
+.alm-n { color: rgba(255, 255, 255, 0.75); }
+
+.alm-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #E2E8F0;
+}
+
+.alm-hint {
+  font-size: 0.75rem;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+.alm-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 8px;
+  margin-left: auto;
+  transition: color 0.2s, background 0.2s;
+
+  .material-icons { font-size: 1.2rem; }
+  &:hover { color: #E2E8F0; background: rgba(255, 255, 255, 0.06); }
+}
+
+// ── Error ─────────────────────────────────────────────────────
+.alm-error {
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 10px;
+  color: #EF4444;
+  font-size: 0.8125rem;
+  margin-bottom: 1rem;
+}
+
+// ── Fields ────────────────────────────────────────────────────
+.alm-field {
+  margin-bottom: 1rem;
+}
+
+.alm-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94A3B8;
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.alm-inp-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.alm-inp {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #1E293B;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #E2E8F0;
+  background: #0B1120;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+
+  &:focus { border-color: #10B981; }
+  &::placeholder { color: #334155; }
+}
+
+.alm-toggle-pw {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  transition: color 0.2s;
+
+  .material-icons { font-size: 1.1rem; }
+  &:hover { color: #94A3B8; }
+}
+
+// ── Submit ────────────────────────────────────────────────────
+.alm-submit {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #fff;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: box-shadow 0.2s, transform 0.2s, opacity 0.2s;
+  margin-bottom: 0.5rem;
+  margin-top: 0.25rem;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+    transform: translateY(-1px);
+  }
+}
+
+// ── Demo hint ─────────────────────────────────────────────────
+.alm-demo {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #475569;
+  margin-top: 0.75rem;
+
+  code {
+    color: #64748B;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+  }
+}
+
+// ── Animations ────────────────────────────────────────────────
+@keyframes almFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes almSlide {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 480px) {
+  .alm-card { padding: 1.75rem 1.5rem 1.5rem; border-radius: 16px; }
+}

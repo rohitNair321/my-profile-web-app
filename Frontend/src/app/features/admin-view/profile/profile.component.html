@@ -1,0 +1,254 @@
+<div class="page-wrap">
+
+  <!-- Heading -->
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Profile</h1>
+      <p class="page-sub">Manage your personal information, bio, and resume.</p>
+    </div>
+    <div style="display:flex;gap:.625rem">
+      <button class="btn-ghost" type="button" [disabled]="!isDirty() || saving()"
+        (click)="discardChanges()">Discard</button>
+      <button class="btn-primary" type="button" [disabled]="!isDirty() || saving()"
+        (click)="onSave()">
+        <span class="material-icons">{{ saving() ? 'hourglass_empty' : (savedOk() ? 'check' : 'save') }}</span>
+        {{ saving() ? 'Saving…' : (savedOk() ? 'Saved' : 'Save Changes') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    @for (tab of tabs; track tab.id) {
+      <button class="tab-item" [class.active]="activeTab() === tab.id"
+        type="button" (click)="switchTab(tab.id)">
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- ── PERSONAL INFO ── -->
+  @if (activeTab() === 'info') {
+    <div class="admin-2col">
+      <!-- Main form -->
+      <div class="admin-card">
+        <div class="admin-card-title">
+          <span class="material-icons">person_outline</span> Personal Information
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label class="inp-label">Full Name</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">badge</span>
+              <input class="admin-inp" [(ngModel)]="fullName" placeholder="Rohit Nair">
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="inp-label">Job Title</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">work_outline</span>
+              <input class="admin-inp" [(ngModel)]="jobTitle" placeholder="Frontend Developer">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label class="inp-label">Email</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">mail_outline</span>
+              <input class="admin-inp" [(ngModel)]="email" type="email" placeholder="rohit@example.com">
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="inp-label">Primary Phone</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">phone</span>
+              <input class="admin-inp" [(ngModel)]="phone" placeholder="+91 000 000 0000">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label class="inp-label">Secondary Phone</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">phone_iphone</span>
+              <input class="admin-inp" [(ngModel)]="secondaryPhone" placeholder="+91 000 000 0000">
+            </div>
+          </div>
+          <div class="field-group"></div>
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label class="inp-label">Location</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">location_on</span>
+              <input class="admin-inp" [(ngModel)]="location" placeholder="Pune, India">
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="inp-label">Website URL</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">language</span>
+              <input class="admin-inp" [(ngModel)]="website" placeholder="https://mintpixel.in">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row-2">
+          <div class="field-group">
+            <label class="inp-label">GitHub URL</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">code</span>
+              <input class="admin-inp" [(ngModel)]="github" placeholder="github.com/username">
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="inp-label">LinkedIn URL</label>
+            <div class="inp-icon-wrap">
+              <span class="material-icons inp-icon">business</span>
+              <input class="admin-inp" [(ngModel)]="linkedin" placeholder="linkedin.com/in/username">
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="admin-divider"></div>
+        <div class="admin-card-title" style="margin-bottom:.75rem">
+          <span class="material-icons">psychology</span> Skills
+        </div>
+        <div class="skills-wrap">
+          @for (s of skills; track s; let i = $index) {
+            <span class="skill-chip">
+              {{ s }}
+              <span class="skill-remove material-icons" (click)="removeSkill(i)">close</span>
+            </span>
+          }
+          @if (addingSkill()) {
+            <input class="admin-inp skill-inp" [(ngModel)]="newSkill"
+              placeholder="Add skill…" (keydown.enter)="confirmAddSkill()"
+              (keydown.escape)="addingSkill.set(false)">
+          } @else {
+            <button class="skill-add" type="button" (click)="addingSkill.set(true)">
+              <span class="material-icons" style="font-size:.9rem">add</span> Add Skill
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div style="display:flex;flex-direction:column;gap:1rem">
+
+        <!-- Avatar card -->
+        <div class="admin-card profile-avatar-card">
+          <input #avatarInput type="file" accept="image/*" hidden
+            (change)="onAvatarChange($event)">
+          <div class="avatar-circle" (click)="avatarInput.click()">
+            @if (avatarSrc()) {
+              <img [src]="avatarSrc()" class="avatar-img" alt="Profile photo">
+            } @else {
+              {{ initials }}
+            }
+            <div class="avatar-overlay">
+              <span class="material-icons">photo_camera</span>
+            </div>
+          </div>
+          <div class="prof-name">{{ fullName || 'Your Name' }}</div>
+          <div class="prof-role">{{ jobTitle || 'Job Title' }}</div>
+          <div class="available-badge">
+            <span class="pulse-dot"></span> AVAILABLE
+          </div>
+        </div>
+
+        <!-- Theme builder card -->
+        <div class="admin-card">
+          <div class="admin-card-title">
+            <span class="material-icons">palette</span> Active Theme
+          </div>
+          @for (t of themes(); track t.name; let i = $index) {
+            <div class="theme-row" [class.theme-row--active]="t.active"
+              (click)="activateTheme(i)">
+              <div class="theme-dots">
+                <span class="theme-dot" [style.background]="t.c1"></span>
+                <span class="theme-dot" [style.background]="t.c2"></span>
+                <span class="theme-dot" [style.background]="t.c3"></span>
+              </div>
+              <span class="theme-row-name">{{ t.name }}</span>
+              @if (t.active) {
+                <span class="material-icons theme-check">check_circle</span>
+              }
+            </div>
+          }
+          <button class="theme-add" type="button">
+            <span class="material-icons" style="font-size:.9rem">add</span> New Theme
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ── BIO ── -->
+  @if (activeTab() === 'bio') {
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons">edit_note</span> Bio / Description
+      </div>
+
+      <div class="field-group" style="margin-bottom:1.25rem">
+        <label class="inp-label">
+          Short Bio
+          <span style="font-weight:400;color:#64748b;font-size:.75rem;margin-left:.375rem">One-line tagline · max 200 chars</span>
+        </label>
+        <div class="inp-icon-wrap">
+          <span class="material-icons inp-icon">short_text</span>
+          <input class="admin-inp" [(ngModel)]="shortBio" maxlength="200"
+            placeholder="e.g. Full-Stack Engineer · Building products that matter">
+        </div>
+        <p style="font-size:.72rem;color:#94a3b8;margin:.25rem 0 0;text-align:right">
+          {{ shortBio.length }} / 200
+        </p>
+      </div>
+
+      <label class="inp-label">About Me <span style="font-weight:400;color:#64748b;font-size:.75rem;margin-left:.375rem">Markdown supported</span></label>
+      <textarea class="admin-inp admin-textarea" [(ngModel)]="bio" rows="12"
+        placeholder="Write something about yourself…"></textarea>
+      <p style="font-size:.75rem;color:#475569;margin:.5rem 0 0">
+        Tip: Use **bold**, *italic*, ## headings in your content.
+      </p>
+    </div>
+  }
+
+  <!-- ── RESUME ── -->
+  @if (activeTab() === 'resume') {
+    <div class="admin-card resume-card">
+      <div class="admin-card-title">
+        <span class="material-icons">description</span> Resume
+      </div>
+      <div class="resume-zone">
+        <span class="material-icons" style="font-size:2.5rem;color:#334155">upload_file</span>
+        <p style="font-size:.875rem;color:var(--admin-t2c);margin:.5rem 0 .25rem">
+          Drop your PDF here or click to browse
+        </p>
+        <p style="font-size:.75rem;color:#475569">PDF, max 5MB</p>
+        <button class="btn-primary" type="button" style="margin-top:1rem">
+          <span class="material-icons">upload</span> Upload Resume
+        </button>
+      </div>
+      @if (profile()?.resume_url) {
+        <div class="admin-divider"></div>
+        <div class="admin-meta-row">
+          <span class="material-icons">insert_drive_file</span>
+          <span>Current: {{ profile()?.resume_url }}</span>
+          <a [href]="profile()?.resume_url" target="_blank" class="btn-ghost" style="margin-left:auto;padding:.35rem .875rem">
+            View
+          </a>
+        </div>
+      }
+    </div>
+  }
+
+</div>

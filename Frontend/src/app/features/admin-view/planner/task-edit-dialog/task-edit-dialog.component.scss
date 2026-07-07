@@ -1,0 +1,124 @@
+.te-card {
+  max-width: 520px;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+/* Segmented pills (priority / column) */
+.te-seg {
+  display: flex;
+  gap: .5rem;
+}
+
+.te-seg-btn {
+  flex: 1;
+  padding: .5rem .75rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--admin-bdc, #1E293B);
+  background: transparent;
+  color: var(--admin-t2c, #94A3B8);
+  font-size: .78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .2s;
+
+  &:hover { border-color: #334155; }
+
+  &--active {
+    border-color: #10B981;
+    background: rgba(16, 185, 129, .1);
+    color: #10B981;
+  }
+
+  &--low  { border-color: #10B981; background: rgba(16, 185, 129, .1);  color: #10B981; }
+  &--med  { border-color: #F59E0B; background: rgba(245, 158, 11, .1);  color: #F59E0B; }
+  &--high { border-color: #EF4444; background: rgba(239, 68, 68, .1);   color: #EF4444; }
+}
+
+/* Estimate row */
+.te-est-row {
+  display: flex;
+  gap: .5rem;
+}
+
+.te-est-unit { max-width: 96px; }
+
+/* Tags chip input */
+.te-tags-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .375rem;
+  padding: .5rem .75rem;
+  border: 1.5px solid var(--admin-bdc, #1E293B);
+  border-radius: 10px;
+  background: var(--admin-bg-dp, #0B1120);
+  transition: border-color .2s;
+
+  &:focus-within { border-color: #10B981; }
+}
+
+.te-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: .7rem;
+  font-weight: 600;
+  padding: 2px 6px 2px 10px;
+  border-radius: 9999px;
+  background: rgba(99, 102, 241, .12);
+  color: #818CF8;
+}
+
+.te-tag-x {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #818CF8;
+  display: flex;
+  padding: 1px;
+  border-radius: 50%;
+  .material-icons { font-size: .75rem; }
+  &:hover { color: #EF4444; }
+}
+
+.te-tag-inp {
+  flex: 1;
+  min-width: 90px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--admin-tc, #E2E8F0);
+  font-size: .8rem;
+  font-family: inherit;
+  padding: .2rem 0;
+  &::placeholder { color: #475569; }
+}
+
+.te-hint {
+  font-weight: 400;
+  color: var(--admin-t3c, #64748B);
+  text-transform: none;
+}
+
+.te-error {
+  font-size: .78rem;
+  color: #EF4444;
+  background: rgba(239, 68, 68, .08);
+  border: 1px solid rgba(239, 68, 68, .25);
+  border-radius: 8px;
+  padding: .5rem .75rem;
+  margin-top: .5rem;
+}
+
+/* Full-screen sheet on mobile */
+@media (max-width: 640px) {
+  .te-card {
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    margin: 0;
+  }
+}

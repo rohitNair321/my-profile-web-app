@@ -1,0 +1,117 @@
+.cdlg-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, .7);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000; /* above alert stack */
+  animation: cdlgFade .2s ease;
+}
+
+.cdlg-card {
+  --tone: var(--primary, #10B981);
+
+  width: 100%;
+  max-width: 420px;
+  margin: 1rem;
+  padding: 1.75rem;
+  border-radius: 20px;
+  background: var(--surface, #0F172A);
+  border: 1px solid var(--border, #1E293B);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+  text-align: center;
+  animation: cdlgPop .22s cubic-bezier(.175, .885, .32, 1.275);
+
+  &--danger  { --tone: #EF4444; }
+  &--warning { --tone: #F59E0B; }
+  &--info    { --tone: #3B82F6; }
+  &--success { --tone: #10B981; }
+}
+
+.cdlg-icon-wrap {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+
+  .material-icons {
+    font-size: 1.75rem;
+    color: var(--tone);
+  }
+}
+
+.cdlg-title {
+  margin: 0 0 .5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary, #E2E8F0);
+}
+
+.cdlg-message {
+  margin: 0 0 1.5rem;
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #94A3B8);
+  white-space: pre-line;
+}
+
+.cdlg-footer {
+  display: flex;
+  gap: .625rem;
+  justify-content: center;
+}
+
+.cdlg-btn {
+  min-width: 110px;
+  padding: .65rem 1.25rem;
+  border-radius: 9999px;
+  font-size: .8125rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter .15s, border-color .2s;
+
+  &--ghost {
+    background: transparent;
+    border: 1px solid var(--border, #1E293B);
+    color: var(--text-secondary, #94A3B8);
+    &:hover { border-color: var(--text-muted, #64748B); }
+  }
+
+  &--discard {
+    background: transparent;
+    border: 1px solid var(--error, #EF4444);
+    color: var(--error, #EF4444);
+    &:hover { background: color-mix(in srgb, var(--error, #EF4444) 10%, transparent); }
+  }
+
+  &--confirm {
+    background: var(--tone);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--tone) 35%, transparent);
+    &:hover { filter: brightness(1.1); }
+  }
+}
+
+@keyframes cdlgFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes cdlgPop {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .cdlg-card { max-width: calc(100vw - 2rem); }
+  .cdlg-footer { flex-direction: column-reverse; }
+  .cdlg-btn { width: 100%; }
+}

@@ -71,6 +71,12 @@
     <ul class="sidebar__menu-list list-unstyled mb-0">
 
       @for (item of menuItems; track item.key || item.label) {
+
+      <!-- Group divider — separates home-anchor links from Posts/Resume -->
+      @if (item.key === 'posts') {
+      <li class="sidebar__divider" aria-hidden="true"></li>
+      }
+
       <li class="sidebar__item" [class.sidebar__item--has-sub]="item.subMenu?.length"
         [class.sidebar__item--expanded]="item.expanded">
 
@@ -148,36 +154,31 @@
     </ul>
   </nav>
 
-  <!-- FOOTER: theme toggle + logout -->
+  <!-- FOOTER: theme toggle + hire CTA -->
   <div class="sidebar__footer">
-    <button class="sidebar__link sidebar__link--footer w-100" (click)="themeService.toggleDarkMode()">
-      <span class="material-icons sidebar__icon">
-        {{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}
-      </span>
-      @if (!appConfig.appConfiguration.collapsed) {
-      <span class="sidebar__label">
-        {{ themeService.isDark() ? 'Light Mode' : 'Dark Mode' }}
-      </span>
-      }
-    </button>
+    <div class="sidebar__footer-actions">
 
-    @if (appService.role() === 'ADMIN') {
-      <a routerLink="/admin/posts" class="sidebar__link sidebar__link--footer" routerLinkActive="active-item" title="Manage Posts">
-        <span class="material-icons sidebar__icon">edit_note</span>
+      <!-- Theme toggle -->
+      <button class="sidebar__foot-btn sidebar__foot-btn--theme"
+              (click)="themeService.toggleDarkMode()"
+              [title]="themeService.isDark() ? 'Switch to Light' : 'Switch to Dark'">
+        <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
         @if (!appConfig.appConfiguration.collapsed) {
-          <span class="sidebar__label">Manage Posts</span>
+          <span>{{ themeService.isDark() ? 'Light' : 'Dark' }}</span>
         }
-      </a>
-    }
+      </button>
 
-    @if (appService.role() !== 'ADMIN') {
-    <button  class="sidebar__link sidebar__link--footer sidebar__link--danger w-100" title="Admin Login" (click)="navigateToLogin()">
-      <span class="material-icons sidebar__icon">login</span>
-      @if (!appConfig.appConfiguration.collapsed) {
-        <span class="sidebar__label">Admin Login</span>
-      }
-    </button>
-    }
+      <!-- Hire CTA -->
+      <button class="sidebar__foot-btn sidebar__foot-btn--hire"
+              (click)="scrollToSection($event, '#contact')"
+              title="Hire Me">
+        <span class="material-icons">mail</span>
+        @if (!appConfig.appConfiguration.collapsed) {
+          <span>Hire</span>
+        }
+      </button>
+
+    </div>
   </div>
 
 </aside>

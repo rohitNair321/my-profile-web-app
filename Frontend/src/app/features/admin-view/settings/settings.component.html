@@ -1,0 +1,840 @@
+@if (profileForm) {
+<section class="admin-settings-container" [formGroup]="profileForm">
+  <!-- Header Bar -->
+  <header class="admin-header">
+    <div class="header-left">
+      <h1 class="page-title">Settings</h1>
+      <p class="page-subtitle">Manage your profile, experience, and application preferences</p>
+    </div>
+    @if (activeSettingTab === 'profile') {
+    <div class="header-actions">
+      <button type="button" class="btn-ghost" (click)="resetDefaults()" [disabled]="profileForm.pristine">
+        <i class="material-icons">undo</i>
+        <span>Discard</span>
+      </button>
+      <button type="button" class="btn-save" (click)="saveSettings()" [disabled]="profileForm.pristine">
+        <i class="material-icons">save</i>
+        <span>Save Changes</span>
+      </button>
+    </div>
+    }
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-navigation">
+    <button type="button" class="tab-btn" [class.active]="activeSettingTab === 'profile'"
+      (click)="activeSettingTab = 'profile'">
+      <i class="material-icons">person</i>
+      <span>Profile</span>
+    </button>
+    <button type="button" class="tab-btn" [class.active]="activeSettingTab === 'aiChatMonitoring'"
+      (click)="activeSettingTab = 'aiChatMonitoring'">
+      <i class="material-icons">smart_toy</i>
+      <span>AI Monitoring</span>
+    </button>
+    <button type="button" class="tab-btn" [class.active]="activeSettingTab === 'monitoring'"
+      (click)="activeSettingTab = 'monitoring'">
+      <i class="material-icons">bar_chart</i>
+      <span>Analytics</span>
+    </button>
+    <button type="button" class="tab-btn" [class.active]="activeSettingTab === 'myLearningPosts'"
+      (click)="activeSettingTab = 'myLearningPosts'">
+      <i class="material-icons">article</i>
+      <span>Learning Posts</span>
+    </button>
+    <button type="button" class="tab-btn" [class.active]="activeSettingTab === 'aboutMeEditor'"
+      (click)="activeSettingTab = 'aboutMeEditor'">
+      <i class="material-icons">edit_note</i>
+      <span>About Me</span>
+    </button>
+  </nav>
+
+  <!-- Tab Content: Profile -->
+  @if (activeSettingTab === 'profile') {
+  <div class="tab-content">
+    <div class="content-grid">
+
+      <!-- Main Content Area -->
+      <div class="main-content">
+
+        <!-- Branding & Logo Section -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="material-icons">architecture</i>
+              <span>Branding & Logo</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="branding-grid">
+              <!-- Avatar Upload -->
+              <div class="avatar-section">
+                <label class="avatar-label">
+                  <input type="file" (change)="onAvatarChange($event)" hidden>
+                  <div class="avatar-preview" [class.has-image]="avatarDataUrl">
+                    @if (avatarDataUrl) {
+                    <img [src]="avatarDataUrl" alt="Avatar">
+                    } @else {
+                    <span class="avatar-initials">
+                      {{ (profileForm.get('full_name')?.value || 'U').charAt(0) }}
+                    </span>
+                    }
+                    <div class="avatar-overlay">
+                      <i class="material-icons">photo_camera</i>
+                    </div>
+                  </div>
+                </label>
+                <p class="field-description">Profile Picture</p>
+              </div>
+
+              <!-- Logo & Resume Fields -->
+              <div class="fields-section">
+                <div class="form-field">
+                  <label class="field-label">Logo Initials</label>
+                  <input type="text" formControlName="logo_initials" placeholder="RN" maxlength="3" class="form-input">
+                  <p class="field-description">2-3 characters for logo (e.g., RN)</p>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Resume (PDF)</label>
+
+                  <!-- State 1: resume saved on server -->
+                  @if (resumeUrl) {
+                  <div class="resume-card">
+                    <div class="resume-card__icon">
+                      <i class="material-icons">picture_as_pdf</i>
+                    </div>
+                    <div class="resume-card__info">
+                      <span class="resume-card__name">{{ resumeFileName || 'Resume.pdf' }}</span>
+                      <span class="resume-card__meta">PDF · Saved</span>
+                    </div>
+                    <div class="resume-card__actions">
+                      <button type="button" class="icon-btn" (click)="viewResume()" title="Open">
+                        <i class="material-icons">open_in_new</i>
+                      </button>
+                      <label class="icon-btn" for="resumeReplace" title="Replace">
+                        <i class="material-icons">swap_horiz</i>
+                      </label>
+                      <input id="resumeReplace" type="file" accept="application/pdf" (change)="onResumeChange($event)" hidden>
+                      <button type="button" class="icon-btn danger" title="Delete"
+                        [disabled]="isDeletingResume()" (click)="removeResume()">
+                        <i class="material-icons">{{ isDeletingResume() ? 'hourglass_empty' : 'delete_outline' }}</i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- State 2: file selected locally, not yet saved -->
+                  } @else if (pendingResumeFile()) {
+                  <div class="resume-pending">
+                    <div class="resume-pending__icon">
+                      <i class="material-icons">picture_as_pdf</i>
+                    </div>
+                    <div class="resume-pending__info">
+                      <span class="resume-pending__name">{{ pendingResumeFile()!.name }}</span>
+                      <span class="resume-pending__meta">Ready to upload — save changes to confirm</span>
+                    </div>
+                    <button type="button" class="icon-btn" title="Clear selection" (click)="cancelPendingResume()">
+                      <i class="material-icons">close</i>
+                    </button>
+                  </div>
+
+                  <!-- State 3: no resume — show dropzone -->
+                  } @else {
+                  <div class="resume-dropzone" [class.resume-dropzone--dragover]="isDragOver()"
+                    (dragover)="onResumeDragOver($event)"
+                    (dragleave)="onResumeDragLeave($event)"
+                    (drop)="onResumeDrop($event)">
+                    <div class="resume-dropzone__icon">
+                      <i class="material-icons">upload_file</i>
+                    </div>
+                    <p class="resume-dropzone__title">Drag &amp; drop your PDF here</p>
+                    <p class="resume-dropzone__subtitle">or click the button to browse</p>
+                    <label class="btn-secondary btn-sm resume-dropzone__btn" for="resumeUpload">
+                      <i class="material-icons">folder_open</i>
+                      Browse files
+                    </label>
+                    <input id="resumeUpload" type="file" accept="application/pdf"
+                      (change)="onResumeChange($event)" hidden>
+                    @if (profileForm.get('resume')?.hasError('fileType')) {
+                    <p class="field-error" style="margin-top: 0.5rem">Only PDF files are allowed.</p>
+                    }
+                  </div>
+                  }
+                </div>
+
+                <div class="form-field toggle-field">
+                  <label class="field-label">Available for Work</label>
+                  <p-toggleButton formControlName="openToWork" onLabel="Yes" offLabel="No"></p-toggleButton>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Personal Details Section -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="material-icons">person_outline</i>
+              <span>Personal Details</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-field">
+                <label class="field-label">Full Name</label>
+                <input type="text" formControlName="name" class="form-input">
+                @if (isFieldInvalid('name')) {
+                <div class="field-error">{{ getErrorText('name') }}</div>
+                }
+              </div>
+              <div class="form-field">
+                <label class="field-label">Location</label>
+                <input type="text" formControlName="location" class="form-input">
+                @if (isFieldInvalid('location')) {
+                <div class="field-error">{{ getErrorText('location') }}</div>
+                }
+              </div>
+              <div class="form-field">
+                <label class="field-label">LinkedIn</label>
+                <input type="text" formControlName="linkedin" class="form-input">
+                @if (isFieldInvalid('linkedin')) {
+                <div class="field-error">{{ getErrorText('linkedin') }}</div>
+                }
+              </div>
+              <div class="form-field">
+                <label class="field-label">GitHub</label>
+                <input type="text" formControlName="github" class="form-input">
+                @if (isFieldInvalid('github')) {
+                <div class="field-error">{{ getErrorText('github') }}</div>
+                }
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="field-label">Professional Bio</label>
+              <textarea formControlName="description" rows="4" class="form-textarea"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="material-icons">psychology</i>
+              <span>Skills</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="field-description" style="margin-bottom:1rem">
+              Add your technical skills. They appear on the public profile under "Core Expertise".
+            </p>
+
+            <!-- Existing skill chips -->
+            <div class="skills-tag-cloud" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem;">
+              @for (ctrl of skills.controls; track i; let i = $index) {
+                <span class="skill-chip tech-tag">
+                  {{ ctrl.value }}
+                  <button
+                    type="button"
+                    class="skill-chip__remove"
+                    (click)="removeSkill(i)"
+                    [attr.aria-label]="'Remove ' + ctrl.value">
+                    <i class="material-icons">close</i>
+                  </button>
+                </span>
+              }
+              @if (skills.length === 0) {
+                <span class="field-description" style="color:var(--text-muted);font-style:italic">No skills added yet.</span>
+              }
+            </div>
+
+            <!-- Add new skill -->
+            <div class="skill-input-row" style="display:flex;gap:8px;align-items:center;">
+              <input
+                #skillInput
+                type="text"
+                class="form-input"
+                placeholder="e.g. Angular, Node.js, TypeScript"
+                style="flex:1;max-width:320px;"
+                (keydown.enter)="addSkill(skillInput.value); skillInput.value = ''; $event.preventDefault()"
+              >
+              <button
+                type="button"
+                class="btn-secondary"
+                (click)="addSkill(skillInput.value); skillInput.value = ''">
+                <i class="material-icons">add</i>
+                <span>Add</span>
+              </button>
+            </div>
+            <p class="field-description" style="margin-top:6px">Press Enter or click Add after typing a skill.</p>
+          </div>
+        </section>
+
+        <!-- Experience & Projects Section -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="material-icons">work_outline</i>
+              <span>Experience & Projects</span>
+            </div>
+            <button type="button" class="btn-add" (click)="openExperienceDialog()">
+              <i class="material-icons">add</i>
+              <span>Add Experience</span>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="experience-list">
+              @for (exp of experiences.controls; track i; let i = $index) {
+              <div class="experience-item">
+                <div class="exp-header">
+                  <div class="exp-timeline">
+                    <span class="exp-date">
+                      {{ exp.value.startDate | date:'MMM yyyy' }} -
+                      {{ exp.value.present ? 'Present' : (exp.value.endDate | date:'MMM yyyy') }}
+                    </span>
+                  </div>
+                  <div class="exp-actions">
+                    <button type="button" class="icon-btn" (click)="openExperienceDialog(exp.value, i)">
+                      <i class="material-icons">edit</i>
+                    </button>
+                    <button type="button" class="icon-btn danger" (click)="removeExperience(i)">
+                      <i class="material-icons">delete</i>
+                    </button>
+                  </div>
+                </div>
+                <div class="exp-body">
+                  <h4 class="exp-company">{{ exp.value.company }}</h4>
+                  <p class="exp-role">{{ exp.value.title }}</p>
+                  <div class="exp-projects">
+                    <i class="material-icons">folder</i>
+                    <span>{{ exp.value.projects?.length || 0 }} Projects</span>
+                  </div>
+                </div>
+              </div>
+              }
+
+              @if (experiences.controls.length === 0) {
+              <div class="empty-state">
+                <i class="material-icons">work_off</i>
+                <p>No experience added yet</p>
+                <button type="button" class="btn-secondary" (click)="openExperienceDialog()">
+                  <i class="material-icons">add</i>
+                  <span>Add Your First Experience</span>
+                </button>
+              </div>
+              }
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar-content">
+
+        <!-- Live Preview Card -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="material-icons">preview</i>
+              <span>Live Preview</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="preview-navbar">
+              <div class="preview-logo">
+                <span class="logo-initials">
+                  <span>{{ profileForm.get('logo_initials')?.value?.charAt(0) || 'R' }}</span>
+                  <span>{{ profileForm.get('logo_initials')?.value?.charAt(1) || 'N' }}</span>
+                </span>
+                <span class="logo-name">{{ profileForm.get('full_name')?.value || 'Your Name' }}</span>
+              </div>
+            </div>
+            <p class="preview-description">Navigation bar preview</p>
+          </div>
+        </section>
+
+        <!-- Password Update Card -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="material-icons">lock</i>
+              <span>Admin Password</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()" class="password-form">
+
+              <div class="form-field">
+                <label class="field-label">Email Address</label>
+                <input type="email" formControlName="email" class="form-input" [readonly]="true" [disabled]="true">
+                <p class="field-description">Your admin email (cannot be changed)</p>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Current Password</label>
+                <div class="password-input">
+                  <input [type]="showCurrentPassword ? 'text' : 'password'" formControlName="currentPassword"
+                    class="form-input"
+                    [class.error]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
+                  <button type="button" class="password-toggle" (click)="togglePasswordVisibility('current')">
+                    <i class="material-icons">{{ showCurrentPassword ? 'visibility_off' : 'visibility' }}</i>
+                  </button>
+                </div>
+                @if (passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched) {
+                <div class="field-error">
+                  {{ passwordForm.get('currentPassword')?.hasError('required') ? 'Required' : 'Min 6 characters' }}
+                </div>
+                }
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">New Password</label>
+                <div class="password-input">
+                  <input [type]="showNewPassword ? 'text' : 'password'" formControlName="newPassword" class="form-input"
+                    [class.error]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+                  <button type="button" class="password-toggle" (click)="togglePasswordVisibility('new')">
+                    <i class="material-icons">{{ showNewPassword ? 'visibility_off' : 'visibility' }}</i>
+                  </button>
+                </div>
+                @if (passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched) {
+                <div class="field-error">
+                  {{ passwordForm.get('newPassword')?.hasError('required') ? 'Required' : 'Min 6 characters' }}
+                </div>
+                }
+              </div>
+
+              <button type="submit" class="btn-primary full-width"
+                [disabled]="passwordForm.invalid || isChangingPassword">
+                <i class="material-icons">{{ isChangingPassword ? 'hourglass_empty' : 'security' }}</i>
+                <span>{{ isChangingPassword ? 'Updating...' : 'Update Password' }}</span>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- Theme Card -->
+        <section class="admin-card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="material-icons">palette</i>
+              <span>Themes</span>
+            </div>
+            <button type="button" class="btn-icon-only" (click)="openThemeBuilder()">
+              <i class="material-icons">add_circle_outline</i>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="theme-list">
+              @for (theme of themesList; track $index) {
+              <div class="theme-option" [class.selected]="themeService.currentThemeId() === theme.id"
+                (click)="selectAndSaveTheme(theme)">
+                @if (themeService.currentThemeId() === theme.id) {
+                <i class="material-icons check-icon">check_circle</i>
+                }
+                <div class="theme-colors">
+                  <span class="color-dot" [style.background]="theme.tokens.primary"></span>
+                  <span class="color-dot" [style.background]="theme.tokens.accent"></span>
+                  <span class="color-dot" [style.background]="theme.tokens.surface"></span>
+                </div>
+                <span class="theme-label">{{ theme.name }}</span>
+                <div class="theme-buttons">
+                  <button type="button" class="icon-btn-small" (click)="editTheme(theme); $event.stopPropagation()">
+                    <i class="material-icons">edit</i>
+                  </button>
+                  <button type="button" class="icon-btn-small danger" (click)="deleteTheme(theme.id, $event)">
+                    <i class="material-icons">delete_outline</i>
+                  </button>
+                </div>
+              </div>
+              }
+            </div>
+            <button type="button" class="btn-secondary full-width" (click)="saveThemePreference()">
+              Apply Theme
+            </button>
+          </div>
+        </section>
+
+      </aside>
+    </div>
+  </div>
+  }
+  @if (activeSettingTab === 'aiChatMonitoring') {
+  <div class="tab-content">
+    <app-ai-usage-dashboard></app-ai-usage-dashboard>
+  </div>
+  }
+  @if (activeSettingTab === 'monitoring') {
+  <div class="tab-content">
+    <app-analytics></app-analytics>
+  </div>
+  }
+  @if (activeSettingTab === 'aboutMeEditor') {
+  <div class="tab-content">
+    <app-about-me-editor></app-about-me-editor>
+  </div>
+  }
+  @if (activeSettingTab === 'myLearningPosts') {
+  <div class="tab-content">
+    <app-my-learning-post></app-my-learning-post>
+  </div>
+  }
+</section>
+}
+
+<!-- Experience Dialog -->
+<p-dialog [(visible)]="showExperienceDialog" [modal]="true"
+  [header]="selectedExperienceIndex !== null ? 'Edit Experience' : 'Add Experience'"
+  [style]="{width: '95vw', maxWidth: '900px'}" styleClass="admin-dialog">
+
+  <div [formGroup]="experienceDialogForm" class="dialog-form">
+
+    <!-- Company Details -->
+    <div class="form-section">
+      <h4 class="section-title">Company Details</h4>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="field-label">Company Name</label>
+          <input type="text" formControlName="company" placeholder="Google" class="form-input">
+          @if (isFieldInvalid('company', experienceDialogForm)) {
+          <div class="field-error">
+            {{ getErrorText('company', experienceDialogForm) }}
+          </div>
+          }
+        </div>
+        <div class="form-field">
+          <label class="field-label">Role / Title</label>
+          <input type="text" formControlName="role" placeholder="Senior Developer" class="form-input">
+          @if (isFieldInvalid('role', experienceDialogForm)) {
+          <div class="field-error">
+            {{ getErrorText('role', experienceDialogForm) }}
+          </div>
+          }
+        </div>
+        <div class="form-field full-width">
+          <label class="field-label">Description</label>
+          <textarea formControlName="description" rows="2" placeholder="Your contribution"
+            class="form-textarea"></textarea>
+          @if (isFieldInvalid('description', experienceDialogForm)) {
+          <div class="field-error">
+            {{ getErrorText('description', experienceDialogForm) }}
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Date Range -->
+    <div class="form-section">
+      <h4 class="section-title">Date Range</h4>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="field-label">Start Date</label>
+          <p-calendar formControlName="startDate" dateFormat="mm/yy" [view]="'month'"
+            class="form-calendar"></p-calendar>
+          @if (isFieldInvalid('startDate', experienceDialogForm)) {
+          <div class="field-error">
+            {{ getErrorText('startDate', experienceDialogForm) }}
+          </div>
+          }
+        </div>
+        <div class="form-field">
+          <label class="field-label">End Date</label>
+          <p-calendar formControlName="endDate" dateFormat="mm/yy" [view]="'month'"
+            [disabled]="experienceDialogForm.get('present')?.value" class="form-calendar"></p-calendar>
+        </div>
+        <div class="form-field checkbox-field">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="present">
+            <span>Currently working here</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="form-section">
+      <div class="section-header">
+        <h4 class="section-title">Projects</h4>
+        <button type="button" class="btn-add-small" (click)="addProject()">
+          <i class="material-icons">add</i>
+          <span>Add Project</span>
+        </button>
+      </div>
+
+      <div formArrayName="projects" class="projects-container">
+        @for (proj of projectsArray.controls; track i; let i = $index) {
+        <div [formGroupName]="i" class="project-card">
+
+          <div class="project-header">
+            <span class="project-number">Project #{{ i + 1 }}</span>
+            <button type="button" class="icon-btn danger" (click)="removeProject(i)">
+              <i class="material-icons">delete</i>
+            </button>
+          </div>
+
+          <div class="project-body">
+            <div class="form-field">
+              <label class="field-label">Project Title</label>
+              <input type="text" formControlName="title" placeholder="E-commerce Dashboard" class="form-input">
+              @if (isFieldInvalid('title', proj)) {
+              <div class="field-error">
+                {{ getErrorText('title', proj) }}
+              </div>
+              }
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">Project Status</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" value="in-progress" formControlName="projectProgress">
+                  <span>In Progress</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" value="completed" formControlName="projectProgress">
+                  <span>Completed</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">Description</label>
+              <textarea formControlName="description" rows="2" placeholder="Your contribution"
+                class="form-textarea"></textarea>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">Technologies</label>
+              <div class="tags-container">
+                @for (tech of getTechs(i); track ti; let ti = $index) {
+                <span class="tech-tag">
+                  {{ tech }}
+                  <i class="material-icons" (click)="removeTech(i, ti)">close</i>
+                </span>
+                }
+                <input #techInput type="text" placeholder="Add technology" class="tag-input"
+                  (keydown.enter)="$event.preventDefault(); addTechnology(i, techInput.value); techInput.value=''">
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button type="button" class="btn-secondary" (click)="showExperienceDialog = false">Cancel</button>
+      <button type="button" class="btn-primary" (click)="saveExperience()">
+        <i class="material-icons">check</i>
+        <span>Save</span>
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Theme Builder Dialog -->
+<p-dialog [(visible)]="showThemeBuilder" [modal]="true" header="Theme Builder"
+  [style]="{width: '95vw', maxWidth: '800px'}" styleClass="admin-dialog">
+
+  <form [formGroup]="customThemeForm" class="dialog-form">
+
+    <div class="form-field">
+      <label class="field-label">Theme Name</label>
+      <input type="text" formControlName="theme_name" placeholder="Midnight Blue" class="form-input">
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button type="button" class="mode-tab" [class.active]="activeTab === 'light'" (click)="activeTab = 'light'">
+        <i class="material-icons">light_mode</i>
+        <span>Light Mode</span>
+      </button>
+      <button type="button" class="mode-tab" [class.active]="activeTab === 'dark'" (click)="activeTab = 'dark'">
+        <i class="material-icons">dark_mode</i>
+        <span>Dark Mode</span>
+      </button>
+    </div>
+
+    <!-- Light Mode Colors -->
+    @if (activeTab === 'light') {
+    <div formGroupName="tokens" class="colors-section">
+      <div class="color-group">
+        <h4 class="group-title">Brand Colors</h4>
+        <div class="color-grid">
+          <div class="color-field">
+            <label>Primary</label>
+            <input type="color" formControlName="primary">
+          </div>
+          <div class="color-field">
+            <label>Accent</label>
+            <input type="color" formControlName="accent">
+          </div>
+          <div class="color-field">
+            <label>Success</label>
+            <input type="color" formControlName="success">
+          </div>
+          <div class="color-field">
+            <label>Warning</label>
+            <input type="color" formControlName="warning">
+          </div>
+          <div class="color-field">
+            <label>Error</label>
+            <input type="color" formControlName="error">
+          </div>
+        </div>
+      </div>
+
+      <div class="color-group">
+        <h4 class="group-title">Surface Colors</h4>
+        <div class="color-grid">
+          <div class="color-field">
+            <label>Background</label>
+            <input type="color" formControlName="background">
+          </div>
+          <div class="color-field">
+            <label>Surface</label>
+            <input type="color" formControlName="surface">
+          </div>
+          <div class="color-field">
+            <label>Surface Alt</label>
+            <input type="color" formControlName="surface_alt">
+          </div>
+          <div class="color-field">
+            <label>Border</label>
+            <input type="color" formControlName="border">
+          </div>
+        </div>
+      </div>
+
+      <div class="color-group">
+        <h4 class="group-title">Text Colors</h4>
+        <div class="color-grid">
+          <div class="color-field">
+            <label>Text Primary</label>
+            <input type="color" formControlName="text_primary">
+          </div>
+          <div class="color-field">
+            <label>Text Secondary</label>
+            <input type="color" formControlName="text_secondary">
+          </div>
+          <div class="color-field">
+            <label>Text Muted</label>
+            <input type="color" formControlName="text_muted">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Primary Glow (RGBA)</label>
+        <input type="text" formControlName="primary_glow" placeholder="rgba(74,107,125,0.4)" class="form-input">
+      </div>
+    </div>
+    }
+
+    <!-- Dark Mode Colors -->
+    @if (activeTab === 'dark') {
+    <div formGroupName="dark_tokens" class="colors-section">
+      <div class="color-group">
+        <h4 class="group-title">Brand Colors</h4>
+        <div class="color-grid">
+          <div class="color-field">
+            <label>Primary</label>
+            <input type="color" formControlName="primary">
+          </div>
+          <div class="color-field">
+            <label>Accent</label>
+            <input type="color" formControlName="accent">
+          </div>
+          <div class="color-field">
+            <label>Success</label>
+            <input type="color" formControlName="success">
+          </div>
+          <div class="color-field">
+            <label>Warning</label>
+            <input type="color" formControlName="warning">
+          </div>
+          <div class="color-field">
+            <label>Error</label>
+            <input type="color" formControlName="error">
+          </div>
+        </div>
+      </div>
+
+      <div class="color-group">
+        <h4 class="group-title">Surface Colors</h4>
+        <div class="color-grid">
+          <div class="color-field">
+            <label>Background</label>
+            <input type="color" formControlName="background">
+          </div>
+          <div class="color-field">
+            <label>Surface</label>
+            <input type="color" formControlName="surface">
+          </div>
+          <div class="color-field">
+            <label>Surface Alt</label>
+            <input type="color" formControlName="surface_alt">
+          </div>
+          <div class="color-field">
+            <label>Border</label>
+            <input type="color" formControlName="border">
+          </div>
+        </div>
+      </div>
+
+      <div class="color-group">
+        <h4 class="group-title">Text Colors</h4>
+        <div class="color-grid">
+          <div class="color-field">
+            <label>Text Primary</label>
+            <input type="color" formControlName="text_primary">
+          </div>
+          <div class="color-field">
+            <label>Text Secondary</label>
+            <input type="color" formControlName="text_secondary">
+          </div>
+          <div class="color-field">
+            <label>Text Muted</label>
+            <input type="color" formControlName="text_muted">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Primary Glow (RGBA)</label>
+        <input type="text" formControlName="primary_glow" placeholder="rgba(74,107,125,0.4)" class="form-input">
+      </div>
+    </div>
+    }
+  </form>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button type="button" class="btn-secondary" (click)="showThemeBuilder = false">Cancel</button>
+      <button type="button" class="btn-primary" [disabled]="customThemeForm.invalid" (click)="saveCustomTheme()">
+        <i class="material-icons">save</i>
+        <span>Save Theme</span>
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Confirmations handled by the global <app-confirm-dialog> (ConfirmDialogService) -->
+
+<!-- Sticky save bar — appears when form has unsaved changes -->
+@if (profileForm && isFormChanged()) {
+  <div class="settings-sticky-bar" role="toolbar" aria-label="Unsaved changes">
+    <span class="settings-sticky-bar__label">
+      <i class="material-icons">edit</i>
+      You have unsaved changes
+    </span>
+    <div class="settings-sticky-bar__actions">
+      <button type="button" class="btn-secondary btn-sm" (click)="resetDefaults()">Discard</button>
+      <button type="button" class="btn-primary btn-sm" (click)="saveSettings()">Save Changes</button>
+    </div>
+  </div>
+}

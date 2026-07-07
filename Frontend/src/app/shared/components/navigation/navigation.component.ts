@@ -15,12 +15,11 @@ const MOBILE_BREAKPOINT = 900;
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.Default,
   imports: [
     CommonModule,
     FormsModule,
     ButtonModule,
-    ProfileMenuComponent,
     BadgeModule,
     RouterModule,
     OverlayBadgeModule

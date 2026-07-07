@@ -1,0 +1,86 @@
+.post-list { display: flex; flex-direction: column; gap: .625rem; }
+
+.post-row {
+  background: var(--admin-bg-sf);
+  border: 1px solid var(--admin-bdc);
+  border-left: 3px solid var(--post-accent);
+  border-radius: 12px;
+  padding: 1rem 1.125rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: border-color .2s;
+
+  &:hover { border-color: color-mix(in oklab, var(--post-accent) 28%, transparent); }
+}
+
+.post-row-body { flex: 1; min-width: 0; }
+
+.post-title {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--admin-tc);
+  margin-bottom: .25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .73rem;
+  color: var(--admin-t3c);
+  .material-icons { font-size: .8rem; }
+}
+
+.post-status {
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+
+  &.published { background: rgba(16,185,129,.12); color: #10B981; }
+  &.draft     { background: rgba(245,158,11,.12); color: #F59E0B; }
+  &.archived  { background: rgba(100,116,139,.12); color: #64748B; }
+}
+
+.post-tag {
+  padding: .15rem .5rem;
+  background: color-mix(in oklab, var(--post-accent) 10%, transparent);
+  color: var(--post-accent);
+  border-radius: 9999px;
+  font-size: .67rem;
+  font-weight: 600;
+}
+
+.post-actions {
+  display: flex;
+  gap: .25rem;
+  flex-shrink: 0;
+}
+
+.nc-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 7px;
+  display: flex;
+  transition: all .2s;
+  color: #475569;
+
+  &:hover { color: #10B981; background: rgba(16,185,129,.1); }
+  &.delete:hover { color: #EF4444; background: rgba(239,68,68,.08); }
+  &.toggle { color: var(--admin-t3c); }
+  &.toggle:hover { color: #10B981; background: rgba(16,185,129,.1); }
+  &.toggling { opacity: .5; pointer-events: none; }
+  .material-icons { font-size: 1.1rem; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

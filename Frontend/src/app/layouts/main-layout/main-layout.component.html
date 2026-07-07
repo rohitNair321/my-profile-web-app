@@ -55,8 +55,8 @@
        The backdrop is shown when sidebar is open on mobile. -->
   <app-sidebar class="app-shell__sidebar" (collapseChange)="initSidebarMenu($event)"></app-sidebar>
 
-  <!-- Mobile backdrop — shown when sidebar is open on mobile -->
-  @if (appConfig.appConfiguration.isMobile && !appConfig.appConfiguration.collapsed) {
+  <!-- Mobile backdrop — shown only when the off-canvas sidebar is open on mobile -->
+  @if (appConfig.appConfiguration.type === 'sidebar' && appConfig.appConfiguration.isMobile && !appConfig.appConfiguration.collapsed) {
   <div class="app-shell__backdrop" (click)="initSidebarMenu(true)" aria-hidden="true"></div>
   }
 
@@ -72,152 +72,168 @@
 
 <!-- ④ FLOATING OVERLAYS — outside grid flow entirely -->
 @if (appConfig.appConfiguration.showAgentChat) {
-<app-chat-bot [position]="'bottom-right'" [title]="'FolioAI Assistant'"
-  [placeholder]="'Ask about my projects...'"></app-chat-bot>
+<!-- <app-chat-bot [position]="'bottom-left'" [title]="'FolioAI Assistant'"
+  [placeholder]="'Ask about my projects...'"></app-chat-bot> -->
 }
 
-<!-- ⑤ SETTINGS TRIGGER — viewport-level, always fixed to right edge.
-     Lives here (not inside app-sidebar) so it is never affected by
-     the sidebar's off-canvas stacking context on mobile. -->
-<div class="app-settings-trigger" aria-label="Open preferences"
-  [class.app-settings-trigger--hidden]="isSettingsPanelOpen">
-  <button class="app-settings-trigger__btn" (click)="toggleSettingsPanel()">
-    <span class="material-icons">settings</span>
+<!-- ⑤ PREFERENCES TRIGGER — fixed right edge -->
+<div class="pref-gear" [class.pref-gear--hidden]="isSettingsPanelOpen">
+  <button class="pref-gear-btn" (click)="toggleSettingsPanel()" title="Preferences" aria-label="Open preferences">
+    <span class="material-icons">tune</span>
   </button>
 </div>
 
-<!-- ⑥ SETTINGS PANEL — viewport-level fixed overlay, slides in from right -->
+<!-- ⑥ PREFERENCES PANEL -->
 @if (isSettingsPanelOpen) {
-<aside class="app-settings-panel" role="complementary" aria-label="Preferences panel">
+  <div class="pref-backdrop" (click)="toggleSettingsPanel()" aria-hidden="true"></div>
 
-  <div class="app-settings-panel__header">
-    <span class="app-settings-panel__title">Preferences</span>
-    <button class="app-settings-panel__close" (click)="toggleSettingsPanel()" aria-label="Close preferences">
-      <span class="material-icons">close</span>
-    </button>
-  </div>
+  <aside class="pref-panel" role="complementary" aria-label="Preferences">
 
-  <!-- ① Navigation Layout -->
-  <section class="app-settings-panel__section">
-    <h4 class="app-settings-panel__section-title">Navigation Layout</h4>
-    <div class="layout-picker">
-
-      <div class="layout-card" [class.layout-card--active]="appConfig.appConfiguration.type === 'sidebar'"
-        (click)="onNavigationTypeChange('sidebar')">
-        <div class="layout-card__diagram layout-card__diagram--sidebar">
-          <div class="lc-sidebar-col"></div>
-          <div class="lc-body-col">
-            <div class="lc-bar"></div>
-            <div class="lc-lines">
-              <div class="lc-line"></div>
-              <div class="lc-line lc-line--short"></div>
-              <div class="lc-line"></div>
-            </div>
-          </div>
-        </div>
-        <div class="layout-card__label">
-          <span class="material-icons">view_sidebar</span>
-          Sidebar
-          @if (appConfig.appConfiguration.type === 'sidebar') {
-          <span class="material-icons layout-card__check">check_circle</span>
-          }
-        </div>
-      </div>
-
-      <div class="layout-card" [class.layout-card--active]="appConfig.appConfiguration.type === 'navbar'"
-        (click)="onNavigationTypeChange('navbar')">
-        <div class="layout-card__diagram layout-card__diagram--navbar">
-          <div class="lc-bar"></div>
-          <div class="lc-lines">
-            <div class="lc-line"></div>
-            <div class="lc-line lc-line--short"></div>
-            <div class="lc-line"></div>
-          </div>
-        </div>
-        <div class="layout-card__label">
-          <span class="material-icons">web</span>
-          Top Nav
-          @if (appConfig.appConfiguration.type === 'navbar') {
-          <span class="material-icons layout-card__check">check_circle</span>
-          }
-        </div>
-      </div>
-
+    <!-- Header -->
+    <div class="pref-panel__header">
+      <span class="pref-panel__title">Preferences</span>
+      <button class="pref-panel__close" (click)="toggleSettingsPanel()" aria-label="Close">
+        <span class="material-icons">close</span>
+      </button>
     </div>
-  </section>
 
-  <!-- ② Brand Location — only meaningful in sidebar mode -->
-  @if (appConfig.appConfiguration.type === 'sidebar') {
-  <section class="app-settings-panel__section">
-    <h4 class="app-settings-panel__section-title">Brand Location</h4>
-    <div class="brand-picker">
+    <!-- ① Dark / Light mode -->
+    <section class="pref-sec">
+      <div class="pref-toggle-row">
+        <span class="pref-toggle-label">
+          <span class="material-icons">{{ isDark ? 'dark_mode' : 'light_mode' }}</span>
+          {{ isDark ? 'Dark Mode' : 'Light Mode' }}
+        </span>
+        <button class="pref-tog" [class.pref-tog--on]="isDark"
+                (click)="toggleDark()" aria-label="Toggle dark mode">
+          <div class="pref-tog__thumb"></div>
+        </button>
+      </div>
+    </section>
 
-      <div class="brand-card" [class.brand-card--active]="!appConfig.appConfiguration.logoLocationHeader"
-        (click)="onBrandLocationChange(false)">
-        <div class="brand-card__diagram">
-          <div class="bc-sidebar">
-            <div class="bc-logo"></div>
-            <div class="bc-lines">
-              <div class="bc-line"></div>
-              <div class="bc-line bc-line--short"></div>
+    <!-- ② Accent Color -->
+    <section class="pref-sec">
+      <h4 class="pref-sec-title">Accent Color</h4>
+      <div class="pref-accents">
+        @for (a of accentOptions; track a.value) {
+          <button class="pref-accent-swatch"
+                  [class.pref-accent-swatch--active]="currentAccent() === a.value"
+                  [style.background]="a.value"
+                  [title]="a.label"
+                  (click)="setAccent(a.value)">
+            @if (currentAccent() === a.value) {
+              <span class="material-icons" style="font-size:.875rem;color:#fff">check</span>
+            }
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- ③ Menu Style -->
+    <section class="pref-sec">
+      <h4 class="pref-sec-title">Menu Style</h4>
+      <div class="pref-layout-cards">
+
+        <div class="pref-layout-card"
+             [class.pref-layout-card--active]="appConfig.appConfiguration.type === 'navbar'"
+             (click)="onNavigationTypeChange('navbar')">
+          <div class="plc-diag plc-diag--top">
+            <div class="plc-bar"></div>
+            <div class="plc-lines">
+              <div class="plc-line"></div>
+              <div class="plc-line plc-line--short"></div>
             </div>
           </div>
-          <div class="bc-body">
-            <div class="bc-topbar"></div>
+          <div class="plc-label">
+            <span class="material-icons">web</span>
+            Top Nav
+            @if (appConfig.appConfiguration.type === 'navbar') {
+              <span class="material-icons plc-check">check_circle</span>
+            }
           </div>
         </div>
-        <span class="brand-card__label">In Sidebar</span>
-      </div>
 
-      <div class="brand-card" [class.brand-card--active]="appConfig.appConfiguration.logoLocationHeader"
-        (click)="onBrandLocationChange(true)">
-        <div class="brand-card__diagram">
-          <div class="bc-sidebar bc-sidebar--bare">
-            <div class="bc-lines">
-              <div class="bc-line"></div>
-              <div class="bc-line bc-line--short"></div>
+        <div class="pref-layout-card"
+             [class.pref-layout-card--active]="appConfig.appConfiguration.type === 'sidebar'"
+             (click)="onNavigationTypeChange('sidebar')">
+          <div class="plc-diag plc-diag--side">
+            <div class="plc-side-col">
+              <div class="plc-line"></div>
+              <div class="plc-line plc-line--short"></div>
+              <div class="plc-line plc-line--short"></div>
+            </div>
+            <div class="plc-side-body">
+              <div class="plc-line"></div>
+              <div class="plc-line plc-line--short"></div>
             </div>
           </div>
-          <div class="bc-body">
-            <div class="bc-topbar bc-topbar--brand">
-              <div class="bc-logo-sm"></div>
-            </div>
+          <div class="plc-label">
+            <span class="material-icons">view_sidebar</span>
+            Sidebar
+            @if (appConfig.appConfiguration.type === 'sidebar') {
+              <span class="material-icons plc-check">check_circle</span>
+            }
           </div>
         </div>
-        <span class="brand-card__label">In Header</span>
+
       </div>
+    </section>
 
-    </div>
-  </section>
-  }
-
-  <!-- ③ Theme picker — driven by availableThemes() from CommonApp -->
-  <section class="app-settings-panel__section app-settings-panel__section--theme">
-    <h4 class="app-settings-panel__section-title">Theme</h4>
-    <p class="app-settings-panel__desc">Select a theme that suits your style.</p>
-    <div class="app-settings-theme-grid">
-      @for (theme of availableThemes(); track theme.id) {
-      <div class="app-settings-theme-card"
-        [class.app-settings-theme-card--active]="themeService.currentThemeId() === theme.id"
-        (click)="onThemeChange(theme)">
-        <div class="app-settings-theme-card__preview">
-          <span class="app-settings-theme-card__dot" [style.background]="theme.tokens['primary']"></span>
-          <span class="app-settings-theme-card__dot" [style.background]="theme.tokens['accent']"></span>
-          <span class="app-settings-theme-card__dot app-settings-theme-card__dot--surface"
-            [style.background]="theme.tokens['surface']"></span>
-        </div>
-        <div class="app-settings-theme-card__info">
-          <span class="app-settings-theme-card__name">{{ theme.name }}</span>
-          @if (themeService.currentThemeId() === theme.id) {
-          <span class="material-icons app-settings-theme-card__check">check_circle</span>
-          }
-        </div>
+    <!-- ④ Text Size -->
+    <section class="pref-sec">
+      <h4 class="pref-sec-title">Text Size</h4>
+      <div class="pref-size-btns">
+        @for (s of textSizeOptions; track s.value) {
+          <button class="pref-size-btn"
+                  [class.pref-size-btn--active]="currentTextSize() === s.value"
+                  (click)="setTextSize(s.value)">
+            {{ s.label }}
+          </button>
+        }
       </div>
-      }
-    </div>
-  </section>
+    </section>
 
-</aside>
+    <!-- ⑤ Reduce Motion -->
+    <section class="pref-sec">
+      <div class="pref-toggle-row">
+        <span class="pref-toggle-label">
+          <span class="material-icons">animation</span>
+          Reduce Motion
+        </span>
+        <button class="pref-tog" [class.pref-tog--on]="reduceMotion()"
+                (click)="toggleReduceMotion()" aria-label="Toggle reduce motion">
+          <div class="pref-tog__thumb"></div>
+        </button>
+      </div>
+      <p class="pref-sec-hint">Disables parallax, float and entrance animations.</p>
+    </section>
+
+    <!-- ⑥ Theme picker -->
+    <section class="pref-sec pref-sec--last">
+      <h4 class="pref-sec-title">Theme</h4>
+      <div class="app-settings-theme-grid">
+        @for (theme of availableThemes(); track theme.id) {
+          <div class="app-settings-theme-card"
+            [class.app-settings-theme-card--active]="themeService.currentThemeId() === theme.id"
+            (click)="onThemeChange(theme)">
+            <div class="app-settings-theme-card__preview">
+              <span class="app-settings-theme-card__dot" [style.background]="theme.tokens['primary']"></span>
+              <span class="app-settings-theme-card__dot" [style.background]="theme.tokens['accent']"></span>
+              <span class="app-settings-theme-card__dot app-settings-theme-card__dot--surface"
+                [style.background]="theme.tokens['surface']"></span>
+            </div>
+            <div class="app-settings-theme-card__info">
+              <span class="app-settings-theme-card__name">{{ theme.name }}</span>
+              @if (themeService.currentThemeId() === theme.id) {
+                <span class="material-icons app-settings-theme-card__check">check_circle</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+  </aside>
 }
 
 <!-- ⑦ SCROLL-TO-TOP FAB — fixed bottom-right, visible after 500px scroll -->
@@ -227,6 +243,90 @@
 </button>
 }
 
-<p-confirmDialog></p-confirmDialog>
 <app-christmas-animation></app-christmas-animation>
 <app-new-year-animation></app-new-year-animation>
+
+<!-- ⑧ PASSWORD EXPIRY WARNING BANNER — 5 days or fewer, dismissible -->
+@if (pwdWarning() && !pwdWarnDismissed() && appService.role() === 'ADMIN') {
+  <div class="pwd-warn-banner">
+    <span class="material-icons">warning_amber</span>
+    <span>Your admin password expires in <strong>{{ pwdDaysLeft() }} day{{ pwdDaysLeft() !== 1 ? 's' : '' }}</strong>.
+      <a routerLink="/admin/security" class="pwd-warn-link">Update now</a>
+    </span>
+    <button class="pwd-warn-close" (click)="pwdWarnDismissed.set(true)" aria-label="Dismiss">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+}
+
+<!-- ⑨ PASSWORD EXPIRED MODAL — non-dismissible, blocks all interaction -->
+@if (pwdExpired() && appService.role() === 'ADMIN') {
+  <div class="pwd-exp-overlay">
+    <div class="pwd-exp-modal">
+      <div class="pwd-exp-icon">
+        <span class="material-icons">lock</span>
+      </div>
+      <h2 class="pwd-exp-title">Password Expired</h2>
+      <p class="pwd-exp-sub">
+        Your admin password has expired. You must update it before continuing.
+        You will be logged out after a successful update.
+      </p>
+
+      <!-- Current password -->
+      <div class="pwd-exp-field">
+        <label class="pwd-exp-label">Current Password</label>
+        <div class="pwd-exp-input-wrap">
+          <input [type]="modalShowCurrent() ? 'text' : 'password'" class="pwd-exp-input"
+            [(ngModel)]="modalCurrentPwd" placeholder="••••••••">
+          <button class="pwd-exp-reveal" type="button" (click)="modalShowCurrent.set(!modalShowCurrent())">
+            <span class="material-icons">{{ modalShowCurrent() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- New password -->
+      <div class="pwd-exp-field">
+        <label class="pwd-exp-label">New Password</label>
+        <div class="pwd-exp-input-wrap">
+          <input [type]="modalShowNew() ? 'text' : 'password'" class="pwd-exp-input"
+            [(ngModel)]="modalNewPwd" placeholder="Min 8 characters">
+          <button class="pwd-exp-reveal" type="button" (click)="modalShowNew.set(!modalShowNew())">
+            <span class="material-icons">{{ modalShowNew() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        @if (modalNewPwd) {
+          <div class="pwd-exp-strength-bar">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="pwd-exp-seg" [class.filled]="i <= modalStrength"
+                [style.--seg-color]="strengthColors[modalStrength]"></div>
+            }
+          </div>
+          <div class="pwd-exp-strength-label" [style.color]="strengthColors[modalStrength]">
+            {{ strengthLabels[modalStrength] }}
+          </div>
+        }
+      </div>
+
+      <!-- Confirm password -->
+      <div class="pwd-exp-field">
+        <label class="pwd-exp-label">Confirm New Password</label>
+        <div class="pwd-exp-input-wrap">
+          <input [type]="modalShowConfirm() ? 'text' : 'password'" class="pwd-exp-input"
+            [(ngModel)]="modalConfirmPwd" placeholder="Repeat password">
+          <button class="pwd-exp-reveal" type="button" (click)="modalShowConfirm.set(!modalShowConfirm())">
+            <span class="material-icons">{{ modalShowConfirm() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      @if (modalError()) {
+        <div class="pwd-exp-error">{{ modalError() }}</div>
+      }
+
+      <button class="pwd-exp-btn" type="button" [disabled]="modalSaving()" (click)="onModalSavePassword()">
+        @if (modalSaving()) { <span class="material-icons spin">refresh</span> Saving… }
+        @else { <span class="material-icons">lock_reset</span> Update Password & Logout }
+      </button>
+    </div>
+  </div>
+}

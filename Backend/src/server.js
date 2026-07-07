@@ -47,11 +47,10 @@ const {
 // Import routes
 const apiV1Routes = require('./api/v1');
 const { supabase: _supabase } = require('./db/supabaseClient');
+const { startScheduler, startActivityLogPurge, startKeepWarm } = require('./services/scheduler');
 
-// Legacy routes (backward compatibility — chat routes removed, auth/profile/contact kept)
-const oldAuthRoutes     = require('./routes/authRoutes');
-const oldProfileRoutes  = require('./routes/profileRoutes');
-const oldContactRoutes  = require('./routes/contactRoutes');
+// Legacy /api/* routes fully retired — auth/profile/contact all live on /api/v1/*
+// (frontend migrated: AuthService → /api/v1/auth, AppService → /api/v1/profile + /api/v1/contact)
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -97,6 +96,11 @@ app.use(cors(corsOptions));
 // ============================================
 // BODY PARSING & SANITIZATION
 // ============================================
+// Posts carry rich-text HTML — allow a larger (but still capped) body there.
+// Field-level size validation in post.service.js is the real enforcement;
+// this parser is just the transport backstop. Mounted BEFORE the global
+// parser so it wins for /api/v1/posts (body-parser skips already-parsed bodies).
+app.use('/api/v1/posts', express.json({ limit: '100kb' }));
 app.use(express.json({ limit: '10kb' })); // Limit body size to prevent DoS
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
@@ -112,12 +116,14 @@ if (process.env.NODE_ENV !== 'test') {
 // ============================================
 // API DOCUMENTATION (Swagger)
 // ============================================
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Portfolio API Documentation',
-}));
-
-logger.info('📚 API Documentation available at /api-docs');
+// Swagger exposes the full API surface — keep it out of production
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Portfolio API Documentation',
+  }));
+  logger.info('📚 API Documentation available at /api-docs');
+}
 
 // ============================================
 // HEALTH CHECK ENDPOINTS
@@ -167,15 +173,8 @@ app.get('/api/health/db', async (req, res) => {
 // ============================================
 app.use('/api/v1', apiLimiter, apiV1Routes);
 
-// ============================================
-// LEGACY ROUTES (Backward Compatibility)
-// ============================================
-// Chat routes fully removed — all chat endpoints are now on /api/v1/chat/*
-app.use('/api/auth',    oldAuthRoutes);
-app.use('/api/profile', oldProfileRoutes);
-app.use('/api/contact', oldContactRoutes);
-
-logger.info('🔄 Legacy auth/profile/contact routes mounted for backward compatibility');
+// Legacy /api/auth, /api/profile, /api/contact mounts removed — v1 is the only API tier.
+// Route files remain in src/routes/ until the next cleanup pass; they are no longer reachable.
 
 // ============================================
 // SITEMAP (auto-generated from published posts)
@@ -257,6 +256,17 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
 
   // Test database connection on startup
   await testConnection();
+
+  // Start post scheduler (promotes scheduled posts to published on time)
+  startScheduler();
+
+  // Start activity log purge (clears logs every ~25 days)
+  startActivityLogPurge();
+
+  // Keep-warm self-ping (only active in production with a public URL configured)
+  if (process.env.NODE_ENV === 'production') {
+    startKeepWarm();
+  }
 });
 
 // Handle unhandled rejections

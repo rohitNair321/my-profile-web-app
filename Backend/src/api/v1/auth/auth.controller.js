@@ -1,5 +1,6 @@
 // api/v1/auth/auth.controller.js
 const authService = require('../../../services/authService');
+const { logActivity } = require('../../../services/activityService');
 const ApiResponse = require('../../../utils/ApiResponse');
 const catchAsync = require('../../../utils/catchAsync');
 const { COOKIE } = require('../../../config/constants');
@@ -15,6 +16,16 @@ const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
   const { token, user } = await authService.login(email, password);
+
+  logActivity({
+    userId:    user.id,
+    eventType: 'login',
+    entity:    'auth',
+    meta: {
+      browser: req.headers['user-agent'] || null,
+      ip:      req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null,
+    },
+  });
 
   // Set httpOnly cookie
   res.cookie(COOKIE.TOKEN_NAME, token, {
@@ -95,6 +106,13 @@ const updatePassword = catchAsync(async (req, res) => {
     newPassword
   );
 
+  logActivity({
+    userId:    req.user?.id,
+    eventType: 'password_update',
+    entity:    'auth',
+    meta:      { updatedAt: result.passwordUpdatedAt ?? new Date().toISOString() },
+  });
+
   const response = ApiResponse.success(null, result.message);
 
   res.status(response.statusCode).json(response);
@@ -131,11 +149,23 @@ const initApp = catchAsync(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
+/**
+ * @route   GET /api/v1/auth/password-status
+ * @desc    Return password expiry status for the logged-in admin
+ * @access  Admin
+ */
+const getPasswordStatus = catchAsync(async (req, res) => {
+  const status   = await authService.getPasswordStatus(req.user.id);
+  const response = ApiResponse.success(status, 'Password status retrieved');
+  res.status(response.statusCode).json(response);
+});
+
 module.exports = {
   login,
   logout,
   forgotPassword,
   resetPassword,
   updatePassword,
+  getPasswordStatus,
   initApp,
 };

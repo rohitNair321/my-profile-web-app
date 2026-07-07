@@ -12,8 +12,19 @@
 @use 'themes/global.tokens';
 @use 'themes/theme-generator';
 
+@use 'admin-pages';
+
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Reduce motion — toggled by preferences panel */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+}
 
 /* Base Styles (keep your good structure) */
 html {

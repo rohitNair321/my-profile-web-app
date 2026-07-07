@@ -1,81 +1,63 @@
 <footer class="modern-footer">
-  <div class="container">
-    <!-- Main Footer Content -->
-    <div class="footer-main">
-      <!-- Brand & Social Section -->
-      <div class="footer-brand">
-        <h3 class="brand-name">{{ profileData()?.full_name || 'ROHIT PORTFOLIO' }}</h3>
-        <p class="brand-bio">
-          {{ profileData()?.description?.split('.')?.[0] || 'Building exceptional digital experiences with modern web technologies.' }}
-        </p>
-        <div class="social-links">
-          <a class="social-icon" aria-label="LinkedIn" (click)="openLink($event, profileData()?.linkedin)">
-            <i class="fab fa-linkedin-in"></i>
-          </a>
-          <a class="social-icon" aria-label="GitHub" (click)="openLink($event, profileData()?.github)">
-            <i class="fab fa-github"></i>
-          </a>
-          <a class="social-icon" aria-label="Email" [href]="'mailto:' + profileData()?.email">
-            <i class="material-icons" style="font-size:1.1rem">email</i>
-          </a>
+  <div class="footer-inner">
+
+    <!-- TOP ROW: brand | nav links row | social icons -->
+    <div class="footer-top">
+
+      <!-- Brand -->
+      <a href="#home" class="footer-brand" (click)="scrollToSection($event, '#home')">
+        <div class="footer-logo">
+          <span class="logo-r">R</span><span class="logo-n">N</span>
         </div>
+        <span class="footer-brand-name">
+          <span class="brand-rohit">Rohit</span><span class="brand-dot">.</span><span class="brand-dev">dev</span>
+        </span>
+      </a>
+
+      <!-- Nav links inline -->
+      <nav class="footer-nav">
+        @for (item of menuItems; track item) {
+          @if (!item.isHide && item.href) {
+            <a [href]="item.href" class="footer-nav-link"
+               (click)="scrollToSection($event, item.href!)">{{ item.label }}</a>
+          }
+        }
+      </nav>
+
+      <!-- Social icons -->
+      <div class="footer-socials">
+        <a class="footer-social-btn" aria-label="GitHub"
+           (click)="openLink($event, profileData()?.github)">
+          <i class="fab fa-github"></i>
+        </a>
+        <a class="footer-social-btn" aria-label="LinkedIn"
+           (click)="openLink($event, profileData()?.linkedin)">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a class="footer-social-btn" aria-label="Email"
+           [href]="'mailto:' + profileData()?.email">
+          <i class="material-icons" style="font-size:1.1rem">mail_outline</i>
+        </a>
       </div>
 
-      <!-- Navigation Links -->
-      <div class="footer-links">
-        <div class="links-column">
-          <h4 class="column-title">Navigation</h4>
-          <ul class="links-list">
-            @for (item of menuItems; track item) {
-              @if (!item.isHide) {
-                <li>
-                  <a [href]="item.href" class="footer-link" (click)="scrollToSection($event, item.href!)">
-                    {{ item.label }}
-                  </a>
-                </li>
-              }
-            }
-          </ul>
-        </div>
-
-        <div class="links-column">
-          <h4 class="column-title">Services</h4>
-          <ul class="links-list">
-            <li><span class="footer-link">Web Development</span></li>
-            <li><span class="footer-link">UI/UX Design</span></li>
-            <li><span class="footer-link">API Integration</span></li>
-            <li><span class="footer-link">Consultation</span></li>
-          </ul>
-        </div>
-
-        <div class="links-column">
-          <h4 class="column-title">Resources</h4>
-          <ul class="links-list">
-            <li><a href="#" class="footer-link">Privacy Policy</a></li>
-            <li><a href="#" class="footer-link">Terms of Service</a></li>
-            <li><a href="#" class="footer-link">Documentation</a></li>
-          </ul>
-        </div>
-      </div>
     </div>
 
-    <!-- Footer Bottom -->
+    <!-- BOTTOM BAR: copyright + admin pill | resume CTA -->
     <div class="footer-bottom">
-      <div class="bottom-content">
-        <div class="copyright">
-          © {{ currentYear }} {{ profileData()?.full_name || 'Rohit Portfolio' }}. All rights reserved.
-        </div>
-        <div class="tech-stack">
-          <span>Built with</span>
-          <span class="tech-badge">Angular</span>
-          <span class="tech-badge">TypeScript</span>
-          <span class="tech-badge">SCSS</span>
-        </div>
-        <button class="back-to-top" aria-label="Back to top" (click)="scrollToSection($event, '#home')">
-          <i class="material-icons">arrow_upward</i>
-          <span>Top</span>
-        </button>
+      <div class="footer-copy-row">
+        <span class="footer-copyright">
+          © {{ currentYear }} {{ profileData()?.full_name || 'Rohit Nair' }}. Built with ♥ on Angular 19.
+        </span>
+        <a routerLink="/auth/login" class="footer-admin-pill">
+          Admin <i class="material-icons">lock</i>
+        </a>
       </div>
+      <a [href]="profileData()?.resume_url || 'assets/Rohit.Nair.pdf'"
+         target="_blank" rel="noopener" class="footer-resume-btn">
+        <i class="material-icons">download</i>
+        Download Resume
+      </a>
     </div>
+
   </div>
 </footer>

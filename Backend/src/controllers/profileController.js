@@ -2,13 +2,18 @@
 
 const { supabase } = require('../db/supabaseClient');
 const { v4: uuidv4 } = require('uuid');
-const jwt = require('jsonwebtoken');
-const validator = require('validator');
+const { logActivity } = require('../services/activityService');
 
-const BUCKET = process.env.ASSET_BUCKET || 'assets';   // <-- updated to single bucket
-
-const JWT_SECRET = process.env.JWT_SECRET;
+const BUCKET = process.env.ASSET_BUCKET || 'assets';
 const RESUME_EXPIRY_SECONDS = Number(process.env.RESUME_SIGNED_URL_EXPIRY || 600);
+
+// Profile fields to track for field-level diff logging
+const TRACKED_FIELDS = [
+  'full_name', 'description', 'short_bio', 'email', 'primary_phone',
+  'secondary_phone', 'location', 'website', 'linkedin', 'github',
+  'logo_initials', 'currenttheme', 'about_heading', 'about_role',
+  'open_to_work', 'skills', 'experiences', 'themes',
+];
 
 //#region Helper to parse JSON fields
 function parseJsonField(value) {
@@ -110,18 +115,23 @@ async function updateMyProfile(req, res) {
     const {
       name, full_name, description, email, primaryPhone, primary_phone,
       secondaryPhone, secondary_phone, location, website, linkedin, github,
-      openToWork, open_to_work, skills, experiences, logo_initials, currenttheme, themes
+      openToWork, open_to_work, skills, experiences, logo_initials, currenttheme, themes,
+      // About Me editor fields (camelCase keys from FormData)
+      heading, shortBio, short_bio, about_role, role: aboutRole, longBio
     } = req.body;
 
     // Partial-update payload: only include fields that were actually sent with a value.
     // Empty strings and undefined are skipped so existing DB values are never wiped.
     const payload = {};
+    // Only update a string field when the value was explicitly sent and non-empty.
+    // No HTML escaping here — express-xss-sanitizer already runs on every request.
     const setStr = (key, val) => {
-      if (val != null && val !== '') payload[key] = validator.escape(String(val));
+      if (val != null && val !== '') payload[key] = String(val).trim();
     };
 
+    // Core profile fields
     setStr('full_name', full_name || name);
-    setStr('description', description);
+    setStr('description', description || longBio); // longBio = about-me editor alias for description
     setStr('email', email);
     setStr('primary_phone', primaryPhone || primary_phone);
     setStr('secondary_phone', secondaryPhone || secondary_phone);
@@ -131,6 +141,11 @@ async function updateMyProfile(req, res) {
     setStr('github', github);
     setStr('logo_initials', logo_initials);
     setStr('currenttheme', currenttheme);
+
+    // About Me editor fields
+    setStr('about_heading', heading);
+    setStr('short_bio', shortBio || short_bio);
+    setStr('about_role', about_role || aboutRole);
 
     // Boolean: only include if the key was present in the request body
     const openRaw = openToWork !== undefined ? openToWork : open_to_work;
@@ -194,8 +209,29 @@ async function updateMyProfile(req, res) {
       payload.resume_url = publicData.publicUrl;
     }
 
+    // Fetch current row before update so we can diff changed fields
+    let currentProfile = {};
+    try {
+      const { data: current } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      currentProfile = current || {};
+    } catch (_) { /* non-fatal */ }
+
     const saved = await upsertProfileRow(userId, payload);
-    
+
+    // Log each field that actually changed (fire-and-forget)
+    const stringify = (v) => v == null ? null : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+    for (const field of TRACKED_FIELDS) {
+      if (!(field in payload)) continue;
+      const oldStr = stringify(currentProfile[field]);
+      const newStr = stringify(payload[field]);
+      if (oldStr !== newStr) {
+        logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: field, oldValue: oldStr, newValue: newStr });
+      }
+    }
+    // Log file uploads separately (no content diff — just record the event)
+    if (payload.avatar_url) logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: 'avatar', newValue: 'uploaded' });
+    if (payload.resume_url) logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: 'resume', newValue: 'uploaded' });
+
     // Calculate projectCount
     const projectCount = (saved.experiences || []).reduce((total, exp) => {
       return total + (exp.projects?.length || 0);
@@ -283,6 +319,8 @@ async function deleteResume(req, res) {
 
     // Clear resume_url in the profile row
     const saved = await upsertProfileRow(userId, { resume_url: null });
+
+    logActivity({ userId, eventType: 'field_update', entity: 'profile', fieldName: 'resume', oldValue: 'uploaded', newValue: null });
 
     const projectCount = (saved.experiences || []).reduce((t, e) => t + (e.projects?.length || 0), 0);
     const companyCount = (saved.experiences || []).length;

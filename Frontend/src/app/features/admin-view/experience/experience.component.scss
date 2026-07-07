@@ -1,0 +1,215 @@
+.timeline-wrap {
+  position: relative;
+  padding-left: 2.5rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--admin-bdc);
+  }
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: .75rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -2.25rem;
+  top: 1.25rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid;
+  z-index: 1;
+
+  &.current {
+    background: #10B981;
+    border-color: #10B981;
+    box-shadow: 0 0 0 4px rgba(16,185,129,.2);
+  }
+
+  &:not(.current) {
+    background: var(--admin-bg-s2);
+    border-color: #475569;
+  }
+}
+
+.exp-card {
+  background: var(--admin-bg-sf);
+  border: 1px solid var(--admin-bdc);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color .2s;
+
+  &:hover { border-color: #334155; }
+  &.open  { border-color: rgba(16,185,129,.35); }
+}
+
+.exp-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+  cursor: pointer;
+
+  &:hover { background: rgba(255,255,255,.01); }
+}
+
+.exp-header-main { flex: 1; min-width: 0; }
+
+.exp-role {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--admin-tc);
+  margin-bottom: .25rem;
+}
+
+.exp-meta {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .78rem;
+  color: var(--admin-t2c);
+  flex-wrap: wrap;
+}
+
+.exp-period { color: var(--admin-t3c); }
+
+.current-badge {
+  padding: 1px 7px;
+  background: rgba(16,185,129,.12);
+  color: #10B981;
+  border-radius: 9999px;
+  font-size: .65rem;
+  font-weight: 700;
+}
+
+.exp-chevron {
+  color: var(--admin-t3c);
+  font-size: 1.25rem !important;
+  transition: transform .2s;
+}
+
+.exp-edit-btn {
+  background: none;
+  border: 1px solid var(--admin-bdc);
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--admin-t2c);
+  display: flex;
+  align-items: center;
+  transition: all .2s;
+
+  &:hover { border-color: #10B981; color: #10B981; }
+  .material-icons { font-size: .9rem; }
+}
+
+.exp-del-btn {
+  background: none;
+  border: 1px solid var(--admin-bdc);
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--admin-t3c);
+  display: flex;
+  align-items: center;
+  transition: all .2s;
+  &:hover { border-color: #EF4444; color: #EF4444; }
+  .material-icons { font-size: .9rem; }
+}
+
+.present-toggle {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  color: var(--admin-t2c);
+  cursor: pointer;
+  margin-bottom: .25rem;
+  input { accent-color: #10B981; width: 16px; height: 16px; cursor: pointer; }
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  padding: .55rem 1.1rem;
+  background: #EF4444;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+  font-family: inherit;
+  &:hover { background: #DC2626; }
+  .material-icons { font-size: .95rem; }
+}
+
+.exp-body {
+  padding: 1rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--admin-bdc);
+  animation: admin-fadeIn .2s ease;
+}
+
+.exp-desc {
+  font-size: .8375rem;
+  color: var(--admin-t2c);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem;
+  margin-bottom: .5rem;
+}
+
+.tech-tag {
+  padding: .25rem .625rem;
+  background: rgba(16,185,129,.08);
+  border: 1px solid rgba(16,185,129,.18);
+  color: #10B981;
+  border-radius: 9999px;
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+.proj-row {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  padding: .5rem .875rem;
+  background: rgba(255,255,255,.03);
+  border-radius: 9px;
+  border: 1px solid var(--admin-bdc);
+  margin-bottom: .375rem;
+
+  .material-icons { font-size: .9rem; color: #6366F1; }
+  span { font-size: .8125rem; color: var(--admin-tc); font-weight: 500; }
+}
+
+.proj-add {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  padding: .5rem .875rem;
+  border: 1px dashed var(--admin-bdc);
+  border-radius: 9px;
+  font-size: .8rem;
+  color: var(--admin-t3c);
+  cursor: pointer;
+  background: none;
+  font-family: inherit;
+  transition: all .2s;
+
+  &:hover { border-color: #6366F1; color: #6366F1; }
+}

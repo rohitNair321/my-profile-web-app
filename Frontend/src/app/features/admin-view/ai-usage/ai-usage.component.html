@@ -1,0 +1,114 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">AI Usage</h1>
+      <p class="page-sub">Track your Claude API usage, costs, and sessions.</p>
+    </div>
+  </div>
+
+  <!-- Balance card -->
+  <div class="admin-card" style="margin-bottom:1.25rem">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:.75rem">
+      <div>
+        <div class="admin-card-title" style="margin-bottom:.25rem">
+          <span class="material-icons">account_balance_wallet</span> Usage Balance
+        </div>
+        <p style="font-size:.78rem;color:var(--admin-t3c);margin:0">Resets monthly · Plan: Starter</p>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;color:var(--admin-tc)">
+          ${{ remaining.toFixed(2) }}
+        </div>
+        <div style="font-size:.75rem;color:var(--admin-t3c)">of ${{ budget().toFixed(2) }} remaining</div>
+      </div>
+    </div>
+    <div class="balance-track">
+      <div class="balance-fill" [style.width.%]="usedPct"></div>
+    </div>
+    <div class="balance-labels">
+      <span>${{ spent().toFixed(2) }} used</span>
+      <span>{{ usedPct | number:'1.1-1' }}%</span>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="ai-stats">
+    @for (s of stats(); track s.label) {
+      <div class="ov-stat" [style.--sc]="s.color">
+        <div class="ov-stat__icon"><span class="material-icons">{{ s.icon }}</span></div>
+        <div class="ov-stat__val">{{ s.value }}</div>
+        <div class="ov-stat__lbl">{{ s.label }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Chart row -->
+  <div class="ai-charts">
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#10B981">trending_up</span>
+        14-Day Usage
+      </div>
+      <div class="bar-chart-wrap">
+        @for (v of chartData(); track $index) {
+          <div class="bar" [style.height.px]="barHeight(v)"></div>
+        }
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--admin-t3c);margin-top:.5rem">
+        <span>14 days ago</span><span>Today</span>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#6366F1">donut_large</span>
+        By Role
+      </div>
+      @for (r of roles(); track r.label) {
+        <div style="margin-bottom:.875rem">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.35rem">
+            <span style="color:var(--admin-tc);font-weight:500">{{ r.label }}</span>
+            <span style="color:var(--admin-t3c);font-weight:700">{{ r.pct }}%</span>
+          </div>
+          <div class="skill-bar-track">
+            <div class="skill-bar-fill" [style.width.%]="r.pct" [style.background]="r.color"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Sessions table -->
+  <div class="admin-card">
+    <div class="admin-card-title">
+      <span class="material-icons" style="color:#06B6D4">history</span>
+      Recent Sessions
+    </div>
+    <div style="overflow-x:auto">
+      <table class="ai-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Model</th>
+            <th>Tokens</th>
+            <th>Cost</th>
+            <th>Requests</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of sessions(); track s.sessionId) {
+            <tr>
+              <td>{{ formatDate(s.date) }}</td>
+              <td><span class="model-pill">{{ shortModel(s.model) }}</span></td>
+              <td>{{ s.totalTokens | number }}</td>
+              <td class="cost-val">${{ s.cost.toFixed(4) }}</td>
+              <td>{{ s.requests }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

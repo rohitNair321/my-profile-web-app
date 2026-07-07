@@ -251,13 +251,12 @@ async function updatePassword(email, currentPassword, newPassword) {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
 
-    // Update password
+    const nowIso = new Date().toISOString();
+
+    // Update password_hash and updated_at (columns that are guaranteed to exist)
     const { error: updateError } = await supabase
       .from('users')
-      .update({
-        password_hash: hashedPassword,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ password_hash: hashedPassword, updated_at: nowIso })
       .eq('id', user.id);
 
     if (updateError) {
@@ -265,13 +264,56 @@ async function updatePassword(email, currentPassword, newPassword) {
       throw ApiError.internal('Failed to update password');
     }
 
+    // Record expiry timestamp separately — fire-and-forget so a missing column
+    // doesn't block a successful password change.  Add the column with:
+    //   ALTER TABLE users ADD COLUMN IF NOT EXISTS password_updated_at TIMESTAMPTZ;
+    supabase
+      .from('users')
+      .update({ password_updated_at: nowIso })
+      .eq('id', user.id)
+      .then(({ error: tsErr }) => {
+        if (tsErr) logger.warn('Could not set password_updated_at (column may not exist yet):', tsErr.message);
+      });
+
     logger.info('Password updated successfully', { userId: user.id, email });
 
-    return { message: 'Password updated successfully' };
+    return { message: 'Password updated successfully', passwordUpdatedAt: nowIso };
   } catch (error) {
     logger.error('updatePassword error:', error);
     throw error;
   }
+}
+
+/**
+ * Get password expiry status for the authenticated admin user
+ */
+async function getPasswordStatus(userId) {
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('password_updated_at, created_at')
+    .eq('id', userId)
+    .single();
+
+  if (error || !user) throw ApiError.notFound('User not found');
+
+  // Fall back to account creation date if password was never explicitly changed
+  const lastUpdatedAt = user.password_updated_at || user.created_at || null;
+  const EXPIRY_DAYS = 30;
+
+  let daysUntilExpiry = EXPIRY_DAYS; // default: treat as fresh if no date at all
+  if (lastUpdatedAt) {
+    const updatedMs   = new Date(lastUpdatedAt).getTime();
+    const nowMs       = Date.now();
+    const elapsedDays = Math.floor((nowMs - updatedMs) / (1000 * 60 * 60 * 24));
+    daysUntilExpiry   = EXPIRY_DAYS - elapsedDays;
+  }
+
+  return {
+    lastUpdatedAt,
+    daysUntilExpiry,
+    isExpired: daysUntilExpiry <= 0,
+    isWarning: daysUntilExpiry > 0 && daysUntilExpiry <= 5,
+  };
 }
 
 /**
@@ -287,6 +329,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   updatePassword,
+  getPasswordStatus,
   logout,
   createToken,
 };
