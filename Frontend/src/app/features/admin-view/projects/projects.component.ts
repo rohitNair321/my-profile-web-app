@@ -97,7 +97,7 @@ export class AdminProjectsComponent extends CommonApp {
     this.saving.set(true);
     const fd = new FormData();
     fd.append('experiences', JSON.stringify(exps));
-    this.appService.updateProfile(fd).subscribe({
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Project saved').subscribe({
       next: () => {
         this.saving.set(false);
         this.showAddDialog.set(false);
@@ -157,7 +157,7 @@ export class AdminProjectsComponent extends CommonApp {
     this.saving.set(true);
     const fd = new FormData();
     fd.append('experiences', JSON.stringify(exps));
-    this.appService.updateProfile(fd).subscribe({
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Project saved').subscribe({
       next: () => {
         this.saving.set(false);
         this.savedOk.set(true);
@@ -181,7 +181,7 @@ export class AdminProjectsComponent extends CommonApp {
     this.saving.set(true);
     const fd = new FormData();
     fd.append('experiences', JSON.stringify(exps));
-    this.appService.updateProfile(fd).subscribe({
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Project saved').subscribe({
       next: () => {
         this.saving.set(false);
         this.deleteConfirm.set(null);

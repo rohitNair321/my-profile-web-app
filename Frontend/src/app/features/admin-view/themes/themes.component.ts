@@ -120,7 +120,7 @@ export class AdminThemesComponent extends CommonApp {
     if (!theme) return;
     const fd = new FormData();
     fd.append('currenttheme', theme.name);
-    this.appService.updateProfile(fd).subscribe();
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Theme activated').subscribe();
   }
 
   deleteTheme(id: string): void {
@@ -130,7 +130,7 @@ export class AdminThemesComponent extends CommonApp {
     const updated = existing.filter((t: any) => (t.id ?? t.name) !== id);
     const fd = new FormData();
     fd.append('themes', JSON.stringify(updated));
-    this.appService.updateProfile(fd).subscribe();
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Theme deleted').subscribe();
   }
 
   // ── Builder dialog ─────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ export class AdminThemesComponent extends CommonApp {
     this.saving.set(true);
     const fd = new FormData();
     fd.append('themes', JSON.stringify(updatedThemes));
-    this.appService.updateProfile(fd).subscribe({
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Theme saved').subscribe({
       next: () => this.saving.set(false),
       error: () => this.saving.set(false),
     });

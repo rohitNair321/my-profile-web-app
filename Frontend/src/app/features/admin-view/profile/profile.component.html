@@ -7,9 +7,12 @@
       <p class="page-sub">Manage your personal information, bio, and resume.</p>
     </div>
     <div style="display:flex;gap:.625rem">
-      <button class="btn-ghost" type="button">Discard</button>
-      <button class="btn-primary" type="button" (click)="onSave()">
-        <span class="material-icons">save</span> Save Changes
+      <button class="btn-ghost" type="button" [disabled]="!isDirty() || saving()"
+        (click)="discardChanges()">Discard</button>
+      <button class="btn-primary" type="button" [disabled]="!isDirty() || saving()"
+        (click)="onSave()">
+        <span class="material-icons">{{ saving() ? 'hourglass_empty' : (savedOk() ? 'check' : 'save') }}</span>
+        {{ saving() ? 'Saving…' : (savedOk() ? 'Saved' : 'Save Changes') }}
       </button>
     </div>
   </div>

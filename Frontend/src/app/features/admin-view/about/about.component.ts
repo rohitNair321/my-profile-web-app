@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, Injector, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Observable, tap } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
+import { AdminDirtyComponent } from 'src/app/core/app-gards/unsaved-changes.guard';
 
 type EditorMode = 'edit' | 'preview';
 
@@ -12,16 +14,18 @@ type EditorMode = 'edit' | 'preview';
   styleUrls: ['./about.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminAboutComponent extends CommonApp implements OnInit {
+export class AdminAboutComponent extends CommonApp implements OnInit, AdminDirtyComponent {
   activeMode = signal<EditorMode>('preview');
   saving     = signal(false);
   savedOk    = signal(false);
   markdownText = '';
 
-  // Read-only computed snapshot for dirty detection
+  // Last-saved snapshot for dirty detection
   private _original = '';
 
-  get isDirty(): boolean { return this.markdownText !== this._original; }
+  isDirty(): boolean { return this.markdownText !== this._original; }
+
+  discardChanges(): void { this.markdownText = this._original; }
 
   constructor(public override injector: Injector) {
     super(injector);
@@ -49,18 +53,18 @@ export class AdminAboutComponent extends CommonApp implements OnInit {
 
   setMode(m: EditorMode): void { this.activeMode.set(m); }
 
-  save(): void {
-    if (!this.isDirty || this.saving()) return;
-    this.saving.set(true);
+  saveChanges(): Observable<any> {
     const fd = new FormData();
     fd.append('description', this.markdownText);
-    this.appService.updateProfile(fd).subscribe({
-      next: () => {
-        this._original = this.markdownText;
-        this.saving.set(false);
-        this.savedOk.set(true);
-        setTimeout(() => this.savedOk.set(false), 2500);
-      },
+    return this.saveWithFeedback(this.appService.updateProfile(fd), 'About section saved')
+      .pipe(tap(() => { this._original = this.markdownText; }));
+  }
+
+  save(): void {
+    if (!this.isDirty() || this.saving()) return;
+    this.saving.set(true);
+    this.saveChanges().subscribe({
+      next:  () => { this.saving.set(false); this.savedOk.set(true); setTimeout(() => this.savedOk.set(false), 2500); },
       error: () => this.saving.set(false),
     });
   }

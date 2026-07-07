@@ -46,6 +46,13 @@ export function app(): express.Express {
     next();
   });
 
+  // Lightweight liveness endpoint — declared BEFORE the static/SSR handlers so a
+  // keep-warm ping returns instantly without rendering Angular (and bypasses the
+  // host allow-list check on the catch-all route).
+  server.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+  });
+
   // Serve static files from /browser
   server.get('*.*', express.static(browserDistFolder, {
     maxAge: '1y'
@@ -100,6 +107,44 @@ export function app(): express.Express {
   return server;
 }
 
+/**
+ * Keep-warm self-ping — defeats Render free-tier cold starts for the SSR service.
+ * Render sleeps after ~15 min with no inbound HTTP; pinging our own public /health
+ * every 14 min keeps an already-awake instance awake. It cannot wake a slept
+ * instance (nothing runs to fire it) — pair with an external monitor for that.
+ * Needs the public URL: SELF_PING_URL, or Render's auto-injected RENDER_EXTERNAL_URL.
+ */
+function startKeepWarm(): void {
+  if (process.env['NODE_ENV'] !== 'production') return;
+
+  const base = process.env['SELF_PING_URL'] || process.env['RENDER_EXTERNAL_URL'];
+  if (!base) {
+    console.log('🔥 Frontend keep-warm disabled — set SELF_PING_URL or RENDER_EXTERNAL_URL');
+    return;
+  }
+  if (typeof fetch !== 'function') {
+    console.warn('🔥 Frontend keep-warm disabled — global fetch unavailable (needs Node 18+)');
+    return;
+  }
+
+  const target = `${base.replace(/\/+$/, '')}/health`;
+  const FOURTEEN_MIN = 14 * 60 * 1000;
+
+  setInterval(async () => {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
+      const res = await fetch(target, { method: 'GET', signal: controller.signal });
+      clearTimeout(timeout);
+      console.log(`🔥 Keep-warm ping ${target} → ${res.status}`);
+    } catch (err) {
+      console.warn('🔥 Keep-warm ping failed:', (err as Error).message);
+    }
+  }, FOURTEEN_MIN).unref(); // unref so the timer never blocks process exit
+
+  console.log(`🔥 Frontend keep-warm started — pinging ${target} every 14 min`);
+}
+
 function run(): void {
   const port = process.env['PORT'] || 4000;
 
@@ -108,6 +153,7 @@ function run(): void {
     console.log(`✅ Node Express server listening on http://localhost:${port}`);
     console.log(`📦 Environment: ${process.env['NODE_ENV'] || 'development'}`);
     console.log(`🌐 Allowed hosts: ${ALLOWED_HOSTS.join(', ')}`);
+    startKeepWarm();
   });
 
   httpServer.setTimeout(60000);

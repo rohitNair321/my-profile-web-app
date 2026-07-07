@@ -5,8 +5,9 @@
       <h1 class="page-title">About Me</h1>
       <p class="page-sub">Edit your bio and about section content.</p>
     </div>
-    <button class="btn-primary" type="button">
-      <span class="material-icons">save</span> Save
+    <button class="btn-primary" type="button" [disabled]="!isDirty() || saving()" (click)="save()">
+      <span class="material-icons">{{ saving() ? 'hourglass_empty' : (savedOk() ? 'check' : 'save') }}</span>
+      {{ saving() ? 'Saving…' : (savedOk() ? 'Saved' : 'Save') }}
     </button>
   </div>
 

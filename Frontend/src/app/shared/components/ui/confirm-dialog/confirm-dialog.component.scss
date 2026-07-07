@@ -84,6 +84,13 @@
     &:hover { border-color: var(--text-muted, #64748B); }
   }
 
+  &--discard {
+    background: transparent;
+    border: 1px solid var(--error, #EF4444);
+    color: var(--error, #EF4444);
+    &:hover { background: color-mix(in srgb, var(--error, #EF4444) 10%, transparent); }
+  }
+
   &--confirm {
     background: var(--tone);
     border: none;

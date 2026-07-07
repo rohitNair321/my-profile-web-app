@@ -70,25 +70,40 @@ export class PostService {
   private _featured = signal<Post[] | null>(null);
   readonly featured = this._featured.asReadonly();
 
+  // Per-query cache for the public list + slug reads — avoids re-fetching the
+  // same page/filter when the user navigates back to /posts or reopens a post.
+  private _listCache = new Map<string, PostsResponse>();
+  private _slugCache = new Map<string, Post>();
+
   /** Clear caches after admin writes so public views refetch fresh data */
   private invalidateCache(): void {
     this._featured.set(null);
+    this._listCache.clear();
+    this._slugCache.clear();
   }
 
   // ── PUBLIC ─────────────────────────────────────────────────
 
   getAll(params: { page?: number; limit?: number; tag?: string; search?: string } = {}): Observable<{ data: PostsResponse }> {
+    const key = JSON.stringify(params);
+    const cached = this._listCache.get(key);
+    if (cached) return of({ data: cached });
+
     let httpParams = new HttpParams();
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') {
         httpParams = httpParams.set(k, String(v));
       }
     });
-    return this.http.get<{ data: PostsResponse }>(this.base, { params: httpParams });
+    return this.http.get<{ data: PostsResponse }>(this.base, { params: httpParams })
+      .pipe(tap(r => { if (r?.data) this._listCache.set(key, r.data); }));
   }
 
   getBySlug(slug: string): Observable<{ data: { post: Post } }> {
-    return this.http.get<{ data: { post: Post } }>(`${this.base}/slug/${slug}`);
+    const cached = this._slugCache.get(slug);
+    if (cached) return of({ data: { post: cached } });
+    return this.http.get<{ data: { post: Post } }>(`${this.base}/slug/${slug}`)
+      .pipe(tap(r => { if (r?.data?.post) this._slugCache.set(slug, r.data.post); }));
   }
 
   getFeatured(limit = 3): Observable<{ data: { posts: Post[] } }> {

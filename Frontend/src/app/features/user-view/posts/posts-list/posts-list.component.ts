@@ -96,6 +96,10 @@ export class PostsListComponent extends CommonApp implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  goHome(): void {
+    this.router.navigate(['/home']);
+  }
+
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages() }, (_, i) => i + 1);
   }

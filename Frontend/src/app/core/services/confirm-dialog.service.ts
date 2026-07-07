@@ -2,6 +2,9 @@ import { Injectable, signal } from '@angular/core';
 
 export type DialogTone = 'danger' | 'warning' | 'info' | 'success';
 
+/** Result of a 3-way choice dialog */
+export type DialogChoice = 'save' | 'discard' | 'cancel';
+
 export interface ConfirmDialogConfig {
   /** Bold heading, e.g. "Delete Post" */
   title?: string;
@@ -17,40 +20,58 @@ export interface ConfirmDialogConfig {
   cancelLabel?: string;
   /** false = single-button notice dialog (no cancel). Default true. */
   showCancel?: boolean;
+  /** When set, renders a third "discard" button and switches to choice mode. */
+  discardLabel?: string;
 }
 
 /**
- * Promise-based confirm/notice dialog — replaces PrimeNG ConfirmDialog and
+ * Promise-based confirm/notice/choice dialog — replaces PrimeNG ConfirmDialog and
  * per-component inline dialogs. One global <app-confirm-dialog> instance
  * is mounted in AppComponent.
  *
  * Usage:
  *   const ok = await this.confirmDialog.confirmDelete(post.title);
- *   if (ok) { ...delete... }
- *
+ *   const choice = await this.confirmDialog.choice({ ... }); // 'save' | 'discard' | 'cancel'
  *   this.confirmDialog.success('Message sent successfully!', { title: 'Thank you' });
  */
 @Injectable({ providedIn: 'root' })
 export class ConfirmDialogService {
   /** Currently open dialog (null = closed). Read by ConfirmDialogComponent. */
-  readonly active = signal<Required<Pick<ConfirmDialogConfig, 'message'>> & ConfirmDialogConfig | null>(null);
+  readonly active = signal<(ConfirmDialogConfig & { message: string }) | null>(null);
 
-  private resolver: ((confirmed: boolean) => void) | null = null;
+  private resolver: ((result: any) => void) | null = null;
 
   /** Generic two-button confirmation. Resolves true on confirm, false on cancel/dismiss. */
   confirm(config: ConfirmDialogConfig): Promise<boolean> {
-    // Only one dialog at a time — cancel any dialog already open
-    this.resolve(false);
+    return this._open<boolean>(
+      {
+        tone:        'info',
+        showCancel:  true,
+        confirmLabel: config.showCancel === false ? 'OK' : 'Confirm',
+        cancelLabel: 'Cancel',
+        ...config,
+      },
+      false,
+    );
+  }
 
-    this.active.set({
-      tone:        'info',
-      showCancel:  true,
-      confirmLabel: config.showCancel === false ? 'OK' : 'Confirm',
-      cancelLabel: 'Cancel',
-      ...config,
-    });
-
-    return new Promise<boolean>(res => { this.resolver = res; });
+  /**
+   * Three-way choice — Save / Discard / Cancel. Used by the unsaved-changes guard.
+   * Resolves 'save' | 'discard' | 'cancel' (dismiss/ESC = 'cancel').
+   */
+  choice(config: ConfirmDialogConfig): Promise<DialogChoice> {
+    return this._open<DialogChoice>(
+      {
+        tone:         'warning',
+        showCancel:   true,
+        confirmLabel: 'Save changes',
+        discardLabel: 'Discard',
+        cancelLabel:  'Keep editing',
+        icon:         'save',
+        ...config,
+      },
+      'cancel',
+    );
   }
 
   /** Danger-styled delete confirmation for a named item */
@@ -80,11 +101,40 @@ export class ConfirmDialogService {
     return this.confirm({ message, tone: 'warning', ...opts });
   }
 
-  /** Called by the dialog component when the user acts */
-  resolve(confirmed: boolean): void {
+  private _open<T>(config: ConfirmDialogConfig & { message: string }, dismissValue: T): Promise<T> {
+    // Only one dialog at a time — resolve any dialog already open with its dismiss value
+    this._dismiss();
+    this.active.set(config);
+    return new Promise<T>(res => { this.resolver = res; });
+  }
+
+  /** Confirm button — 'save' in choice mode, true in confirm mode */
+  onConfirm(): void {
+    const isChoice = !!this.active()?.discardLabel;
+    this._resolve(isChoice ? 'save' : true);
+  }
+
+  /** Discard button (choice mode only) */
+  onDiscard(): void {
+    this._resolve('discard');
+  }
+
+  /** Cancel / backdrop / ESC — 'cancel' in choice mode, false in confirm mode */
+  onCancel(): void {
+    const isChoice = !!this.active()?.discardLabel;
+    this._resolve(isChoice ? 'cancel' : false);
+  }
+
+  private _dismiss(): void {
+    if (!this.resolver) return;
+    const isChoice = !!this.active()?.discardLabel;
+    this._resolve(isChoice ? 'cancel' : false);
+  }
+
+  private _resolve(result: any): void {
     const res = this.resolver;
     this.resolver = null;
     this.active.set(null);
-    res?.(confirmed);
+    res?.(result);
   }
 }

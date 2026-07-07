@@ -47,7 +47,7 @@ const {
 // Import routes
 const apiV1Routes = require('./api/v1');
 const { supabase: _supabase } = require('./db/supabaseClient');
-const { startScheduler, startActivityLogPurge } = require('./services/scheduler');
+const { startScheduler, startActivityLogPurge, startKeepWarm } = require('./services/scheduler');
 
 // Legacy /api/* routes fully retired — auth/profile/contact all live on /api/v1/*
 // (frontend migrated: AuthService → /api/v1/auth, AppService → /api/v1/profile + /api/v1/contact)
@@ -262,6 +262,11 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
 
   // Start activity log purge (clears logs every ~25 days)
   startActivityLogPurge();
+
+  // Keep-warm self-ping (only active in production with a public URL configured)
+  if (process.env.NODE_ENV === 'production') {
+    startKeepWarm();
+  }
 });
 
 // Handle unhandled rejections

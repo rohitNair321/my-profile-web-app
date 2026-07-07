@@ -5,9 +5,9 @@
       <h1 class="page-title">Social Links</h1>
       <p class="page-sub">Manage your public social profiles and links.</p>
     </div>
-    <button class="btn-primary" type="button" (click)="onSave()">
-      <span class="material-icons">{{ saved() ? 'check' : 'save' }}</span>
-      {{ saved() ? 'Saved!' : 'Save Changes' }}
+    <button class="btn-primary" type="button" [disabled]="!isDirty() || saving()" (click)="onSave()">
+      <span class="material-icons">{{ saving() ? 'hourglass_empty' : (saved() ? 'check' : 'save') }}</span>
+      {{ saving() ? 'Saving…' : (saved() ? 'Saved!' : 'Save Changes') }}
     </button>
   </div>
 

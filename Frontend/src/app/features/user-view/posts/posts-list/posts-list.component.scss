@@ -110,7 +110,8 @@
 // ── Grid ───────────────────────────────────────────────────
 .posts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  // min(100%, 320px) keeps the track from overflowing on phones < 360px wide
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 28px;
 }
 
@@ -208,4 +209,25 @@
 @media (max-width: 640px) {
   .posts-page { padding: 24px 16px 60px; }
   .posts-grid { grid-template-columns: 1fr; }
+}
+
+/* Back to home button */
+.posts-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  margin-bottom: 1.25rem;
+  padding: .5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: .82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .2s, color .2s, transform .15s;
+
+  .material-icons { font-size: 1rem; }
+  &:hover { border-color: var(--primary); color: var(--primary); transform: translateX(-2px); }
 }

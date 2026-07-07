@@ -85,4 +85,48 @@ function startActivityLogPurge() {
   logger.info('🧹 Activity log purge scheduled — runs on the 1st and 26th of each month');
 }
 
-module.exports = { startScheduler, startActivityLogPurge };
+// ─────────────────────────────────────────────────────────────────
+//  KEEP-WARM — defeat Render free-tier cold starts
+// ─────────────────────────────────────────────────────────────────
+// Render's free web service sleeps after ~15 min with no inbound HTTP.
+// This self-ping hits the app's own /health endpoint every 14 minutes
+// (1 min before the sleep window) so the idle timer never elapses.
+//
+// Notes / limits:
+//  • This keeps an ALREADY-AWAKE instance awake indefinitely. It cannot wake a
+//    server that has already slept (nothing is running to fire the cron), so
+//    the very first request after a deploy/crash may still cold-start.
+//  • Needs the app's PUBLIC url. Render injects RENDER_EXTERNAL_URL automatically;
+//    otherwise set SELF_PING_URL. Pinging localhost does NOT reset Render's timer
+//    (it only counts external inbound requests), so we must hit the public URL.
+function startKeepWarm() {
+  const base = process.env.SELF_PING_URL || process.env.RENDER_EXTERNAL_URL;
+
+  if (!base) {
+    logger.info('🔥 Keep-warm disabled — set SELF_PING_URL or RENDER_EXTERNAL_URL to enable');
+    return;
+  }
+  if (typeof fetch !== 'function') {
+    logger.warn('🔥 Keep-warm disabled — global fetch unavailable (needs Node 18+)');
+    return;
+  }
+
+  const target = `${base.replace(/\/+$/, '')}/health`;
+
+  // "*/14 * * * *" — every 14 minutes
+  cron.schedule('*/14 * * * *', async () => {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
+      const res = await fetch(target, { method: 'GET', signal: controller.signal });
+      clearTimeout(timeout);
+      logger.info(`🔥 Keep-warm ping ${target} → ${res.status}`);
+    } catch (err) {
+      logger.warn('🔥 Keep-warm ping failed:', err.message);
+    }
+  });
+
+  logger.info(`🔥 Keep-warm cron started — pinging ${target} every 14 min`);
+}
+
+module.exports = { startScheduler, startActivityLogPurge, startKeepWarm };

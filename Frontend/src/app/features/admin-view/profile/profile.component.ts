@@ -1,6 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, effect, Injector, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, Injector, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Observable, tap } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
+import { AdminDirtyComponent } from 'src/app/core/app-gards/unsaved-changes.guard';
+import { splitTokens, mergeTokens } from 'src/app/shared/utils/split-tokens';
 
 interface ThemeRow { name: string; c1: string; c2: string; c3: string; active: boolean; }
 
@@ -14,7 +17,7 @@ type Tab = 'info' | 'bio' | 'resume';
   styleUrls: ['./profile.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminProfileComponent extends CommonApp {
+export class AdminProfileComponent extends CommonApp implements AdminDirtyComponent {
   profile = computed(() => this.appService.profile());
 
   // Mini theme widget in the sidebar
@@ -59,6 +62,8 @@ export class AdminProfileComponent extends CommonApp {
   addingSkill = signal(false);
 
   private _seeded = false;
+  // Snapshot of the last-saved form state for dirty detection
+  private _baseline = '';
 
   constructor(public override injector: Injector) {
     super(injector);
@@ -87,7 +92,28 @@ export class AdminProfileComponent extends CommonApp {
     this.bio            = p.description    ?? '';
     this.shortBio       = p.short_bio      ?? '';
     this.skills         = p.skills?.length ? [...p.skills] : [];
-    if (p.avatar_url) this.avatarSrc.set(p.avatar_url);
+    this.avatarSrc.set(p.avatar_url ?? null);
+    this.avatarFile = null;
+    this._baseline = this._snapshot();
+  }
+
+  /** Serializable snapshot of all editable fields for dirty comparison */
+  private _snapshot(): string {
+    return JSON.stringify([
+      this.fullName, this.jobTitle, this.email, this.phone, this.secondaryPhone,
+      this.location, this.website, this.github, this.linkedin, this.bio, this.shortBio,
+      this.skills, this.avatarFile?.name ?? '',
+    ]);
+  }
+
+  // ── AdminDirtyComponent (unsaved-changes guard) ──────────────────
+  isDirty(): boolean {
+    return this._seeded && this._snapshot() !== this._baseline;
+  }
+
+  discardChanges(): void {
+    const p = this.appService.profile();
+    if (p) this._seed(p);
   }
 
   onAvatarChange(e: Event): void {
@@ -111,9 +137,10 @@ export class AdminProfileComponent extends CommonApp {
   }
 
   confirmAddSkill(): void {
-    const s = this.newSkill.trim();
-    if (s && !this.skills.includes(s)) {
-      this.skills = [...this.skills, s];
+    // Accepts a single skill OR a pasted bundle ("Angular, TypeScript, RxJS")
+    const incoming = splitTokens(this.newSkill);
+    if (incoming.length) {
+      this.skills = mergeTokens(this.skills, incoming, { maxLen: 40 }).list;
     }
     this.newSkill = '';
     this.addingSkill.set(false);
@@ -124,13 +151,10 @@ export class AdminProfileComponent extends CommonApp {
     if (!t) return;
     const fd = new FormData();
     fd.append('currenttheme', t.name);
-    this.appService.updateProfile(fd).subscribe();
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Theme activated').subscribe();
   }
 
-  onSave(): void {
-    if (this.saving()) return;
-    this.saving.set(true);
-
+  private _buildFormData(): FormData {
     const fd = new FormData();
     fd.append('full_name',       this.fullName.trim());
     fd.append('about_role',      this.jobTitle.trim());
@@ -147,14 +171,27 @@ export class AdminProfileComponent extends CommonApp {
     if (this.avatarFile) {
       fd.append('avatar', this.avatarFile, this.avatarFile.name);
     }
+    return fd;
+  }
 
-    this.appService.updateProfile(fd).subscribe({
-      next: () => {
-        this._seeded = false; // allow re-seed from refreshed profile
-        this.saving.set(false);
-        this.savedOk.set(true);
-        setTimeout(() => this.savedOk.set(false), 2500);
-      },
+  /** AdminDirtyComponent — used by both the Save button and the route guard */
+  saveChanges(): Observable<any> {
+    return this.saveWithFeedback(
+      this.appService.updateProfile(this._buildFormData()),
+      'Profile saved successfully'
+    ).pipe(
+      tap(() => {
+        this.avatarFile = null;
+        this._baseline = this._snapshot();
+      })
+    );
+  }
+
+  onSave(): void {
+    if (!this.isDirty() || this.saving()) return;
+    this.saving.set(true);
+    this.saveChanges().subscribe({
+      next:  () => { this.saving.set(false); this.savedOk.set(true); setTimeout(() => this.savedOk.set(false), 2500); },
       error: () => this.saving.set(false),
     });
   }

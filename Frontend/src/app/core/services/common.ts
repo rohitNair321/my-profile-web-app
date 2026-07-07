@@ -9,6 +9,8 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { LocalStorageService } from "src/app/shared/services/local-storage.service";
 import { MenuItem } from "../config/menuItem.config";
 import { ChatApiService } from "./chat-api.service";
+import { Observable } from "rxjs";
+import { finalize, tap } from "rxjs/operators";
 
 @Injectable({ providedIn: 'root' })
 export abstract class CommonApp {
@@ -65,6 +67,23 @@ export abstract class CommonApp {
 
   public themeToggle() {
     this.themeService.toggleDarkMode();
+  }
+
+  /**
+   * Wraps a save/update API call with a global spinner + success/error toast.
+   * Shows the full-screen spinner while in flight, a success alert on complete,
+   * and an error alert on failure. Returns the observable so callers can chain
+   * (e.g. reset dirty state). Feedback fires on subscribe.
+   */
+  saveWithFeedback<T>(work$: Observable<T>, successMsg = 'Data saved successfully'): Observable<T> {
+    this.loading.show('Saving…');
+    return work$.pipe(
+      tap({
+        next:  () => this.alertService.showAlert(successMsg, 'success'),
+        error: () => this.alertService.showAlert('Save failed. Please try again.', 'error'),
+      }),
+      finalize(() => this.loading.hide()),
+    );
   }
 
   /**

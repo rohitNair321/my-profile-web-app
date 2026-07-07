@@ -1,5 +1,5 @@
 @if (dialog.active(); as cfg) {
-  <div class="cdlg-backdrop" (click)="dialog.resolve(false)">
+  <div class="cdlg-backdrop" (click)="dialog.onCancel()">
     <div class="cdlg-card" [class]="'cdlg-card--' + (cfg.tone ?? 'info')"
          role="alertdialog" aria-modal="true"
          (click)="$event.stopPropagation()">
@@ -13,11 +13,16 @@
 
       <div class="cdlg-footer">
         @if (cfg.showCancel !== false) {
-          <button class="cdlg-btn cdlg-btn--ghost" type="button" (click)="dialog.resolve(false)">
+          <button class="cdlg-btn cdlg-btn--ghost" type="button" (click)="dialog.onCancel()">
             {{ cfg.cancelLabel ?? 'Cancel' }}
           </button>
         }
-        <button class="cdlg-btn cdlg-btn--confirm" type="button" (click)="dialog.resolve(true)">
+        @if (cfg.discardLabel) {
+          <button class="cdlg-btn cdlg-btn--discard" type="button" (click)="dialog.onDiscard()">
+            {{ cfg.discardLabel }}
+          </button>
+        }
+        <button class="cdlg-btn cdlg-btn--confirm" type="button" (click)="dialog.onConfirm()">
           {{ cfg.confirmLabel ?? 'Confirm' }}
         </button>
       </div>

@@ -99,19 +99,19 @@ export class SettingsComponent extends CommonApp implements OnInit, OnDestroy, C
 
     const confirmationSubject = new Subject<boolean>();
 
-    // Confirm = save then leave; Cancel (or ESC/backdrop) = stay on the page.
-    // Safer than the old dialog, where dismissing could silently discard changes.
-    this.confirmDialog.warning(
-      'You have unsaved changes. Save them before leaving?',
-      {
-        title: 'Unsaved Changes',
-        icon: 'save',
-        confirmLabel: 'Save & Leave',
-        cancelLabel: 'Stay',
+    // Save / Discard / Keep editing — same shared dialog used by the admin route guard.
+    this.confirmDialog.choice({
+      title:   'Unsaved changes',
+      message: 'You have unsaved changes on this page. Do you want to save them before leaving?',
+      icon:    'save',
+    }).then(choice => {
+      if (choice === 'cancel') {
+        confirmationSubject.next(false);
+      } else {
+        if (choice === 'save')    this.saveSettings();
+        if (choice === 'discard') this.resetDefaults();
+        confirmationSubject.next(true);
       }
-    ).then(confirmed => {
-      if (confirmed) this.saveSettings();
-      confirmationSubject.next(confirmed);
       confirmationSubject.complete();
     });
 

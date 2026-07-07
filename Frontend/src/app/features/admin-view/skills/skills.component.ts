@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, Injector, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonApp } from 'src/app/core/services/common';
+import { splitTokens, mergeTokens } from 'src/app/shared/utils/split-tokens';
 
 interface SkillItem { name: string; proficiency: number; }
 interface SkillCategory { cat: string; icon: string; color: string; items: SkillItem[]; }
@@ -39,12 +40,13 @@ export class AdminSkillsComponent extends CommonApp {
   }
 
   addSkill(): void {
-    const name = this.newSkill().trim();
-    if (!name) return;
-    const skills = this._currentSkills();
-    if (skills.includes(name)) return;
-    this._saveSkills([...skills, name]);
+    // Accepts a single skill OR a pasted bundle ("Angular, TypeScript; RxJS")
+    const incoming = splitTokens(this.newSkill());
+    if (!incoming.length) return;
+    const { list, skipped } = mergeTokens(this._currentSkills(), incoming, { maxLen: 40 });
     this.newSkill.set('');
+    if (skipped && list.length === this._currentSkills().length) return; // nothing new to add
+    this._saveSkills(list);
   }
 
   removeSkill(name: string): void {
@@ -59,7 +61,7 @@ export class AdminSkillsComponent extends CommonApp {
     this.saving.set(true);
     const fd = new FormData();
     fd.append('skills', JSON.stringify(skills));
-    this.appService.updateProfile(fd).subscribe({
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Skills updated').subscribe({
       next: () => {
         this.saving.set(false);
         this.savedOk.set(true);

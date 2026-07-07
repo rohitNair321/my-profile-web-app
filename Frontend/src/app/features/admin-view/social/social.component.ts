@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, Injector, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Observable, tap } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
+import { AdminDirtyComponent } from 'src/app/core/app-gards/unsaved-changes.guard';
 
 interface SocialLink {
   platform: string; icon: string; handle: string;
@@ -16,9 +18,10 @@ interface SocialLink {
   styleUrls: ['./social.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminSocialComponent extends CommonApp implements OnInit {
+export class AdminSocialComponent extends CommonApp implements OnInit, AdminDirtyComponent {
   saved = signal(false);
   saving = signal(false);
+  private _baseline = '';
 
   // Platform list — GitHub/LinkedIn/Website are populated from profile
   socials: SocialLink[] = [
@@ -43,21 +46,35 @@ export class AdminSocialComponent extends CommonApp implements OnInit {
     link.enabled = !link.enabled;
   }
 
-  onSave(): void {
-    this.saving.set(true);
+  private _snapshot(): string {
+    return JSON.stringify(this.socials.map(s => [s.fieldKey ?? s.platform, s.handle, s.enabled]));
+  }
+
+  // ── AdminDirtyComponent ──────────────────────────────────────────
+  isDirty(): boolean {
+    return !!this._baseline && this._snapshot() !== this._baseline;
+  }
+
+  discardChanges(): void {
+    this._seedFromProfile();
+  }
+
+  saveChanges(): Observable<any> {
     const fd = new FormData();
-    // Save the three profile-backed fields
     for (const link of this.socials) {
-      if (link.fieldKey && link.handle.trim()) {
+      if (link.fieldKey) {
         fd.append(link.fieldKey, link.handle.trim());
       }
     }
-    this.appService.updateProfile(fd).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.saved.set(true);
-        setTimeout(() => this.saved.set(false), 2000);
-      },
+    return this.saveWithFeedback(this.appService.updateProfile(fd), 'Social links saved')
+      .pipe(tap(() => { this._baseline = this._snapshot(); }));
+  }
+
+  onSave(): void {
+    if (!this.isDirty() || this.saving()) return;
+    this.saving.set(true);
+    this.saveChanges().subscribe({
+      next:  () => { this.saving.set(false); this.saved.set(true); setTimeout(() => this.saved.set(false), 2000); },
       error: () => this.saving.set(false),
     });
   }
@@ -70,5 +87,6 @@ export class AdminSocialComponent extends CommonApp implements OnInit {
       const val = (p as any)[s.fieldKey] ?? '';
       return { ...s, handle: val, enabled: !!val || s.enabled };
     });
+    this._baseline = this._snapshot();
   }
 }

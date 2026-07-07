@@ -39,6 +39,6 @@ export class ConfirmDialogComponent {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    if (this.dialog.active()) this.dialog.resolve(false);
+    if (this.dialog.active()) this.dialog.onCancel();
   }
 }

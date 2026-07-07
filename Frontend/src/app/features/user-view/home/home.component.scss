@@ -1938,14 +1938,20 @@
 
 /* ── Hero responsive ───────────────────────────────────────────── */
 @media (max-width: 1023px) {
-  .hero-visual   { display: none; }
-  .hero-grid     { justify-content: flex-start; }
+  /* Show the hero photo on tablet/mobile, stacked above the text */
+  .hero-grid     { justify-content: flex-start; align-items: center; }
+  .hero-visual   { order: -1; width: 100%; margin-bottom: 0.5rem; }
   .hero-content  { max-width: 700px; }
   .hero-section  { min-height: unset; padding: 6rem 0 4rem; }
 }
 
 @media (max-width: 639px) {
   .hero-section  { padding: 5rem 0 3rem; }
+}
+
+@media (max-width: 359px) {
+  /* Keep the photo from crowding very small screens */
+  .hero-image-wrapper { width: 240px; height: 240px; }
 }
 
 @media (max-width: 479px) {

@@ -5,6 +5,7 @@ import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component
 import { tokenGuard } from './core/app-gards/token.guard';
 import { PageNotFoundComponent } from './layouts/page-not-found/page-not-found.component';
 import { canDeactivateGuard } from './core/app-gards/can-deactivate.guard';
+import { unsavedChangesGuard } from './core/app-gards/unsaved-changes.guard';
 
 export const routes: Routes = [
   // Main application routes - accessible to everyone (guest + admin)
@@ -164,6 +165,7 @@ export const routes: Routes = [
       {
         path: 'profile',
         canActivate: [tokenGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./features/admin-view/profile/profile.component').then(m => m.AdminProfileComponent),
         data: { roles: ['ADMIN'] },
@@ -208,6 +210,7 @@ export const routes: Routes = [
       {
         path: 'about',
         canActivate: [tokenGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./features/admin-view/about/about.component').then(m => m.AdminAboutComponent),
         data: { roles: ['ADMIN'] },
@@ -236,6 +239,7 @@ export const routes: Routes = [
       {
         path: 'social',
         canActivate: [tokenGuard],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./features/admin-view/social/social.component').then(m => m.AdminSocialComponent),
         data: { roles: ['ADMIN'] },

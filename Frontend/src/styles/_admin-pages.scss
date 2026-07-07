@@ -60,6 +60,12 @@
   text-decoration: none;
   .material-icons { font-size: 1rem; }
   &:hover { box-shadow: 0 8px 24px rgba(16, 185, 129, .45); }
+  &:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: grayscale(.3);
+  }
 }
 
 .btn-ghost {
@@ -74,6 +80,7 @@
   font-family: inherit;
   transition: border-color .2s;
   &:hover { border-color: #334155; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
 }
 
 .btn-danger {

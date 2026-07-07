@@ -141,7 +141,7 @@ export class AdminExperienceComponent extends CommonApp {
     this.saving.set(true);
     const fd = new FormData();
     fd.append('experiences', JSON.stringify(exps));
-    this.appService.updateProfile(fd).subscribe({
+    this.saveWithFeedback(this.appService.updateProfile(fd), 'Experience saved').subscribe({
       next: () => this.saving.set(false),
       error: () => this.saving.set(false),
     });
