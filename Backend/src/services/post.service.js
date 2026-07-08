@@ -319,6 +319,16 @@ class PostService {
     await this._findById(id); // throws 404 if not found
     const { error } = await supabase.from('posts').delete().eq('id', id);
     if (error) throw ApiError.internal(error.message);
+
+    // Fire-and-forget: purge this post's scheduler activity events so a deleted
+    // post can never surface a "published" notification in the admin dashboard.
+    supabase
+      .from('activity_log')
+      .delete()
+      .in('event_type', ['scheduled_post_published', 'scheduled_post_failed'])
+      .eq('meta->>post_id', id)
+      .then(({ error: e }) => { if (e) console.warn('scheduler activity cleanup failed:', e.message); });
+
     return { success: true };
   }
 

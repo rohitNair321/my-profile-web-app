@@ -5,6 +5,7 @@ import {
   OnInit,
   OnDestroy,
   computed,
+  effect,
   signal,
   PLATFORM_ID,
   Inject,
@@ -116,16 +117,23 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     this.confirmDialog = injector.get(ConfirmDialogService);
 
     this.appConfig.theme.name = 'theme-6';
-    this.appConfig.appConfiguration.type = 'sidebar';   // 'sidebar' | 'navbar'
     this.appConfig.appConfiguration.theme = 'light';
     this.appConfig.appConfiguration.sidebarPosition = 'left';      // always left
     this.appConfig.appConfiguration.logoLocationHeader = false;
     this.appConfig.appConfiguration.collapsed = true;        // sidebar icon-only by default
     this.appConfig.appConfiguration.showSidebarToggle = true;
     this.appConfig.appConfiguration.showAgentChat = true;
-    this.appConfig.appConfiguration.showUserProfileView = this.appService.role() === 'ADMIN';
-    this.appConfig.appConfiguration.showNotifications = this.appService.role() === 'ADMIN';
     this.appConfig.appConfiguration.isMobile = this._isMobile();
+
+    // Layout follows the auth role REACTIVELY: admins get the sidebar, guests
+    // (incl. right after logout) get the top navbar. An effect keeps it correct
+    // even if the role signal settles after this component is created.
+    effect(() => {
+      const isAdmin = this.appService.role() === 'ADMIN';
+      this.appConfig.appConfiguration.type = isAdmin ? 'sidebar' : 'navbar';
+      this.appConfig.appConfiguration.showUserProfileView = isAdmin;
+      this.appConfig.appConfiguration.showNotifications = isAdmin;
+    });
   }
 
   // ── Lifecycle ────────────────────────────────────────────────
@@ -136,7 +144,6 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     const resolvedId = THEME_NAME_MAP[this.appConfig.theme.name ?? 'theme-5'] ?? 'tron';
     this.themeService.setTheme(resolvedId);
     this.startSessionTimer();
-    this._applyRoleLayout();
     this._checkPasswordExpiry();
     this._connectSchedulerNotifications();
 
@@ -149,13 +156,6 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
 
       if (localStorage.getItem('rn-pref-motion') === 'true') this.toggleReduceMotion();
     }
-  }
-
-  private _applyRoleLayout(): void {
-    const isAdmin = this.appService.role() === 'ADMIN';
-    this.appConfig.appConfiguration.type = isAdmin ? 'sidebar' : 'navbar';
-    this.appConfig.appConfiguration.showUserProfileView = isAdmin;
-    this.appConfig.appConfiguration.showNotifications = isAdmin;
   }
 
   ngOnDestroy(): void {

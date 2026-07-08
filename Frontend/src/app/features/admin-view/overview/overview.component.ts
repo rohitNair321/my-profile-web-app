@@ -4,9 +4,8 @@ import { RouterModule } from '@angular/router';
 import { CommonApp } from 'src/app/core/services/common';
 import { ChatApiService, UsageResponse } from 'src/app/core/services/chat-api.service';
 import { ActivityApiService, ActivityFeedItem } from 'src/app/core/services/activity-api.service';
+import { SchedulerNotificationService } from 'src/app/core/services/scheduler-notification.service';
 import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
-
-const SCHED_SEEN_KEY = 'sched-notif-seen-at';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
@@ -23,6 +22,7 @@ interface StatCard { icon: string; label: string; value: string; color: string; 
 export class OverviewComponent extends CommonApp implements OnInit, AfterViewInit, OnDestroy {
   private chatApi     = inject(ChatApiService);
   private activityApi = inject(ActivityApiService);
+  private schedSvc    = inject(SchedulerNotificationService);
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   private _chart: Chart | null = null;
@@ -124,22 +124,17 @@ export class OverviewComponent extends CommonApp implements OnInit, AfterViewIni
 
   private _checkSchedulerNotifications(): void {
     if (this.appService.role() !== 'ADMIN') return;
-    const lastSeen = typeof localStorage !== 'undefined'
-      ? localStorage.getItem(SCHED_SEEN_KEY) ?? undefined
-      : undefined;
 
-    this.activityApi.getSchedulerEvents(lastSeen).subscribe({
+    this.activityApi.getSchedulerEvents(20).subscribe({
       next: d => {
-        const items = d.items ?? [];
-        if (items.length > 0) {
-          this.schedNotifs.set(items);
+        // Only surface events we haven't shown before (id-based, clock-skew proof).
+        const unseen = this.schedSvc.filterUnseen(d.items ?? []);
+        if (unseen.length > 0) {
+          this.schedNotifs.set(unseen);
           this.schedVisible.set(true);
-          // Viewing counts as seen — advance the marker NOW so the notification
-          // doesn't reappear on the next login/refresh. The panel stays visible
-          // for this session until dismissed.
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(SCHED_SEEN_KEY, new Date().toISOString());
-          }
+          // Showing the panel = seen. These exact events never notify again;
+          // only a newly-scheduled post (new id) will reappear.
+          this.schedSvc.markSeen(unseen.map(i => i.id));
         }
       },
       error: () => {},
@@ -147,9 +142,7 @@ export class OverviewComponent extends CommonApp implements OnInit, AfterViewIni
   }
 
   dismissSchedulerNotifs(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(SCHED_SEEN_KEY, new Date().toISOString());
-    }
+    this.schedSvc.markSeen(this.schedNotifs().map(i => i.id));
     this.schedVisible.set(false);
     this.schedNotifs.set([]);
   }

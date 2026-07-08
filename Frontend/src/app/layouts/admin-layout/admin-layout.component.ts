@@ -145,15 +145,20 @@ export class AdminLayoutComponent extends CommonApp implements OnInit, OnDestroy
 
   // ── Scheduled-post notifications ─────────────────────────────
 
-  /** Posts published in the background since the admin last dismissed the
-   *  scheduler panel (same last-seen key the Overview panel uses). */
+  /** Posts published in the background while the admin was away. Shown once per
+   *  event (id-based via SchedulerNotificationService) — never re-notifies for
+   *  the same publish, only for newly-scheduled posts. */
   private _checkPublishedWhileAway(): void {
-    const lastSeen = localStorage.getItem('sched-notif-seen-at') ?? undefined;
-    this.activityApi.getSchedulerEvents(lastSeen).subscribe({
+    this.activityApi.getSchedulerEvents(20).subscribe({
       next: d => {
-        const items     = d.items ?? [];
-        const published = items.filter(i => i.event_type === 'scheduled_post_published');
-        const failed    = items.filter(i => i.event_type === 'scheduled_post_failed');
+        const unseen    = this.schedNotifSvc.filterUnseen(d.items ?? []);
+        if (unseen.length === 0) return;
+
+        const published = unseen.filter(i => i.event_type === 'scheduled_post_published');
+        const failed    = unseen.filter(i => i.event_type === 'scheduled_post_failed');
+
+        // Mark everything we're about to surface as seen so it won't show again
+        this.schedNotifSvc.markSeen(unseen.map(i => i.id));
 
         if (published.length > 0) {
           const firstTitle = published[0].meta?.['title'] ?? 'A scheduled post';
@@ -167,11 +172,7 @@ export class AdminLayoutComponent extends CommonApp implements OnInit, OnDestroy
               duration: 10000,
               action: {
                 label: 'View details',
-                handler: () => {
-                  // Clicking through counts as seen — never re-notify for these events
-                  localStorage.setItem('sched-notif-seen-at', new Date().toISOString());
-                  this.router.navigate(['/admin/overview']);
-                },
+                handler: () => this.router.navigate(['/admin/overview']),
               },
             }
           );

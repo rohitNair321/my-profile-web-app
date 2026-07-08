@@ -1,10 +1,10 @@
 <aside class="admin-sidenav"
-  [class.admin-sidenav--collapsed]="collapsed"
+  [class.admin-sidenav--collapsed]="effectiveCollapsed"
   [class.admin-sidenav--mobile-open]="isMobileOpen">
 
   <!-- Header / Brand -->
   <div class="admin-sidenav__header">
-    @if (!collapsed) {
+    @if (!effectiveCollapsed) {
       <a routerLink="/admin/settings" class="admin-sidenav__brand" (click)="onNavClick()">
         <span class="admin-brand-circle">
           <span class="rn-r">R</span><span class="rn-n">N</span>
@@ -15,10 +15,10 @@
       </a>
     }
     <button class="admin-sidenav__toggle"
-      [class.ms-auto]="!collapsed"
-      (click)="toggleCollapse()"
-      [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
-      <span class="material-icons">{{ collapsed ? 'menu' : 'menu_open' }}</span>
+      [class.ms-auto]="!effectiveCollapsed"
+      (click)="onHeaderToggle()"
+      [title]="isMobile ? 'Close menu' : (effectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar')">
+      <span class="material-icons">{{ isMobile ? 'close' : (effectiveCollapsed ? 'menu' : 'menu_open') }}</span>
     </button>
   </div>
 
@@ -28,7 +28,7 @@
       <a [routerLink]="item.route"
          class="admin-sidenav__link"
          routerLinkActive="admin-sidenav__link--active"
-         [title]="collapsed ? item.label : ''"
+         [title]="effectiveCollapsed ? item.label : ''"
          (click)="onNavClick()">
 
         <span class="admin-sidenav__icon-wrap">
@@ -38,7 +38,7 @@
           }
         </span>
 
-        @if (!collapsed) {
+        @if (!effectiveCollapsed) {
           <span class="admin-sidenav__label">{{ item.label }}</span>
         }
       </a>
@@ -51,7 +51,7 @@
       (click)="themeService.toggleDarkMode()"
       [title]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
       <span class="material-icons">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</span>
-      @if (!collapsed) {
+      @if (!effectiveCollapsed) {
         <span class="admin-sidenav__label">
           {{ themeService.isDark() ? 'Light mode' : 'Dark mode' }}
         </span>
@@ -61,7 +61,7 @@
       (click)="onLogout()"
       title="Sign out">
       <span class="material-icons">logout</span>
-      @if (!collapsed) {
+      @if (!effectiveCollapsed) {
         <span class="admin-sidenav__label">Sign out</span>
       }
     </button>
