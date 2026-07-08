@@ -112,7 +112,40 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+@keyframes slideDown {
+  from { transform: translateY(-120%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
 @keyframes drain {
   from { width: 100%; }
   to { width: 0%; }
+}
+
+/* ── Mobile: full-width banners pinned to the top, not desktop cards ── */
+@media (max-width: 600px) {
+  .alert-stack {
+    top: 0;
+    right: 0;
+    left: 0;
+    padding: 8px 10px 0;
+    gap: 8px;
+    /* clear notches / status bars */
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  }
+
+  .alert-container {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    animation: slideDown 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    .alert-content { gap: 10px; min-width: 0; }
+    .alert-text    { min-width: 0; }
+    .message       { font-size: 0.875rem; overflow-wrap: anywhere; }
+    .title         { font-size: 0.8125rem; }
+    .material-icons { flex-shrink: 0; }
+  }
 }

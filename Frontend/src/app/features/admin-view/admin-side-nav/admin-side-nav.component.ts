@@ -56,6 +56,22 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
   readonly navItems = ADMIN_NAV_ITEMS;
   notifications = computed(() => this.appService.notifications());
 
+  /**
+   * On mobile the sidebar is an off-canvas drawer and must ALWAYS render
+   * expanded (icons + labels) — the desktop `collapsed` state must not leak in.
+   */
+  get effectiveCollapsed(): boolean {
+    return this.isMobile ? false : this.collapsed;
+  }
+
+  onHeaderToggle(): void {
+    if (this.isMobile) {
+      this.closeMobile.emit();   // burger in the topbar reopens it
+    } else {
+      this.toggleCollapse();
+    }
+  }
+
   constructor(public override injector: Injector) {
     super(injector);
   }

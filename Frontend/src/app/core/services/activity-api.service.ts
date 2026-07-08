@@ -76,13 +76,12 @@ export class ActivityApiService {
       .pipe(map(r => r.data));
   }
 
-  getSchedulerEvents(since?: string) {
-    const params: any = {};
-    if (since) params.from = since;
+  /** Recent scheduler events; callers filter out already-seen ids client-side. */
+  getSchedulerEvents(limit = 20) {
     return this.http
       .get<{ data: { items: ActivityFeedItem[]; total: number; page: number; limit: number } }>(
         `${this.baseUrl}/feed`,
-        { params: { ...params, event_type: 'scheduled_post_published,scheduled_post_failed', limit: 10 }, withCredentials: true }
+        { params: { event_type: 'scheduled_post_published,scheduled_post_failed', limit }, withCredentials: true }
       )
       .pipe(map(r => r.data));
   }

@@ -146,79 +146,90 @@
   </div>
 }
 
-<!-- Edit drawer -->
-@if (activeProject()) {
+<!-- ── Edit drawer (redesigned) ────────────────────────────────────────────── -->
+@if (activeProject(); as ap) {
   <div class="proj-drawer">
     <div class="backdrop" (click)="closeDrawer()"></div>
-    <div class="drawer-panel">
+    <div class="drawer-panel" [style.--accent]="ap.accent">
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.375rem">
-        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.125rem;font-weight:700;color:var(--admin-tc);margin:0">
-          Edit Project
-        </h2>
-        <button class="dialog-close" type="button" (click)="closeDrawer()">
-          <span class="material-icons">close</span>
-        </button>
-      </div>
-
-      <!-- Experience context (read-only) -->
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
-        <span class="company-chip" [style.--accent]="activeProject()!.accent">
-          <span class="material-icons">business</span>{{ activeProject()!.company }}
-        </span>
-      </div>
-
-      <!-- Title -->
-      <div class="field-group" style="margin-bottom:1rem">
-        <label class="inp-label">Project Title *</label>
-        <input class="admin-inp" [(ngModel)]="editTitle" placeholder="Project title">
-      </div>
-
-      <!-- Description -->
-      <div class="field-group" style="margin-bottom:1rem">
-        <label class="inp-label">Description</label>
-        <textarea class="admin-inp" [(ngModel)]="editDesc" rows="4"
-          placeholder="Brief project description…"></textarea>
-      </div>
-
-      <!-- Technologies + Status -->
-      <div class="field-row-2" style="margin-bottom:1rem">
-        <div class="field-group">
-          <label class="inp-label">Technologies (comma-separated)</label>
-          <input class="admin-inp" [(ngModel)]="editTech" placeholder="Angular, Node.js…">
+      <!-- Accent header -->
+      <header class="pd-header">
+        <div class="pd-header-top">
+          <span class="pd-eyebrow">Edit Project</span>
+          <button class="pd-close" type="button" (click)="closeDrawer()" aria-label="Close">
+            <span class="material-icons">close</span>
+          </button>
         </div>
+        <h2 class="pd-title-preview">{{ editTitle || 'Untitled Project' }}</h2>
+        <div class="pd-meta">
+          <span class="pd-company"><span class="material-icons">business</span>{{ ap.company || 'Personal' }}</span>
+          <span class="pd-status-dot" [class]="'pd-status-dot--' + editStatus"></span>
+          <span class="pd-status-text">{{ statusLabel(editStatus) }}</span>
+        </div>
+      </header>
+
+      <!-- Scrollable body -->
+      <div class="pd-body">
+
+        <div class="field-group">
+          <label class="inp-label">Project Title *</label>
+          <input class="admin-inp" [(ngModel)]="editTitle" placeholder="Project title">
+        </div>
+
+        <div class="field-group">
+          <label class="inp-label">Description</label>
+          <textarea class="admin-textarea" [(ngModel)]="editDesc" rows="5"
+            placeholder="What does this project do? Who is it for?"></textarea>
+        </div>
+
         <div class="field-group">
           <label class="inp-label">Status</label>
-          <select class="admin-inp" [(ngModel)]="editStatus">
-            <option value="live">Live</option>
-            <option value="in-progress">In Progress</option>
-            <option value="archived">Archived</option>
-          </select>
+          <div class="pd-status-seg">
+            @for (s of statusOptions; track s.id) {
+              <button type="button" class="pd-seg-btn"
+                [class.pd-seg-btn--active]="editStatus === s.id"
+                [attr.data-status]="s.id"
+                (click)="editStatus = s.id">
+                {{ s.label }}
+              </button>
+            }
+          </div>
         </div>
+
+        <div class="field-group">
+          <label class="inp-label">Technologies <span class="pd-hint">comma-separated</span></label>
+          <input class="admin-inp" [(ngModel)]="editTech" placeholder="Angular, Node.js, Supabase">
+          @if (editTechList.length) {
+            <div class="pd-tech-preview">
+              @for (t of editTechList; track t) { <span class="pd-tech-chip">{{ t }}</span> }
+            </div>
+          }
+        </div>
+
+        <div class="field-group">
+          <label class="inp-label">Live URL <span class="pd-hint">optional</span></label>
+          <div class="pd-url-row">
+            <input class="admin-inp" [(ngModel)]="editUrl" placeholder="https://…" type="url">
+            @if (editUrl.trim()) {
+              <a [href]="editUrl" target="_blank" rel="noopener" class="pd-url-open" title="Open in new tab">
+                <span class="material-icons">open_in_new</span>
+              </a>
+            }
+          </div>
+        </div>
+
       </div>
 
-      <!-- Live URL -->
-      <div class="field-group" style="margin-bottom:1.5rem">
-        <label class="inp-label">Live URL (optional)</label>
-        <input class="admin-inp" [(ngModel)]="editUrl" placeholder="https://…" type="url">
-      </div>
-
-      <!-- Footer actions -->
-      <div style="display:flex;gap:.625rem;justify-content:flex-end">
-        @if (editUrl.trim()) {
-          <a [href]="editUrl" target="_blank" class="btn-ghost"
-            style="padding:.55rem 1rem;font-size:.82rem;text-decoration:none;display:inline-flex;align-items:center;gap:.375rem">
-            <span class="material-icons" style="font-size:.9rem">open_in_new</span> Preview
-          </a>
-        }
+      <!-- Sticky footer -->
+      <footer class="pd-footer">
         <button class="btn-ghost" type="button" (click)="closeDrawer()">Cancel</button>
         <button class="btn-primary" type="button"
-          [disabled]="!editTitle.trim() || saving() || activeProject()!._expIdx < 0"
+          [disabled]="!editTitle.trim() || saving() || ap._expIdx < 0"
           (click)="saveCurrentProject()">
-          <span class="material-icons">save</span>
+          <span class="material-icons">{{ saving() ? 'hourglass_empty' : 'save' }}</span>
           {{ saving() ? 'Saving…' : 'Save Changes' }}
         </button>
-      </div>
+      </footer>
 
     </div>
   </div>

@@ -1,4 +1,7 @@
-:host { display: block; }
+:host {
+  display: block;
+  min-width: 0;   /* allow the card to shrink inside the grid/flex column */
+}
 
 .task-card {
   background: var(--admin-bg-sf, #0F172A);
@@ -7,6 +10,7 @@
   border-radius: 12px;
   padding: .875rem 1rem;
   cursor: pointer;
+  overflow: hidden;                 /* never let content push the card wider */
   transition: border-color .2s, transform .15s, box-shadow .2s;
 
   &:hover {
@@ -22,6 +26,7 @@
   font-weight: 600;
   color: var(--admin-tc, #E2E8F0);
   line-height: 1.35;
+  overflow-wrap: anywhere;          /* break long unbroken words/URLs */
 
   &--done {
     text-decoration: line-through;

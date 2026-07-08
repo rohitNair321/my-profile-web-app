@@ -119,6 +119,17 @@ export class AdminProjectsComponent extends CommonApp {
   editUrl    = '';
   editStatus: ProjectView['status'] = 'live';
 
+  readonly statusOptions: Array<{ id: ProjectView['status']; label: string }> = [
+    { id: 'live',        label: 'Live' },
+    { id: 'in-progress', label: 'In Progress' },
+    { id: 'archived',    label: 'Archived' },
+  ];
+
+  /** Live preview of the comma-separated tech input as chips */
+  get editTechList(): string[] {
+    return this.editTech.split(',').map(t => t.trim()).filter(Boolean);
+  }
+
   openDrawer(p: ProjectView): void {
     this.activeProject.set(p);
     this.editTitle  = p.title;
