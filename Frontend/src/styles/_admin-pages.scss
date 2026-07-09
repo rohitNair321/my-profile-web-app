@@ -171,35 +171,74 @@
   background: rgba(2, 6, 23, .85);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  /* "safe center" falls back to flex-start once content is taller than the
+     viewport, so the dialog's own header stays reachable/visible instead of
+     clipping off-screen above the fold on short/laptop viewports. */
+  align-items: safe center;
   justify-content: center;
-  z-index: 999;
+  /* Must clear the sticky topbar (--topbar-z) or the dialog's own header
+     renders underneath it on shorter/laptop viewports. */
+  z-index: var(--modal-backdrop-z, 1100);
+  padding: var(--space-4, 16px);
+  overflow-y: auto;
   animation: admin-fadeIn .25s ease;
 }
 
 .dialog-card {
-  background: #0F172A;
-  border: 1px solid #1E293B;
+  --dlg-accent: var(--primary, #10B981);
+  position: relative;
+  background: var(--admin-bg-sf, #0F172A);
+  border: 1px solid var(--admin-bdc, #1E293B);
   border-radius: 20px;
   padding: 1.75rem;
   width: 100%;
   max-width: 480px;
+  max-height: 90dvh;
+  overflow-y: auto;              /* scroll long forms instead of overflowing */
   box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
-  animation: admin-fadeIn .25s ease;
+  animation: admin-dialogPop .28s cubic-bezier(.175, .885, .32, 1.275);
   margin: 1rem;
+
+  /* Accent strip along the top edge — matches the redesigned project drawer */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 20px 20px 0 0;
+    background: var(--dlg-accent);
+    opacity: .9;
+  }
+
+  /* Full-screen sheet on small phones */
+  @media (max-width: 560px) {
+    max-width: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+    margin: 0;
+    &::before { border-radius: 0; }
+  }
 }
 
 .dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  gap: .75rem;
+  margin-bottom: 1.375rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--admin-bdc, #1E293B);
   h3 {
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
-    color: #E2E8F0;
+    color: var(--admin-tc, #E2E8F0);
     font-size: 1.125rem;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    .material-icons { color: var(--dlg-accent); font-size: 1.2rem; }
   }
 }
 
@@ -207,11 +246,12 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #64748B;
+  color: var(--admin-t3c, #64748B);
   display: flex;
-  transition: color .2s;
-  padding: 4px;
-  &:hover { color: #E2E8F0; }
+  transition: color .2s, background .2s;
+  padding: 5px;
+  border-radius: 8px;
+  &:hover { color: var(--admin-tc, #E2E8F0); background: rgba(255, 255, 255, .05); }
 }
 
 .dialog-footer {
@@ -219,6 +259,57 @@
   gap: .625rem;
   justify-content: flex-end;
   margin-top: 1.5rem;
+  padding-top: 1.125rem;
+  border-top: 1px solid var(--admin-bdc, #1E293B);
+}
+
+/* ── Shared dialog segmented control + chip preview ─────────────── */
+.dlg-seg {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.dlg-seg-btn {
+  flex: 1;
+  min-width: 84px;
+  padding: .5rem .5rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--admin-bdc, #1E293B);
+  background: transparent;
+  color: var(--admin-t2c, #94A3B8);
+  font-size: .78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .18s;
+  &:hover { border-color: #334155; }
+  &--active {
+    border-color: var(--dlg-accent);
+    background: color-mix(in srgb, var(--dlg-accent) 12%, transparent);
+    color: var(--dlg-accent);
+  }
+}
+
+.dlg-chip-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem;
+  margin-top: .5rem;
+}
+
+.dlg-chip {
+  font-size: .68rem;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--dlg-accent) 14%, transparent);
+  color: var(--dlg-accent);
+}
+
+@keyframes admin-dialogPop {
+  from { opacity: 0; transform: scale(.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* ── 2-column grids ── */

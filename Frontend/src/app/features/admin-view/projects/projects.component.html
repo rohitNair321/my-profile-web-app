@@ -58,12 +58,12 @@
   </div>
 } -->
 
-<!-- ── Add Project dialog ──────────────────────────────────────────────────── -->
+<!-- ── Add Project dialog (matches the edit drawer's modern style) ────────── -->
 @if (showAddDialog()) {
   <div class="dialog-backdrop" (click)="showAddDialog.set(false)">
     <div class="dialog-card" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h3>Add Project</h3>
+        <h3><span class="material-icons">add_circle</span> Add Project</h3>
         <button class="dialog-close" type="button" (click)="showAddDialog.set(false)">
           <span class="material-icons">close</span>
         </button>
@@ -85,27 +85,35 @@
 
       <div class="field-group" style="margin-bottom:1rem">
         <label class="inp-label">Description</label>
-        <textarea class="admin-inp" [(ngModel)]="addDesc" rows="3"
+        <textarea class="admin-textarea" [(ngModel)]="addDesc" rows="3"
           placeholder="Brief project description…"></textarea>
       </div>
 
-      <div class="field-row-2" style="margin-bottom:1rem">
-        <div class="field-group">
-          <label class="inp-label">Technologies (comma-separated)</label>
-          <input class="admin-inp" [(ngModel)]="addTech" placeholder="Angular, Node.js, Supabase">
-        </div>
-        <div class="field-group">
-          <label class="inp-label">Status</label>
-          <select class="admin-inp" [(ngModel)]="addStatus">
-            <option value="live">Live</option>
-            <option value="in-progress">In Progress</option>
-            <option value="archived">Archived</option>
-          </select>
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Status</label>
+        <div class="dlg-seg">
+          @for (s of statusOptions; track s.id) {
+            <button type="button" class="dlg-seg-btn"
+              [class.dlg-seg-btn--active]="addStatus === s.id"
+              (click)="addStatus = s.id">
+              {{ s.label }}
+            </button>
+          }
         </div>
       </div>
 
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="inp-label">Technologies <span class="pd-hint">comma-separated</span></label>
+        <input class="admin-inp" [(ngModel)]="addTech" placeholder="Angular, Node.js, Supabase">
+        @if (addTechList.length) {
+          <div class="dlg-chip-preview">
+            @for (t of addTechList; track t) { <span class="dlg-chip">{{ t }}</span> }
+          </div>
+        }
+      </div>
+
       <div class="field-group" style="margin-bottom:0">
-        <label class="inp-label">Live URL (optional)</label>
+        <label class="inp-label">Live URL <span class="pd-hint">optional</span></label>
         <input class="admin-inp" [(ngModel)]="addUrl" placeholder="https://…" type="url">
       </div>
 
@@ -114,7 +122,7 @@
         <button class="btn-primary" type="button"
           [disabled]="!addTitle.trim() || saving()"
           (click)="saveNewProject()">
-          <span class="material-icons">save</span>
+          <span class="material-icons">{{ saving() ? 'hourglass_empty' : 'save' }}</span>
           {{ saving() ? 'Saving…' : 'Add Project' }}
         </button>
       </div>
@@ -125,9 +133,9 @@
 <!-- ── Delete confirmation ─────────────────────────────────────────────────── -->
 @if (deleteConfirm()) {
   <div class="dialog-backdrop" (click)="deleteConfirm.set(null)">
-    <div class="dialog-card" style="max-width:400px" (click)="$event.stopPropagation()">
+    <div class="dialog-card" style="max-width:400px;--dlg-accent:#EF4444" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h3>Delete Project</h3>
+        <h3><span class="material-icons">delete_forever</span> Delete Project</h3>
         <button class="dialog-close" type="button" (click)="deleteConfirm.set(null)">
           <span class="material-icons">close</span>
         </button>

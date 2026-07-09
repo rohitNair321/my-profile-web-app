@@ -14,7 +14,7 @@ import { HighchartsChartComponent } from 'highcharts-angular';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { TooltipModule } from 'primeng/tooltip';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -57,7 +57,7 @@ interface TopPageRow {
     FormsModule,
     HighchartsChartComponent,
     ButtonModule,
-    CalendarModule,
+    DatePickerModule,
     TooltipModule,
     TableModule,
     TagModule,

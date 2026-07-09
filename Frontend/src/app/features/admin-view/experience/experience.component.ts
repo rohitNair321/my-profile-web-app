@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, Injector, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonApp } from 'src/app/core/services/common';
+import { DateTimePickerComponent } from 'src/app/shared/components/ui/date-time-picker/date-time-picker.component';
 
 interface ExperienceView {
   role:      string;
@@ -10,13 +11,16 @@ interface ExperienceView {
   desc:      string;
   tech:      string[];
   projects:  string[];
+  accent:    string;
   _srcIndex: number;
 }
+
+const ACCENT_CYCLE = ['#10B981', '#6366F1', '#06B6D4', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 @Component({
   selector: 'app-admin-experience',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DateTimePickerComponent],
   templateUrl: './experience.component.html',
   styleUrls: ['./experience.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,8 +30,6 @@ export class AdminExperienceComponent extends CommonApp {
   editingIdx   = signal(-1);  // -1 = new, >=0 = editing existing
   saving       = signal(false);
   deleteTarget = signal(-1);
-
-  openStates = signal<Record<number, boolean>>({ 0: true });
 
   private rawExps = computed(() => this.appService.profile()?.experiences ?? []);
 
@@ -45,6 +47,7 @@ export class AdminExperienceComponent extends CommonApp {
         desc:      exp.description ?? '',
         tech,
         projects:  (exp.projects ?? []).map((p: any) => p.title ?? p.name ?? ''),
+        accent:    ACCENT_CYCLE[i % ACCENT_CYCLE.length],
         _srcIndex: i,
       };
     })
@@ -53,8 +56,8 @@ export class AdminExperienceComponent extends CommonApp {
   // Dialog form fields
   dRole    = '';
   dCompany = '';
-  dStart   = '';
-  dEnd     = '';
+  dStart: string | null = null;
+  dEnd:   string | null = null;
   dPresent = false;
   dDesc    = '';
 
@@ -62,20 +65,20 @@ export class AdminExperienceComponent extends CommonApp {
     super(injector);
   }
 
-  isOpen(idx: number): boolean {
-    const s = this.openStates();
-    return idx in s ? s[idx] : idx === 0;
+  onDStartChange(iso: string | null): void {
+    this.dStart = iso;
+    // End can't precede the new start — clear a now-invalid end date.
+    if (iso && this.dEnd && this.dEnd < iso) this.dEnd = null;
   }
 
-  toggleItem(idx: number): void {
-    this.openStates.update(s => ({ ...s, [idx]: !this.isOpen(idx) }));
-  }
+  onDEndChange(iso: string | null): void { this.dEnd = iso; }
 
   // ── Dialog open ─────────────────────────────────────────────────────────────
 
   openAdd(): void {
     this.editingIdx.set(-1);
-    this.dRole = this.dCompany = this.dStart = this.dEnd = this.dDesc = '';
+    this.dRole = this.dCompany = this.dDesc = '';
+    this.dStart = this.dEnd = null;
     this.dPresent = false;
     this.showDialog.set(true);
   }
@@ -87,8 +90,8 @@ export class AdminExperienceComponent extends CommonApp {
     this.editingIdx.set(idx);
     this.dRole    = raw.role        ?? '';
     this.dCompany = raw.company     ?? '';
-    this.dStart   = raw.startDate   ?? '';
-    this.dEnd     = raw.endDate     ?? '';
+    this.dStart   = raw.startDate   ?? null;
+    this.dEnd     = raw.endDate     ?? null;
     this.dPresent = !!raw.present;
     this.dDesc    = raw.description ?? '';
     this.showDialog.set(true);
@@ -103,8 +106,8 @@ export class AdminExperienceComponent extends CommonApp {
     const entry = {
       role:        this.dRole.trim(),
       company:     this.dCompany.trim(),
-      startDate:   this.dStart || undefined,
-      endDate:     this.dPresent ? undefined : (this.dEnd || undefined),
+      startDate:   this.dStart ?? undefined,
+      endDate:     this.dPresent ? undefined : (this.dEnd ?? undefined),
       present:     this.dPresent,
       description: this.dDesc.trim(),
       projects:    exps[this.editingIdx()]?.projects ?? [],
@@ -149,7 +152,15 @@ export class AdminExperienceComponent extends CommonApp {
 
   private _period(start?: string, end?: string, present?: boolean): string {
     if (!start) return '';
-    const e = present ? 'Present' : (end ?? '');
-    return e ? `${start} – ${e}` : start;
+    const s = this._fmtMonth(start);
+    const e = present ? 'Present' : (end ? this._fmtMonth(end) : '');
+    return e ? `${s} – ${e}` : s;
+  }
+
+  /** Formats 'YYYY-MM-DD' (new date picker) or legacy 'YYYY-MM' as "Mon YYYY". */
+  private _fmtMonth(iso: string): string {
+    const [y, m] = iso.split('-').map(Number);
+    if (!y || !m) return iso;
+    return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   }
 }

@@ -264,6 +264,34 @@
   border: 2px dashed var(--admin-bdc);
   border-radius: 14px;
   text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+
+  &:hover { border-color: #10B981; }
+
+  &--drag {
+    border-color: #10B981;
+    background: rgba(16, 185, 129, .08);
+  }
+
+  &--staged {
+    border-style: solid;
+    border-color: rgba(16, 185, 129, .5);
+    background: rgba(16, 185, 129, .05);
+  }
+
+  @media (max-width: 480px) { padding: 2rem 1.25rem; }
+}
+
+/* Stack the resume meta row on very narrow screens so long filenames + two
+   action buttons don't get cramped into one unreadable line. */
+@media (max-width: 420px) {
+  .resume-card .admin-meta-row {
+    flex-wrap: wrap;
+    row-gap: .5rem;
+
+    a.btn-ghost, button.btn-ghost { margin-left: 0 !important; }
+  }
 }
 
 /* Textarea override */

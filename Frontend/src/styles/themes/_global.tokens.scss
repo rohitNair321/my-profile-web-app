@@ -13,10 +13,24 @@
   --layout-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   // ── Z-index scale ──────────────────────────────────────────
-  // Increment by 10 to leave room for intermediate layers.
+  // Increment by 10+ to leave room for intermediate layers. Every
+  // page-level overlay (dialogs, drawers, toasts, spinners) MUST sit
+  // above the sticky topbar/sidebar layer below, or its own header can
+  // render underneath the topbar on short/laptop viewports.
   --backdrop-z: 1040;   // mobile sidebar backdrop
   --sidebar-z:  1050;   // sidebar panel (above backdrop)
   --topbar-z:   1060;   // topbar (above sidebar on mobile)
+  --dropdown-z: 1070;   // menus/dropdowns anchored to the topbar
+  --popover-z:  1080;   // anchored popovers (date/time/duration pickers) — must
+                         // clear the topbar even when used inline on a page
+                         // (not just inside a modal), since they can render
+                         // near the top of a scrolled page under a sticky topbar
+
+  --modal-backdrop-z: 1100;  // dialog-backdrop, drawers (project/planner edit panels)
+  --overlay-z:        1200;  // alert toasts + global loading spinner (same tier;
+                              // later DOM element wins ties — app.component.html
+                              // renders <app-alert> after <app-spinner>)
+  --toast-critical-z: 1300;  // blocking confirm/choice dialog — always topmost
 
   // ── Spacing scale ─────────────────────────────────────────────
   --space-1:  4px;

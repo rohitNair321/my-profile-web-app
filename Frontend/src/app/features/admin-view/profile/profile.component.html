@@ -228,24 +228,54 @@
       <div class="admin-card-title">
         <span class="material-icons">description</span> Resume
       </div>
-      <div class="resume-zone">
-        <span class="material-icons" style="font-size:2.5rem;color:#334155">upload_file</span>
-        <p style="font-size:.875rem;color:var(--admin-t2c);margin:.5rem 0 .25rem">
-          Drop your PDF here or click to browse
-        </p>
-        <p style="font-size:.75rem;color:#475569">PDF, max 5MB</p>
-        <button class="btn-primary" type="button" style="margin-top:1rem">
-          <span class="material-icons">upload</span> Upload Resume
-        </button>
+
+      <input #resumeInput type="file" accept="application/pdf" hidden
+        (change)="onResumeFileSelected($event)">
+
+      <div class="resume-zone"
+        [class.resume-zone--drag]="resumeDragOver()"
+        [class.resume-zone--staged]="pendingResumeFile"
+        (click)="resumeInput.click()"
+        (dragover)="onResumeDragOver($event)"
+        (dragleave)="onResumeDragLeave($event)"
+        (drop)="onResumeDrop($event)">
+
+        @if (pendingResumeFile) {
+          <span class="material-icons" style="font-size:2.5rem;color:#10B981">check_circle</span>
+          <p style="font-size:.875rem;color:var(--admin-tc);margin:.5rem 0 .25rem;font-weight:600;word-break:break-all">
+            {{ pendingResumeFile.name }}
+          </p>
+          <p style="font-size:.75rem;color:#475569">Ready to save — click "Save Changes" above</p>
+          <button class="btn-ghost" type="button" style="margin-top:1rem"
+            (click)="clearPendingResume(); $event.stopPropagation()">
+            <span class="material-icons">close</span> Remove selection
+          </button>
+        } @else {
+          <span class="material-icons" style="font-size:2.5rem;color:#334155">upload_file</span>
+          <p style="font-size:.875rem;color:var(--admin-t2c);margin:.5rem 0 .25rem">
+            {{ resumeDragOver() ? 'Drop your PDF here' : 'Drop your PDF here or click to browse' }}
+          </p>
+          <p style="font-size:.75rem;color:#475569">PDF, max 5MB</p>
+          <button class="btn-primary" type="button" style="margin-top:1rem"
+            (click)="resumeInput.click(); $event.stopPropagation()">
+            <span class="material-icons">upload</span> Choose File
+          </button>
+        }
       </div>
-      @if (profile()?.resume_url) {
+
+      @if (profile()?.resume_url && !pendingResumeFile) {
         <div class="admin-divider"></div>
         <div class="admin-meta-row">
           <span class="material-icons">insert_drive_file</span>
-          <span>Current: {{ profile()?.resume_url }}</span>
-          <a [href]="profile()?.resume_url" target="_blank" class="btn-ghost" style="margin-left:auto;padding:.35rem .875rem">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Current: {{ resumeFileName }}</span>
+          <a [href]="profile()?.resume_url" target="_blank" class="btn-ghost" style="margin-left:auto;padding:.35rem .875rem;flex-shrink:0">
             View
           </a>
+          <button class="btn-ghost" type="button" style="padding:.35rem .875rem;color:#EF4444;flex-shrink:0"
+            [disabled]="isRemovingResume()"
+            (click)="removeExistingResume()">
+            {{ isRemovingResume() ? 'Removing…' : 'Remove' }}
+          </button>
         </div>
       }
     </div>

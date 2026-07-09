@@ -4,6 +4,26 @@
   overflow-y: auto;
 }
 
+// DateTimePicker defaults to a compact inline trigger (built for the post-editor
+// topbar); stretch it to match the width of the other form fields in this
+// 2-column layout. Scoped to this component only — the post-editor's own
+// (compact, flex-row) usage is untouched.
+::ng-deep app-date-time-picker {
+  display: block;
+  width: 100%;
+
+  .dtp { display: block; width: 100%; }
+  .dtp__trigger { width: 100%; max-width: none; }
+}
+
+// The Estimate picker is the right-hand column of the 2-col row; its popover
+// defaults to anchoring from the trigger's left edge, which can overflow past
+// the dialog's right edge on narrower widths. Anchor it from the right instead.
+.field-row-2 > .field-group:last-child ::ng-deep .durp__popover {
+  left: auto;
+  right: 0;
+}
+
 /* Segmented pills (priority / column) */
 .te-seg {
   display: flex;
@@ -35,14 +55,6 @@
   &--med  { border-color: #F59E0B; background: rgba(245, 158, 11, .1);  color: #F59E0B; }
   &--high { border-color: #EF4444; background: rgba(239, 68, 68, .1);   color: #EF4444; }
 }
-
-/* Estimate row */
-.te-est-row {
-  display: flex;
-  gap: .5rem;
-}
-
-.te-est-unit { max-width: 96px; }
 
 /* Tags chip input */
 .te-tags-box {
