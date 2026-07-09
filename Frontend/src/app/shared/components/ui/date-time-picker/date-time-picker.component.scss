@@ -83,8 +83,12 @@
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    z-index: 600;
-    width: 296px;
+    /* Must clear the sticky topbar (--topbar-z) — this picker is used both
+       inline on a page (post editor topbar) and inside modal dialogs
+       (Planner), so it needs its own layer above all page chrome. */
+    z-index: var(--popover-z, 1080);
+    width: 336px;
+    max-width: calc(100vw - 32px);
     background: var(--surface, #fff);
     border: 1px solid var(--border, #e2e8f0);
     border-radius: 16px;
@@ -220,8 +224,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 14px 16px 10px;
+    gap: 6px;
+    padding: 14px 12px 10px;
   }
 
   &__time-icon {
@@ -231,12 +235,12 @@
   }
 
   &__colon {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     color: var(--text-primary, #1e293b);
     line-height: 1;
-    margin: 0 -2px;
-    padding-bottom: 28px; // align with spin value
+    margin: 0 -3px;
+    padding-bottom: 26px; // align with spin value
   }
 
   &__ampm {
@@ -244,10 +248,10 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     color: var(--text-muted, #94a3b8);
-    min-width: 24px;
+    min-width: 22px;
     text-align: center;
     margin-left: 2px;
-    padding-bottom: 28px; // align with spin value
+    padding-bottom: 26px; // align with spin value
 
     &--pm { color: var(--primary, #6366f1); }
   }
@@ -282,14 +286,34 @@
   }
 
   &__spin-val {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 800;
     color: var(--text-primary, #1e293b);
-    min-width: 44px;
+    min-width: 36px;
     text-align: center;
     font-variant-numeric: tabular-nums;
     line-height: 1.1;
     letter-spacing: -1px;
+  }
+
+  // Hour/minute/second value is a real input — click or tab in and type any
+  // exact number instead of only reaching it via repeated stepper clicks.
+  &__spin-input {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    padding: 2px 0;
+    outline: none;
+    border-radius: 6px;
+    cursor: text;
+    transition: background 0.12s, box-shadow 0.12s;
+
+    &:hover { background: var(--surface-alt, #f1f5f9); }
+
+    &:focus {
+      background: var(--surface-alt, #f1f5f9);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+    }
   }
 
   // ── No-date hint ─────────────────────────────────────────────

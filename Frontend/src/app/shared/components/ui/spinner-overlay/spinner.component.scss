@@ -4,7 +4,7 @@
   pointer-events: auto;
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--overlay-z, 1200);
   /* Fallback to semi-transparent slate-900 if surface is missing */
   background: var(--mask-bg, rgba(15, 23, 42, 0.8)); 
   backdrop-filter: blur(4px);

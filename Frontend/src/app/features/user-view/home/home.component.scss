@@ -2162,6 +2162,49 @@
   }
 }
 
+/* Narrow phones (≤420px): "Chat with AI Rohit" no longer fits half of a
+   50/50 tab split without cramping/wrapping — stack the tabs full-width
+   instead of squeezing them side by side. */
+@media (max-width: 420px) {
+  .contact-tab-bar {
+    flex-direction: column;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .contact-tab-btn {
+    justify-content: flex-start;
+    padding: .75rem 1rem;
+    font-size: .85rem;
+    /* Stacked list reads better with a left-edge selection indicator than
+       an underline, which just looks like a plain row divider here. */
+    border-bottom: 1px solid var(--border);
+    border-left: 3px solid transparent;
+
+    &.active {
+      border-bottom-color: var(--border);
+      border-left-color: var(--primary);
+    }
+    &:last-child { border-bottom: none; }
+  }
+
+  .contact-form-wrap { padding: 1.25rem; }
+
+  .chat-inline-badge {
+    padding: .625rem 1rem;
+    font-size: .72rem;
+  }
+
+  .contact-chat-wrap app-chat-bot ::ng-deep .cb { height: 340px; }
+}
+
+/* Very small / older-device phones (≤359px) — shave a little more so the
+   chat card never forces horizontal scroll on the page. */
+@media (max-width: 359px) {
+  .contact-right-card { border-radius: 18px; }
+  .contact-tab-bar    { border-radius: 18px 18px 0 0; }
+  .contact-chat-wrap app-chat-bot ::ng-deep .cb { height: 300px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

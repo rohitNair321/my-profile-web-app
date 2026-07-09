@@ -2,7 +2,10 @@
   <div class="dialog-card te-card" (click)="$event.stopPropagation()">
 
     <div class="dialog-header">
-      <h3>{{ isEdit ? 'Edit Task' : 'New Task' }}</h3>
+      <h3>
+        <span class="material-icons">{{ isEdit ? 'edit_note' : 'add_task' }}</span>
+        {{ isEdit ? 'Edit Task' : 'New Task' }}
+      </h3>
       <button class="dialog-close" type="button" (click)="closed.emit()">
         <span class="material-icons">close</span>
       </button>
@@ -42,19 +45,22 @@
       <!-- Due date -->
       <div class="field-group">
         <label class="inp-label">Due Date</label>
-        <input class="admin-inp" type="date" [(ngModel)]="dueDate">
+        <app-date-time-picker
+          mode="date"
+          [value]="dueDate"
+          placeholder="Pick a due date"
+          (valueChange)="onDueDateChange($event)"
+        ></app-date-time-picker>
       </div>
 
       <!-- Estimate -->
       <div class="field-group">
         <label class="inp-label">Estimate</label>
-        <div class="te-est-row">
-          <input class="admin-inp" type="number" min="1" [(ngModel)]="estimateVal" placeholder="—">
-          <select class="admin-inp te-est-unit" [(ngModel)]="estimateUnit">
-            <option value="min">min</option>
-            <option value="hr">hours</option>
-          </select>
-        </div>
+        <app-duration-picker
+          [value]="estimateMin"
+          placeholder="Set estimate"
+          (valueChange)="onEstimateChange($event)"
+        ></app-duration-picker>
       </div>
     </div>
 

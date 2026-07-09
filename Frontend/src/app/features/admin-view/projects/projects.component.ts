@@ -130,6 +130,11 @@ export class AdminProjectsComponent extends CommonApp {
     return this.editTech.split(',').map(t => t.trim()).filter(Boolean);
   }
 
+  /** Same live-chip preview for the Add Project dialog */
+  get addTechList(): string[] {
+    return this.addTech.split(',').map(t => t.trim()).filter(Boolean);
+  }
+
   openDrawer(p: ProjectView): void {
     this.activeProject.set(p);
     this.editTitle  = p.title;

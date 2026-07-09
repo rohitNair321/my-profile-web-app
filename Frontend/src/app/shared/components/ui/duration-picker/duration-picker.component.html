@@ -1,0 +1,98 @@
+<div class="durp" (click)="$event.stopPropagation()">
+
+  <!-- ── Trigger ──────────────────────────────────────────── -->
+  <div class="durp__trigger-row">
+    <button
+      type="button"
+      class="durp__trigger"
+      [class.durp__trigger--set]="!!value"
+      [class.durp__trigger--open]="open"
+      (click)="toggle()"
+      [title]="value ? displayLabel : placeholder"
+    >
+      <i class="material-icons">timer</i>
+      <span class="durp__trigger-label">{{ value ? displayLabel : placeholder }}</span>
+      <i class="material-icons durp__trigger-arrow">{{ open ? 'expand_less' : 'expand_more' }}</i>
+    </button>
+
+    @if (value) {
+      <button type="button" class="durp__clear-btn" (click)="clear()" title="Clear duration">
+        <i class="material-icons">close</i>
+      </button>
+    }
+  </div>
+
+  <!-- ── Popover ──────────────────────────────────────────── -->
+  @if (open) {
+    <div class="durp__popover">
+
+      <!-- Quick picks -->
+      <div class="durp__quick-grid">
+        @for (mins of QUICK_PICKS; track mins) {
+          <button
+            type="button"
+            class="durp__quick-chip"
+            [class.durp__quick-chip--active]="isQuickActive(mins)"
+            (click)="pickQuick(mins)"
+          >{{ quickLabel(mins) }}</button>
+        }
+      </div>
+
+      <!-- Divider -->
+      <div class="durp__divider"></div>
+
+      <!-- Custom hour/minute steppers -->
+      <div class="durp__custom-label">Custom</div>
+      <div class="durp__time">
+        <div class="durp__spin">
+          <button type="button" class="durp__spin-btn" (click)="adjHours(1)">
+            <i class="material-icons">expand_less</i>
+          </button>
+          <input
+            class="durp__spin-val durp__spin-input"
+            type="text" inputmode="numeric" maxlength="3"
+            [value]="hourStr"
+            (focus)="selectInputText($event)"
+            (change)="onHoursInput($event)"
+            (keydown.enter)="$any($event.target).blur()"
+          >
+          <button type="button" class="durp__spin-btn" (click)="adjHours(-1)">
+            <i class="material-icons">expand_more</i>
+          </button>
+          <span class="durp__spin-unit">hr</span>
+        </div>
+
+        <span class="durp__colon">:</span>
+
+        <div class="durp__spin">
+          <button type="button" class="durp__spin-btn" (click)="adjMinutes(1)">
+            <i class="material-icons">expand_less</i>
+          </button>
+          <input
+            class="durp__spin-val durp__spin-input"
+            type="text" inputmode="numeric" maxlength="2"
+            [value]="minStr"
+            (focus)="selectInputText($event)"
+            (change)="onMinutesInput($event)"
+            (keydown.enter)="$any($event.target).blur()"
+          >
+          <button type="button" class="durp__spin-btn" (click)="adjMinutes(-1)">
+            <i class="material-icons">expand_more</i>
+          </button>
+          <span class="durp__spin-unit">min</span>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="durp__footer">
+        <button type="button" class="durp__btn-clear" (click)="clear()">Clear</button>
+        <button type="button" class="durp__btn-confirm" (click)="confirmCustom()">
+          <i class="material-icons">check</i>
+          Confirm
+        </button>
+      </div>
+
+    </div>
+  }
+
+</div>

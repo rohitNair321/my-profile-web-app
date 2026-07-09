@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from 'src/app/core/services/task.service';
+import { DateTimePickerComponent } from 'src/app/shared/components/ui/date-time-picker/date-time-picker.component';
+import { DurationPickerComponent } from 'src/app/shared/components/ui/duration-picker/duration-picker.component';
 import { Task, TaskColumn, TaskPriority } from '../models/task.model';
 
 @Component({
   selector: 'app-task-edit-dialog',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DateTimePickerComponent, DurationPickerComponent],
   templateUrl: './task-edit-dialog.component.html',
   styleUrls: ['./task-edit-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,9 +25,8 @@ export class TaskEditDialogComponent implements OnInit {
   title        = '';
   description  = '';
   priority: TaskPriority = 'med';
-  dueDate      = '';
-  estimateVal: number | null = null;
-  estimateUnit: 'min' | 'hr' = 'min';
+  dueDate: string | null = null;
+  estimateMin: number | null = null;
   tags         = signal<string[]>([]);
   tagInput     = '';
   column: TaskColumn = 'todo';
@@ -54,20 +55,15 @@ export class TaskEditDialogComponent implements OnInit {
       this.title       = t.title;
       this.description = t.description;
       this.priority    = t.priority;
-      this.dueDate     = t.dueDate ?? '';
+      this.dueDate     = t.dueDate ?? null;
       this.column      = t.column;
+      this.estimateMin = t.estimateMin;
       this.tags.set([...t.tags]);
-      if (t.estimateMin !== null) {
-        if (t.estimateMin >= 60 && t.estimateMin % 60 === 0) {
-          this.estimateVal  = t.estimateMin / 60;
-          this.estimateUnit = 'hr';
-        } else {
-          this.estimateVal  = t.estimateMin;
-          this.estimateUnit = 'min';
-        }
-      }
     }
   }
+
+  onDueDateChange(iso: string | null): void { this.dueDate = iso; }
+  onEstimateChange(mins: number | null): void { this.estimateMin = mins; }
 
   addTag(e: Event): void {
     e.preventDefault();
@@ -87,10 +83,6 @@ export class TaskEditDialogComponent implements OnInit {
     const title = this.title.trim();
     if (!title) { this.error.set('Title is required.'); return; }
 
-    const estimateMin = this.estimateVal
-      ? Math.round(this.estimateUnit === 'hr' ? this.estimateVal * 60 : this.estimateVal)
-      : null;
-
     const payload: Partial<Task> = {
       title,
       description: this.description.trim(),
@@ -98,7 +90,7 @@ export class TaskEditDialogComponent implements OnInit {
       dueDate:     this.dueDate || null,
       tags:        this.tags(),
       column:      this.column,
-      estimateMin,
+      estimateMin: this.estimateMin,
     };
 
     this.saving.set(true);

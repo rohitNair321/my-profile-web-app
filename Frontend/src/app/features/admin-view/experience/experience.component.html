@@ -3,72 +3,66 @@
   <div class="page-heading">
     <div>
       <h1 class="page-title">Experience</h1>
-      <p class="page-sub">Your professional timeline and work history.</p>
+      <p class="page-sub">Your professional work history.</p>
     </div>
     <button class="btn-primary" type="button" (click)="openAdd()">
       <span class="material-icons">add</span> Add Experience
     </button>
   </div>
 
-  <div class="timeline-wrap">
-    @for (exp of items(); track exp._srcIndex; let i = $index) {
-      <div class="timeline-item">
-        <div class="timeline-dot" [class.current]="exp.current"></div>
-
-        <div class="exp-card" [class.open]="isOpen(i)">
-          <!-- Header -->
-          <div class="exp-header" (click)="toggleItem(i)">
-            <div class="exp-header-main">
-              <div class="exp-role">{{ exp.role }}</div>
-              <div class="exp-meta">
-                <span class="material-icons" style="font-size:.9rem;color:#6366F1">business</span>
-                {{ exp.company }}
-                <span class="exp-period">· {{ exp.period }}</span>
-                @if (exp.current) {
-                  <span class="current-badge">CURRENT</span>
-                }
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:.375rem;margin-left:auto;flex-shrink:0">
-              <button class="exp-edit-btn" type="button" title="Edit"
-                (click)="openEdit(exp._srcIndex, $event)">
-                <span class="material-icons">edit</span>
-              </button>
-              <button class="exp-del-btn" type="button" title="Delete"
-                (click)="confirmDelete(exp._srcIndex, $event)">
-                <span class="material-icons">delete_outline</span>
-              </button>
-              <span class="material-icons exp-chevron">
-                {{ isOpen(i) ? 'expand_less' : 'expand_more' }}
-              </span>
-            </div>
+  <div class="exp-grid">
+    @for (exp of items(); track exp._srcIndex) {
+      <div class="exp-card" [style.--accent]="exp.accent">
+        <div class="exp-card-body">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap">
+            <span class="company-chip">
+              <span class="material-icons">business</span>{{ exp.company }}
+            </span>
+            @if (exp.current) {
+              <span class="current-badge">CURRENT</span>
+            }
           </div>
 
-          <!-- Body -->
-          @if (isOpen(i)) {
-            <div class="exp-body">
-              <p class="exp-desc">{{ exp.desc }}</p>
+          <h3 class="exp-role-title">{{ exp.role }}</h3>
 
-              @if (exp.tech.length) {
-                <div class="admin-section-label" style="margin-top:1rem">Technologies</div>
-                <div class="tech-tags">
-                  @for (t of exp.tech; track t) {
-                    <span class="tech-tag">{{ t }}</span>
-                  }
-                </div>
-              }
+          @if (exp.period) {
+            <p class="exp-period-line">
+              <span class="material-icons">calendar_today</span>{{ exp.period }}
+            </p>
+          }
 
-              @if (exp.projects.length) {
-                <div class="admin-section-label" style="margin-top:1rem">Projects</div>
-                @for (p of exp.projects; track p) {
-                  <div class="proj-row">
-                    <span class="material-icons">folder_special</span>
-                    <span>{{ p }}</span>
-                  </div>
-                }
+          @if (exp.desc) {
+            <p class="exp-desc">{{ exp.desc }}</p>
+          }
+
+          @if (exp.tech.length) {
+            <div class="tech-tags">
+              @for (t of exp.tech; track t) {
+                <span class="tech-tag">{{ t }}</span>
               }
             </div>
           }
+
+          @if (exp.projects.length) {
+            <div class="exp-proj-list">
+              @for (p of exp.projects; track p) {
+                <span class="exp-proj-chip">
+                  <span class="material-icons">folder_special</span>{{ p }}
+                </span>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="exp-card-foot">
+          <button class="btn-ghost" style="padding:.45rem .875rem;font-size:.78rem" type="button"
+            (click)="openEdit(exp._srcIndex, $event)">
+            <span class="material-icons">edit</span> Edit
+          </button>
+          <button class="exp-del-btn" type="button" title="Delete"
+            (click)="confirmDelete(exp._srcIndex, $event)">
+            <span class="material-icons">delete_outline</span>
+          </button>
         </div>
       </div>
     }
@@ -88,7 +82,10 @@
   <div class="dialog-backdrop" (click)="showDialog.set(false)">
     <div class="dialog-card" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h3>{{ editingIdx() >= 0 ? 'Edit Experience' : 'Add Experience' }}</h3>
+        <h3>
+          <span class="material-icons">{{ editingIdx() >= 0 ? 'edit' : 'work' }}</span>
+          {{ editingIdx() >= 0 ? 'Edit Experience' : 'Add Experience' }}
+        </h3>
         <button class="dialog-close" type="button" (click)="showDialog.set(false)">
           <span class="material-icons">close</span>
         </button>
@@ -105,25 +102,40 @@
         </div>
       </div>
 
-      <div class="field-row-2" style="margin-bottom:.75rem">
+      <div class="field-row-2" style="margin-bottom:.875rem">
         <div class="field-group">
           <label class="inp-label">Start Date</label>
-          <input class="admin-inp" type="month" [(ngModel)]="dStart">
+          <app-date-time-picker
+            mode="date"
+            [value]="dStart"
+            placeholder="Pick start date"
+            (valueChange)="onDStartChange($event)"
+          ></app-date-time-picker>
         </div>
         <div class="field-group">
           <label class="inp-label">End Date</label>
-          <input class="admin-inp" type="month" [(ngModel)]="dEnd" [disabled]="dPresent">
+          @if (dPresent) {
+            <div class="admin-inp exp-end-present">Present</div>
+          } @else {
+            <app-date-time-picker
+              mode="date"
+              [value]="dEnd"
+              [min]="dStart"
+              placeholder="Pick end date"
+              (valueChange)="onDEndChange($event)"
+            ></app-date-time-picker>
+          }
         </div>
       </div>
 
-      <label class="present-toggle" style="margin-bottom:1rem">
+      <label class="present-toggle" style="margin-bottom:1.125rem">
         <input type="checkbox" [(ngModel)]="dPresent">
         <span>Currently working here</span>
       </label>
 
       <div class="field-group" style="margin-bottom:0">
         <label class="inp-label">Description</label>
-        <textarea class="admin-inp" [(ngModel)]="dDesc" rows="4"
+        <textarea class="admin-textarea" [(ngModel)]="dDesc" rows="4"
           placeholder="Describe your role and key responsibilities…"></textarea>
       </div>
 
@@ -131,7 +143,7 @@
         <button class="btn-ghost" type="button" (click)="showDialog.set(false)">Cancel</button>
         <button class="btn-primary" type="button" [disabled]="!dRole.trim() || !dCompany.trim() || saving()"
           (click)="save()">
-          <span class="material-icons">save</span>
+          <span class="material-icons">{{ saving() ? 'hourglass_empty' : 'save' }}</span>
           {{ saving() ? 'Saving…' : 'Save' }}
         </button>
       </div>
@@ -142,9 +154,9 @@
 <!-- ── Delete confirmation ────────────────────────────────────────────────── -->
 @if (deleteTarget() >= 0) {
   <div class="dialog-backdrop" (click)="deleteTarget.set(-1)">
-    <div class="dialog-card" style="max-width:400px" (click)="$event.stopPropagation()">
+    <div class="dialog-card" style="max-width:400px;--dlg-accent:#EF4444" (click)="$event.stopPropagation()">
       <div class="dialog-header">
-        <h3>Delete Experience</h3>
+        <h3><span class="material-icons">delete_forever</span> Delete Experience</h3>
         <button class="dialog-close" type="button" (click)="deleteTarget.set(-1)">
           <span class="material-icons">close</span>
         </button>

@@ -3,7 +3,10 @@ import { FormsModule } from '@angular/forms';
 import { Observable, tap } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
 import { AdminDirtyComponent } from 'src/app/core/app-gards/unsaved-changes.guard';
+import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
 import { splitTokens, mergeTokens } from 'src/app/shared/utils/split-tokens';
+
+const MAX_RESUME_BYTES = 5 * 1024 * 1024; // 5MB, matches the backend/UI copy
 
 interface ThemeRow { name: string; c1: string; c2: string; c3: string; active: boolean; }
 
@@ -39,6 +42,13 @@ export class AdminProfileComponent extends CommonApp implements AdminDirtyCompon
   avatarSrc  = signal<string | null>(null);
   avatarFile: File | null = null;
 
+  // Resume — staged like the avatar: drag/drop or browse sets pendingResumeFile,
+  // committed into the profile on "Save Changes" (so Discard cancels it too).
+  pendingResumeFile: File | null = null;
+  resumeDragOver   = signal(false);
+  isRemovingResume = signal(false);
+  private confirmDialog: ConfirmDialogService;
+
   readonly tabs: { id: Tab; label: string }[] = [
     { id: 'info',   label: 'Personal Info'    },
     { id: 'bio',    label: 'Bio / Description' },
@@ -67,6 +77,7 @@ export class AdminProfileComponent extends CommonApp implements AdminDirtyCompon
 
   constructor(public override injector: Injector) {
     super(injector);
+    this.confirmDialog = injector.get(ConfirmDialogService);
 
     // Seed form fields once when profile is first available.
     // Uses an effect so it works whether profile loads before or after construction.
@@ -94,6 +105,7 @@ export class AdminProfileComponent extends CommonApp implements AdminDirtyCompon
     this.skills         = p.skills?.length ? [...p.skills] : [];
     this.avatarSrc.set(p.avatar_url ?? null);
     this.avatarFile = null;
+    this.pendingResumeFile = null;
     this._baseline = this._snapshot();
   }
 
@@ -102,7 +114,7 @@ export class AdminProfileComponent extends CommonApp implements AdminDirtyCompon
     return JSON.stringify([
       this.fullName, this.jobTitle, this.email, this.phone, this.secondaryPhone,
       this.location, this.website, this.github, this.linkedin, this.bio, this.shortBio,
-      this.skills, this.avatarFile?.name ?? '',
+      this.skills, this.avatarFile?.name ?? '', this.pendingResumeFile?.name ?? '',
     ]);
   }
 
@@ -123,6 +135,73 @@ export class AdminProfileComponent extends CommonApp implements AdminDirtyCompon
     const reader = new FileReader();
     reader.onload = (ev) => this.avatarSrc.set((ev.target?.result as string) ?? null);
     reader.readAsDataURL(file);
+  }
+
+  // ── Resume — drag & drop + browse ────────────────────────────
+
+  onResumeDragOver(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.resumeDragOver.set(true);
+  }
+
+  onResumeDragLeave(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.resumeDragOver.set(false);
+  }
+
+  onResumeDrop(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.resumeDragOver.set(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) this._stageResumeFile(file);
+  }
+
+  onResumeFileSelected(e: Event): void {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) this._stageResumeFile(file);
+    (e.target as HTMLInputElement).value = ''; // allow re-selecting the same file
+  }
+
+  private _stageResumeFile(file: File): void {
+    if (file.type !== 'application/pdf') {
+      this.alertService.showAlert('Only PDF files are supported.', 'error');
+      return;
+    }
+    if (file.size > MAX_RESUME_BYTES) {
+      this.alertService.showAlert('File is too large — max 5MB.', 'error');
+      return;
+    }
+    this.pendingResumeFile = file;
+  }
+
+  clearPendingResume(): void {
+    this.pendingResumeFile = null;
+  }
+
+  /** Friendly display name — the staged file's own name, or parsed from the saved URL */
+  get resumeFileName(): string {
+    if (this.pendingResumeFile) return this.pendingResumeFile.name;
+    const url = this.profile()?.resume_url;
+    if (!url) return '';
+    try { return decodeURIComponent(url.split('/').pop() ?? url); }
+    catch { return url; }
+  }
+
+  async removeExistingResume(): Promise<void> {
+    const ok = await this.confirmDialog.confirmDelete(this.resumeFileName || 'your resume', {
+      title: 'Remove Resume',
+      message: 'This will permanently remove your resume from storage. Continue?',
+    });
+    if (!ok) return;
+
+    this.isRemovingResume.set(true);
+    this.saveWithFeedback(this.appService.deleteResume(), 'Resume removed').subscribe({
+      next:  () => this.isRemovingResume.set(false),
+      error: () => this.isRemovingResume.set(false),
+    });
   }
 
   get initials(): string {
@@ -171,6 +250,9 @@ export class AdminProfileComponent extends CommonApp implements AdminDirtyCompon
     if (this.avatarFile) {
       fd.append('avatar', this.avatarFile, this.avatarFile.name);
     }
+    if (this.pendingResumeFile) {
+      fd.append('resume', this.pendingResumeFile, this.pendingResumeFile.name);
+    }
     return fd;
   }
 
@@ -182,6 +264,7 @@ export class AdminProfileComponent extends CommonApp implements AdminDirtyCompon
     ).pipe(
       tap(() => {
         this.avatarFile = null;
+        this.pendingResumeFile = null;
         this._baseline = this._snapshot();
       })
     );

@@ -60,37 +60,74 @@
         }
       </div>
 
-      <!-- Divider -->
-      <div class="dtp__divider"></div>
+      @if (mode !== 'date') {
+        <!-- Divider -->
+        <div class="dtp__divider"></div>
 
-      <!-- Time picker -->
-      <div class="dtp__time">
-        <i class="material-icons dtp__time-icon">schedule</i>
+        <!-- Time picker — steppers move by 1 and the value itself is a
+             text input, so any exact hour/minute/second is directly typeable
+             instead of only reachable via repeated 5-unit clicks. -->
+        <div class="dtp__time">
+          <i class="material-icons dtp__time-icon">schedule</i>
 
-        <div class="dtp__spin">
-          <button type="button" class="dtp__spin-btn" (click)="adjHour(1)">
-            <i class="material-icons">expand_less</i>
-          </button>
-          <span class="dtp__spin-val">{{ hourStr }}</span>
-          <button type="button" class="dtp__spin-btn" (click)="adjHour(-1)">
-            <i class="material-icons">expand_more</i>
-          </button>
+          <div class="dtp__spin">
+            <button type="button" class="dtp__spin-btn" (click)="adjHour(1)">
+              <i class="material-icons">expand_less</i>
+            </button>
+            <input
+              class="dtp__spin-val dtp__spin-input"
+              type="text" inputmode="numeric" maxlength="2"
+              [value]="hourStr"
+              (focus)="selectInputText($event)"
+              (change)="onHourInput($event)"
+              (keydown.enter)="$any($event.target).blur()"
+            >
+            <button type="button" class="dtp__spin-btn" (click)="adjHour(-1)">
+              <i class="material-icons">expand_more</i>
+            </button>
+          </div>
+
+          <span class="dtp__colon">:</span>
+
+          <div class="dtp__spin">
+            <button type="button" class="dtp__spin-btn" (click)="adjMin(1)">
+              <i class="material-icons">expand_less</i>
+            </button>
+            <input
+              class="dtp__spin-val dtp__spin-input"
+              type="text" inputmode="numeric" maxlength="2"
+              [value]="minStr"
+              (focus)="selectInputText($event)"
+              (change)="onMinuteInput($event)"
+              (keydown.enter)="$any($event.target).blur()"
+            >
+            <button type="button" class="dtp__spin-btn" (click)="adjMin(-1)">
+              <i class="material-icons">expand_more</i>
+            </button>
+          </div>
+
+          <span class="dtp__colon">:</span>
+
+          <div class="dtp__spin">
+            <button type="button" class="dtp__spin-btn" (click)="adjSec(1)">
+              <i class="material-icons">expand_less</i>
+            </button>
+            <input
+              class="dtp__spin-val dtp__spin-input"
+              type="text" inputmode="numeric" maxlength="2"
+              [value]="secStr"
+              (focus)="selectInputText($event)"
+              (change)="onSecondInput($event)"
+              (keydown.enter)="$any($event.target).blur()"
+            >
+            <button type="button" class="dtp__spin-btn" (click)="adjSec(-1)">
+              <i class="material-icons">expand_more</i>
+            </button>
+          </div>
+
+          <span class="dtp__ampm" [class.dtp__ampm--pm]="isPm">{{ isPm ? 'PM' : 'AM' }}</span>
         </div>
-
-        <span class="dtp__colon">:</span>
-
-        <div class="dtp__spin">
-          <button type="button" class="dtp__spin-btn" (click)="adjMin(1)">
-            <i class="material-icons">expand_less</i>
-          </button>
-          <span class="dtp__spin-val">{{ minStr }}</span>
-          <button type="button" class="dtp__spin-btn" (click)="adjMin(-1)">
-            <i class="material-icons">expand_more</i>
-          </button>
-        </div>
-
-        <span class="dtp__ampm" [class.dtp__ampm--pm]="isPm">{{ isPm ? 'PM' : 'AM' }}</span>
-      </div>
+      }
 
       <!-- Hint when no day selected -->
       @if (!selDate) {

@@ -114,7 +114,10 @@
 .proj-drawer {
   position: fixed;
   inset: 0;
-  z-index: 990;
+  /* Must clear the sticky admin topbar (--topbar-z: 1060) — this panel
+     slides in full-height (top:0) and its own header was rendering
+     underneath the topbar chrome before this was raised. */
+  z-index: var(--modal-backdrop-z, 1100);
 
   .backdrop {
     position: absolute;
