@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { RadioButtonModule } from 'primeng/radiobutton';
@@ -26,7 +26,7 @@ import { MyLearningPostComponent } from 'src/app/shared/components/my-learning-p
     ReactiveFormsModule,
     CardModule,
     ButtonModule,
-    CalendarModule,
+    DatePickerModule,
     DialogModule,
     RadioButtonModule,
     ToggleButtonModule,

@@ -27,8 +27,8 @@
     
           @if (selectedTimeRange() === 'custom') {
           <div class="ad__custom-range">
-            <p-calendar [(ngModel)]="customDateRange" selectionMode="range" [readonlyInput]="true"
-              placeholder="Select date range" dateFormat="M dd, yy"></p-calendar>
+            <p-datepicker [(ngModel)]="customDateRange" selectionMode="range" [readonlyInput]="true"
+              placeholder="Select date range" dateFormat="M dd, yy"></p-datepicker>
             <button class="ad__apply-btn" (click)="applyCustomRange()">
               <span class="material-icons">check</span> Apply
             </button>

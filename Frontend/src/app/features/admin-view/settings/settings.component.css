@@ -1186,7 +1186,7 @@
   padding: 0;
 }
 
-::ng-deep .form-calendar .p-calendar {
+::ng-deep .form-calendar .p-datepicker {
   width: 100%;
 }
 

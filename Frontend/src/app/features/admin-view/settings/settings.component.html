@@ -531,8 +531,8 @@
       <div class="form-grid">
         <div class="form-field">
           <label class="field-label">Start Date</label>
-          <p-calendar formControlName="startDate" dateFormat="mm/yy" [view]="'month'"
-            class="form-calendar"></p-calendar>
+          <p-datepicker formControlName="startDate" dateFormat="mm/yy" [view]="'month'"
+            class="form-calendar"></p-datepicker>
           @if (isFieldInvalid('startDate', experienceDialogForm)) {
           <div class="field-error">
             {{ getErrorText('startDate', experienceDialogForm) }}
@@ -541,8 +541,8 @@
         </div>
         <div class="form-field">
           <label class="field-label">End Date</label>
-          <p-calendar formControlName="endDate" dateFormat="mm/yy" [view]="'month'"
-            [disabled]="experienceDialogForm.get('present')?.value" class="form-calendar"></p-calendar>
+          <p-datepicker formControlName="endDate" dateFormat="mm/yy" [view]="'month'"
+            [disabled]="experienceDialogForm.get('present')?.value" class="form-calendar"></p-datepicker>
         </div>
         <div class="form-field checkbox-field">
           <label class="checkbox-label">
