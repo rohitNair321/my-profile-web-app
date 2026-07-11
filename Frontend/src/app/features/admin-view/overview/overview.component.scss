@@ -323,6 +323,22 @@
       color: #818CF8;
     }
   }
+
+  // Primary emphasis — matches the app's emerald gradient action buttons
+  &--primary {
+    background: linear-gradient(135deg, #10B981, #059669);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #10B981, #059669);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+    }
+  }
 }
 
 .ov-action-badge {

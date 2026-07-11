@@ -60,6 +60,16 @@
 
         <button
           type="button"
+          class="btn-icon btn-ai"
+          [class.btn-ai--active]="aiOpen()"
+          (click)="toggleAiPanel()"
+          title="AI writing assist"
+        >
+          <i class="material-icons">auto_awesome</i>
+        </button>
+
+        <button
+          type="button"
           class="btn-icon"
           (click)="showPreview.set(!showPreview())"
           [title]="showPreview() ? 'Hide preview' : 'Show preview'"
@@ -68,6 +78,81 @@
         </button>
       </div>
     </div>
+
+    <!-- AI writing assist panel -->
+    @if (aiOpen()) {
+      <div class="ai-panel">
+        <div class="ai-panel__head">
+          <span class="ai-panel__title"><i class="material-icons">auto_awesome</i> AI Writing Assist</span>
+          <button type="button" class="ai-panel__close" (click)="toggleAiPanel()" title="Close">
+            <i class="material-icons">close</i>
+          </button>
+        </div>
+
+        <div class="ai-panel__actions">
+          <button type="button" class="ai-btn" (click)="runAi('excerpt')" [disabled]="!!aiAction()">
+            @if (aiAction() === 'excerpt') { <span class="ai-spin"></span> } @else { <i class="material-icons">notes</i> }
+            Excerpt
+          </button>
+          <button type="button" class="ai-btn" (click)="runAi('titles')" [disabled]="!!aiAction()">
+            @if (aiAction() === 'titles') { <span class="ai-spin"></span> } @else { <i class="material-icons">title</i> }
+            Titles
+          </button>
+          <button type="button" class="ai-btn" (click)="runAi('improve')" [disabled]="!!aiAction()">
+            @if (aiAction() === 'improve') { <span class="ai-spin"></span> } @else { <i class="material-icons">auto_fix_high</i> }
+            Improve
+          </button>
+          <button type="button" class="ai-btn" (click)="runAi('seo')" [disabled]="!!aiAction()">
+            @if (aiAction() === 'seo') { <span class="ai-spin"></span> } @else { <i class="material-icons">search</i> }
+            SEO + tags
+          </button>
+        </div>
+
+        @if (aiError()) {
+          <div class="ai-panel__error"><i class="material-icons">error_outline</i> {{ aiError() }}</div>
+        }
+
+        @if (aiExcerpt()) {
+          <div class="ai-result">
+            <div class="ai-result__label">Suggested excerpt</div>
+            <p class="ai-result__text">{{ aiExcerpt() }}</p>
+            <button type="button" class="ai-apply" (click)="applyAiExcerpt()">Apply to excerpt</button>
+          </div>
+        }
+
+        @if (aiTitles().length) {
+          <div class="ai-result">
+            <div class="ai-result__label">Title ideas</div>
+            <ul class="ai-titles">
+              @for (t of aiTitles(); track t) {
+                <li>
+                  <span>{{ t }}</span>
+                  <button type="button" class="ai-apply ai-apply--sm" (click)="applyAiTitle(t)">Use</button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (aiSeo(); as seo) {
+          <div class="ai-result">
+            <div class="ai-result__label">SEO metadata</div>
+            @if (seo.seo_title) { <p class="ai-result__text"><strong>Title:</strong> {{ seo.seo_title }}</p> }
+            @if (seo.seo_description) { <p class="ai-result__text"><strong>Description:</strong> {{ seo.seo_description }}</p> }
+            @if (seo.tags?.length) { <p class="ai-result__text"><strong>Tags:</strong> {{ seo.tags?.join(', ') }}</p> }
+            <button type="button" class="ai-apply" (click)="applyAiSeo()">Apply SEO + tags</button>
+          </div>
+        }
+
+        @if (aiImprove()) {
+          <div class="ai-result">
+            <div class="ai-result__label">Improved draft <span class="ai-result__hint">preview</span></div>
+            <div class="ai-result__html ql-editor" [innerHTML]="aiImprove()"></div>
+            <button type="button" class="ai-apply" (click)="applyAiImprove()">Replace content</button>
+          </div>
+        }
+      </div>
+    }
 
     <!-- Error banner -->
     @if (error()) {

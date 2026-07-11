@@ -286,6 +286,103 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
     return Math.max(1, Math.ceil(text.trim().split(/\s+/).filter(Boolean).length / 200));
   }
 
+  // ── AI writing assist ────────────────────────────────────────
+
+  aiOpen    = signal(false);
+  aiAction  = signal<'excerpt' | 'titles' | 'improve' | 'seo' | null>(null);
+  aiError   = signal<string>('');
+  aiExcerpt = signal<string>('');
+  aiImprove = signal<string>('');
+  aiTitles  = signal<string[]>([]);
+  aiSeo     = signal<{ seo_title?: string; seo_description?: string; tags?: string[] } | null>(null);
+
+  toggleAiPanel(): void {
+    this.aiOpen.update(v => !v);
+  }
+
+  runAi(action: 'excerpt' | 'titles' | 'improve' | 'seo'): void {
+    if (this.aiAction()) return; // a request is already in flight
+    const title   = this.form.get('title')?.value || '';
+    const content = this.form.get('content')?.value || '';
+    if (!title.trim() && !content.trim()) {
+      this.alertService.showAlert('Add a title or some content first.', 'warning');
+      return;
+    }
+
+    this.aiAction.set(action);
+    this.aiError.set('');
+    this.postService.aiAssist({ action, title, content })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const raw = res.data?.result ?? '';
+          switch (action) {
+            case 'excerpt': this.aiExcerpt.set(raw); break;
+            case 'improve': this.aiImprove.set(raw); break;
+            case 'titles':
+              this.aiTitles.set(
+                raw.split('\n')
+                  .map(s => s.replace(/^[-*\d.)\s"]+/, '').replace(/"+$/, '').trim())
+                  .filter(Boolean)
+                  .slice(0, 5)
+              );
+              break;
+            case 'seo': this.aiSeo.set(this.parseSeo(raw)); break;
+          }
+          this.aiAction.set(null);
+        },
+        error: (err) => {
+          this.aiError.set(err?.error?.message || 'AI request failed. Try again.');
+          this.aiAction.set(null);
+        },
+      });
+  }
+
+  private parseSeo(raw: string): { seo_title?: string; seo_description?: string; tags?: string[] } {
+    try {
+      const o = JSON.parse(raw);
+      return {
+        seo_title:       typeof o.seo_title === 'string' ? o.seo_title : undefined,
+        seo_description: typeof o.seo_description === 'string' ? o.seo_description : undefined,
+        tags:            Array.isArray(o.tags) ? o.tags.filter((t: any) => typeof t === 'string') : [],
+      };
+    } catch {
+      // Model didn't return clean JSON — treat the whole thing as a description
+      return { seo_description: raw };
+    }
+  }
+
+  applyAiExcerpt(): void {
+    this.form.patchValue({ excerpt: this.aiExcerpt() });
+    this.alertService.showAlert('Excerpt applied.', 'success');
+  }
+
+  applyAiTitle(title: string): void {
+    this.form.patchValue({ title });
+    this.alertService.showAlert('Title applied.', 'success');
+  }
+
+  applyAiImprove(): void {
+    const html = this.aiImprove();
+    this.form.patchValue({ content: html });
+    // keep the char counter in sync (writeValue won't emit contentChanged)
+    const plain = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    this.form.patchValue({ content_raw: plain }, { emitEvent: false });
+    this.contentChars.set(plain.length);
+    this.alertService.showAlert('Improved content applied.', 'success');
+  }
+
+  applyAiSeo(): void {
+    const s = this.aiSeo();
+    if (!s) return;
+    const patch: any = {};
+    if (s.seo_title)       patch.seo_title = s.seo_title;
+    if (s.seo_description) patch.seo_description = s.seo_description;
+    this.form.patchValue(patch);
+    if (s.tags?.length) this.addTagsFromText(s.tags.join(','));
+    this.alertService.showAlert('SEO metadata applied.', 'success');
+  }
+
   // ── Save ─────────────────────────────────────────────────────
 
   async save(publishNow = false): Promise<void> {

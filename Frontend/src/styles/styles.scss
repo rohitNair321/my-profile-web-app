@@ -26,6 +26,40 @@
   transition-duration: 0s !important;
 }
 
+/* ── Themed scrollbars (app-wide) ────────────────────────────────
+   A slim, theme-tinted scrollbar for every scroll container: the page
+   itself, textareas, cards, dialogs, dropdowns, chat, etc. Components
+   that deliberately restyle or hide their own scrollbar keep winning —
+   their scoped `::-webkit-scrollbar` rules carry higher specificity than
+   these universal ones, so this only fills in everywhere else. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb, rgba(100,116,139,.45)) var(--scrollbar-track, transparent);
+}
+
+*::-webkit-scrollbar {
+  width:  var(--scrollbar-size, 10px);
+  height: var(--scrollbar-size, 10px);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track, transparent);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(100,116,139,.45));
+  border-radius: 999px;
+  border: 2px solid transparent;   /* inset the thumb so it reads as a slim pill */
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #10B981);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner { background: transparent; }
+
 /* Base Styles (keep your good structure) */
 html {
   scroll-behavior: smooth;

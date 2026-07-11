@@ -41,46 +41,57 @@
       <!-- Divider -->
       <div class="durp__divider"></div>
 
-      <!-- Custom hour/minute steppers -->
-      <div class="durp__custom-label">Custom</div>
-      <div class="durp__time">
-        <div class="durp__spin">
-          <button type="button" class="durp__spin-btn" (click)="adjHours(1)">
-            <i class="material-icons">expand_less</i>
-          </button>
-          <input
-            class="durp__spin-val durp__spin-input"
-            type="text" inputmode="numeric" maxlength="3"
-            [value]="hourStr"
-            (focus)="selectInputText($event)"
-            (change)="onHoursInput($event)"
-            (keydown.enter)="$any($event.target).blur()"
-          >
-          <button type="button" class="durp__spin-btn" (click)="adjHours(-1)">
-            <i class="material-icons">expand_more</i>
-          </button>
-          <span class="durp__spin-unit">hr</span>
+      <!-- Custom hours / minutes fields -->
+      <div class="durp__custom-label">Custom estimate</div>
+      <div class="durp__fields">
+        <div class="durp__field">
+          <div class="durp__field-box">
+            <input
+              class="durp__field-input"
+              type="text" inputmode="numeric" maxlength="3" aria-label="Hours"
+              [value]="hourStr"
+              (focus)="selectInputText($event)"
+              (change)="onHoursInput($event)"
+              (keydown.enter)="$any($event.target).blur()"
+            >
+            <div class="durp__steppers">
+              <button type="button" (click)="adjHours(1)" aria-label="Increase hours">
+                <i class="material-icons">keyboard_arrow_up</i>
+              </button>
+              <button type="button" (click)="adjHours(-1)" aria-label="Decrease hours">
+                <i class="material-icons">keyboard_arrow_down</i>
+              </button>
+            </div>
+          </div>
+          <span class="durp__field-lbl">Hours</span>
         </div>
 
-        <span class="durp__colon">:</span>
-
-        <div class="durp__spin">
-          <button type="button" class="durp__spin-btn" (click)="adjMinutes(1)">
-            <i class="material-icons">expand_less</i>
-          </button>
-          <input
-            class="durp__spin-val durp__spin-input"
-            type="text" inputmode="numeric" maxlength="2"
-            [value]="minStr"
-            (focus)="selectInputText($event)"
-            (change)="onMinutesInput($event)"
-            (keydown.enter)="$any($event.target).blur()"
-          >
-          <button type="button" class="durp__spin-btn" (click)="adjMinutes(-1)">
-            <i class="material-icons">expand_more</i>
-          </button>
-          <span class="durp__spin-unit">min</span>
+        <div class="durp__field">
+          <div class="durp__field-box">
+            <input
+              class="durp__field-input"
+              type="text" inputmode="numeric" maxlength="2" aria-label="Minutes"
+              [value]="minStr"
+              (focus)="selectInputText($event)"
+              (change)="onMinutesInput($event)"
+              (keydown.enter)="$any($event.target).blur()"
+            >
+            <div class="durp__steppers">
+              <button type="button" (click)="adjMinutes(1)" aria-label="Increase minutes">
+                <i class="material-icons">keyboard_arrow_up</i>
+              </button>
+              <button type="button" (click)="adjMinutes(-1)" aria-label="Decrease minutes">
+                <i class="material-icons">keyboard_arrow_down</i>
+              </button>
+            </div>
+          </div>
+          <span class="durp__field-lbl">Minutes</span>
         </div>
+      </div>
+
+      <!-- Live total preview -->
+      <div class="durp__preview">
+        Total: <span>{{ customPreview }}</span>
       </div>
 
       <!-- Footer -->

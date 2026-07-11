@@ -126,20 +126,44 @@
   .material-icons { font-size: .75rem; }
 }
 
+.exp-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem .9rem;
+  border-radius: 9px;
+  border: 1px solid color-mix(in oklab, var(--accent, #10B981) 30%, transparent);
+  background: color-mix(in oklab, var(--accent, #10B981) 10%, transparent);
+  color: var(--accent, #10B981);
+  font-family: inherit;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, transform .18s;
+
+  .material-icons { font-size: .9rem; }
+
+  &:hover {
+    background: color-mix(in oklab, var(--accent, #10B981) 18%, transparent);
+    border-color: color-mix(in oklab, var(--accent, #10B981) 50%, transparent);
+  }
+  &:active { transform: translateY(1px); }
+}
+
 .exp-del-btn {
   background: none;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  color: #475569;
+  color: #64748B;
   display: flex;
   align-items: center;
-  padding: 4px;
-  border-radius: 7px;
+  padding: .45rem;
+  border-radius: 9px;
   margin-left: auto;
   transition: all .2s;
 
-  &:hover { color: #EF4444; background: rgba(239,68,68,.08); }
-  .material-icons { font-size: 1.1rem; }
+  &:hover { color: #EF4444; background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); }
+  .material-icons { font-size: 1.05rem; }
 }
 
 /* ── Add / Edit dialog ────────────────────────────────────────────────── */

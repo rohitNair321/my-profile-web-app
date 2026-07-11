@@ -175,7 +175,7 @@
       </div>
     </section>
 
-    <!-- EXPERIENCE SECTION - Vertical Timeline -->
+    <!-- EXPERIENCE SECTION - Card grid -->
     <section id="experience" class="experience-section animate-section">
       <div class="container">
         <div class="section-header">
@@ -183,41 +183,50 @@
           <h2 class="section-title">Where I've built things</h2>
         </div>
         @if ((homeData?.experiences?.length ?? 0) > 0) {
-          <div class="timeline">
+          <div class="xp-grid">
             @for (exp of homeData.experiences; track exp; let i = $index) {
-              <div class="timeline-item" [class.timeline-item--expanded]="expandedExp() === i" (click)="toggleExp(i)">
-                <div class="timeline-node" [style.borderColor]="i % 2 === 0 ? '#10B981' : '#06B6D4'"></div>
-                <div class="timeline-card" [style.borderLeftColor]="i % 2 === 0 ? '#10B981' : '#06B6D4'">
-                  <div class="timeline-header">
-                    <div class="timeline-badge" [style.background]="i % 2 === 0 ? '#10B98122' : '#06B6D422'" [style.color]="i % 2 === 0 ? '#10B981' : '#06B6D4'">
-                      {{ exp.company?.substring(0, 2)?.toUpperCase() || 'CO' }}
-                    </div>
-                    <div class="timeline-meta">
-                      <div class="timeline-role">{{ exp.role }}</div>
-                      <div class="timeline-company">{{ exp.company }}</div>
-                    </div>
-                    <div class="timeline-right">
-                      <span class="timeline-period">{{ exp.startDate }} – {{ exp.present ? 'Present' : exp.endDate }}</span>
-                      @if (exp.location) {
-                        <span class="timeline-location">{{ exp.location }}</span>
-                      }
-                    </div>
-                    <i class="material-icons timeline-chevron">{{ expandedExp() === i ? 'expand_less' : 'expand_more' }}</i>
+              <article class="xp-card" [class.xp-card--alt]="i % 2 !== 0">
+                <span class="xp-card__bar"></span>
+
+                <div class="xp-card__top">
+                  <div class="xp-card__logo">
+                    {{ exp.company?.substring(0, 2)?.toUpperCase() || 'CO' }}
                   </div>
-                  @if (expandedExp() === i && exp.description) {
-                    <div class="timeline-body">
-                      <p>{{ exp.description }}</p>
-                      @if ((exp.projects?.length ?? 0) > 0) {
-                        <div class="timeline-tech">
-                          @for (proj of exp.projects; track proj.name) {
-                            <span class="tech-tag">{{ proj.name }}</span>
-                          }
-                        </div>
-                      }
-                    </div>
+                  <div class="xp-card__idy">
+                    <h3 class="xp-card__role">{{ exp.role }}</h3>
+                    <div class="xp-card__company">{{ exp.company }}</div>
+                  </div>
+                  @if (exp.present) {
+                    <span class="xp-card__now">
+                      <span class="xp-card__now-dot"></span> Current
+                    </span>
                   }
                 </div>
-              </div>
+
+                <div class="xp-card__meta">
+                  <span class="xp-card__period">
+                    <i class="material-icons">calendar_today</i>
+                    {{ fmtExpDate(exp.startDate) }} – {{ exp.present ? 'Present' : fmtExpDate(exp.endDate) }}
+                  </span>
+                  @if (exp.location) {
+                    <span class="xp-card__loc">
+                      <i class="material-icons">place</i>{{ exp.location }}
+                    </span>
+                  }
+                </div>
+
+                @if (exp.description) {
+                  <p class="xp-card__desc">{{ exp.description }}</p>
+                }
+
+                @if ((exp.projects?.length ?? 0) > 0) {
+                  <div class="xp-card__tags">
+                    @for (proj of exp.projects; track proj.name) {
+                      <span class="xp-card__tag">{{ proj.name || proj.title }}</span>
+                    }
+                  </div>
+                }
+              </article>
             }
           </div>
         }

@@ -915,3 +915,45 @@
 
 .spin { animation: layoutSpin .8s linear infinite; }
 @keyframes layoutSpin { to { transform: rotate(360deg); } }
+// ── "View public site" preview banner ─────────────────────────
+.preview-banner {
+  position: sticky;
+  top: 0;
+  z-index: var(--overlay-z, 1200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    .material-icons { font-size: 1.05rem; }
+  }
+
+  &__exit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    .material-icons { font-size: 0.95rem; }
+    &:hover { background: rgba(255, 255, 255, 0.24); }
+  }
+}

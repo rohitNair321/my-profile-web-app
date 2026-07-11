@@ -104,9 +104,18 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
     { icon: 'build', color: '#F59E0B', name: 'Tools', skills: ['Git + GitHub', 'Node.js', 'VS Code', 'Figma', 'Angular CLI', 'GitHub Actions'] }
   ];
 
-  // Experience timeline
+  // Experience cards
   expandedExp = signal<number | null>(null);
   toggleExp(i: number) { this.expandedExp.update(v => v === i ? null : i); }
+
+  /** Formats a stored 'YYYY-MM-DD' or legacy 'YYYY-MM' date as "Mon YYYY".
+   *  Returns '' for anything unparseable rather than showing a raw string. */
+  fmtExpDate(iso?: string | null): string {
+    if (!iso) return '';
+    const [y, m, d] = String(iso).split('-').map(Number);
+    if (!y || !m) return '';
+    return new Date(y, m - 1, d || 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }
 
   // Testimonials
   readonly TESTIMONIALS = [
