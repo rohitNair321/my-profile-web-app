@@ -1,6 +1,6 @@
 import {
   Component, ElementRef, EventEmitter, HostListener,
-  Input, OnChanges, Output, SimpleChanges,
+  Input, OnChanges, OnDestroy, Output, SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './duration-picker.component.html',
   styleUrls: ['./duration-picker.component.scss'],
 })
-export class DurationPickerComponent implements OnChanges {
+export class DurationPickerComponent implements OnChanges, OnDestroy {
   /** Duration in minutes, or null for "not set" */
   @Input() value: number | null = null;
   @Input() placeholder = 'Set duration';
@@ -69,14 +69,78 @@ export class DurationPickerComponent implements OnChanges {
 
   toggle(): void {
     this.open = !this.open;
-    if (this.open) this.syncFromValue();
+    if (this.open) {
+      this.syncFromValue();
+      this.attachReposition();
+    } else {
+      this.detachReposition();
+    }
   }
 
-  close(): void { this.open = false; }
+  close(): void {
+    this.open = false;
+    this.detachReposition();
+  }
+
+  ngOnDestroy(): void { this.detachReposition(); }
 
   @HostListener('document:click', ['$event'])
   onOutsideClick(e: MouseEvent): void {
     if (!this.elRef.nativeElement.contains(e.target)) this.close();
+  }
+
+  // ── Popover positioning ─────────────────────────────────────
+  // Anchored with `position: fixed` + measured coordinates so it escapes the
+  // dialog's `overflow-y:auto` scroll box (otherwise the popover — including the
+  // Confirm button — is clipped inside the modal). See DateTimePicker for the
+  // containing-block rationale; kept in sync between the two pickers.
+
+  private readonly repositionFn = () => this.reposition();
+
+  private attachReposition(): void {
+    if (typeof window === 'undefined') return;
+    requestAnimationFrame(() => this.reposition());
+    window.addEventListener('scroll', this.repositionFn, true);
+    window.addEventListener('resize', this.repositionFn);
+  }
+
+  private detachReposition(): void {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('scroll', this.repositionFn, true);
+    window.removeEventListener('resize', this.repositionFn);
+  }
+
+  private reposition(): void {
+    if (!this.open) return;
+    const host = this.elRef.nativeElement as HTMLElement;
+    const trigger = host.querySelector('.durp__trigger-row') as HTMLElement | null;
+    const pop = host.querySelector('.durp__popover') as HTMLElement | null;
+    if (!trigger || !pop) return;
+
+    pop.style.position = 'fixed';
+    pop.style.margin = '0';
+    pop.style.top = '0';
+    pop.style.left = '0';
+    const origin = pop.getBoundingClientRect();
+
+    const tr = trigger.getBoundingClientRect();
+    const gap = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const pw = pop.offsetWidth;
+    const ph = pop.offsetHeight;
+
+    let top = tr.bottom + gap;
+    if (top + ph > vh - gap) {
+      const above = tr.top - gap - ph;
+      top = above >= gap ? above : Math.max(gap, vh - ph - gap);
+    }
+    let left = tr.left;
+    if (left + pw > vw - gap) left = vw - pw - gap;
+    if (left < gap) left = gap;
+
+    pop.style.top = `${Math.round(top - origin.top)}px`;
+    pop.style.left = `${Math.round(left - origin.left)}px`;
   }
 
   // ── Steppers ────────────────────────────────────────────────
@@ -95,6 +159,15 @@ export class DurationPickerComponent implements OnChanges {
 
   get hourStr(): string { return String(this.hours).padStart(2, '0'); }
   get minStr(): string { return String(this.minutes).padStart(2, '0'); }
+
+  /** Human total for the live preview under the custom fields. */
+  get customPreview(): string {
+    const total = this.hours * 60 + this.minutes;
+    if (total <= 0) return 'No estimate';
+    if (this.hours === 0) return `${this.minutes}m`;
+    if (this.minutes === 0) return `${this.hours}h`;
+    return `${this.hours}h ${this.minutes}m`;
+  }
 
   onHoursInput(e: Event): void {
     const n = parseInt((e.target as HTMLInputElement).value, 10);

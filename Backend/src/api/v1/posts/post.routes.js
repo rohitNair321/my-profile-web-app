@@ -30,6 +30,7 @@ const {
   updateImpressions,
   deletePost,
   uploadCover,
+  aiAssist,
   streamSchedulerEvents,
 } = require('./post.controller');
 
@@ -156,6 +157,30 @@ router.get('/admin/:id', verifyToken, requireAdmin, getByIdAdmin);
  *         description: No file provided
  */
 router.post('/upload/cover', verifyToken, requireAdmin, upload.single('cover'), uploadCover);
+
+/**
+ * @swagger
+ * /api/v1/posts/ai-assist:
+ *   post:
+ *     summary: AI writing assistant for the post editor (admin only)
+ *     tags: [Posts]
+ *     security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [action]
+ *             properties:
+ *               action:  { type: string, enum: [excerpt, titles, improve, seo] }
+ *               title:   { type: string }
+ *               content: { type: string, description: HTML or plain text of the post }
+ *     responses:
+ *       200: { description: "Returns { action, result }" }
+ *       400: { description: Invalid action or empty content }
+ */
+router.post('/ai-assist', verifyToken, requireAdmin, aiAssist);
 
 /**
  * @swagger

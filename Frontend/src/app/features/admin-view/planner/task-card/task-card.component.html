@@ -7,7 +7,7 @@
 
   <!-- Description preview (1 line, only if present) -->
   @if (task().description) {
-    <div class="tc-desc">{{ task().description }}</div>
+  <div class="tc-desc">{{ task().description }}</div>
   }
 
   <!-- Meta row -->
@@ -16,28 +16,28 @@
       {{ prLabel() }}
     </span>
     @if (task().dueDate) {
-      <span class="tc-due">
-        <span class="material-icons">event</span>{{ task().dueDate | date:'MMM dd' }}
-      </span>
+    <span class="tc-due">
+      <span class="material-icons">event</span>{{ task().dueDate | date:'MMM dd' }}
+    </span>
     }
     @for (tag of task().tags; track tag) {
-      <span class="tc-tag">{{ tag }}</span>
+    <span class="tc-tag">{{ tag }}</span>
     }
 
     <!-- Timer chip -->
     @if (workedMs() > 0 || running()) {
-      <span class="tc-timer" [class.tc-timer--live]="running()">
-        <span class="tc-timer-dot"></span>
-        {{ running() ? liveClock() : rounded() }}
-      </span>
+    <span class="tc-timer" [class.tc-timer--live]="running()">
+      <span class="tc-timer-dot"></span>
+      {{ running() ? liveClock() : rounded() }}
+    </span>
     }
 
     <!-- Play / Pause (not in Done) -->
     @if (task().column !== 'done') {
-      <button class="tc-timer-btn" type="button" (click)="toggleTimer($event)"
-              [title]="running() ? 'Pause timer' : 'Start timer'">
-        <span class="material-icons">{{ running() ? 'pause' : 'play_arrow' }}</span>
-      </button>
+    <button class="tc-timer-btn" type="button" (click)="toggleTimer($event)"
+      [title]="running() ? 'Pause timer' : 'Start timer'">
+      <span class="material-icons">{{ running() ? 'pause' : 'play_arrow' }}</span>
+    </button>
     }
 
     <button class="tc-del" type="button" title="Delete task" (click)="remove($event)">
@@ -47,12 +47,12 @@
 
   <!-- Progress bar (bottom edge of card) -->
   @if (progress() !== null) {
-    <div class="tc-bar-track">
-      <div class="tc-bar-fill"
-           [style.width.%]="progress()! * 100"
-           [class.tc-bar-fill--over]="progress()! >= 1"></div>
-    </div>
+  <div class="tc-bar-track">
+    <div class="tc-bar-fill" [style.width.%]="progress()! * 100" [class.tc-bar-fill--over]="progress()! >= 1"></div>
+  </div>
   } @else if (running()) {
-    <div class="tc-bar-track"><div class="tc-bar-indeterminate"></div></div>
+  <div class="tc-bar-track">
+    <div class="tc-bar-indeterminate"></div>
+  </div>
   }
 </div>

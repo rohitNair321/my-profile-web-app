@@ -78,6 +78,15 @@
   --radius-2xl:  24px;
   --radius-full: 9999px;
 
+  // ── Scrollbar ──────────────────────────────────────────────────
+  // Consumed by the global themed-scrollbar rules in styles.scss. Thumb is a
+  // translucent slate that reads on both the light public site and the dark
+  // admin chrome; hover uses the live theme primary.
+  --scrollbar-size:        10px;
+  --scrollbar-track:       transparent;
+  --scrollbar-thumb:       rgba(100, 116, 139, .45);
+  --scrollbar-thumb-hover: var(--primary, #10B981);
+
   // ── Shadow scale ───────────────────────────────────────────────
   --shadow-sm:  0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.10);
   --shadow-md:  0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);

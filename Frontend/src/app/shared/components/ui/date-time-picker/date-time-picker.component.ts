@@ -1,6 +1,6 @@
 import {
   Component, ElementRef, EventEmitter, HostListener,
-  Input, OnChanges, Output, SimpleChanges,
+  Input, OnChanges, OnDestroy, Output, SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -19,7 +19,7 @@ interface CalDay {
   templateUrl: './date-time-picker.component.html',
   styleUrls: ['./date-time-picker.component.scss'],
 })
-export class DateTimePickerComponent implements OnChanges {
+export class DateTimePickerComponent implements OnChanges, OnDestroy {
   /**
    * 'datetime' (default) — full ISO datetime in/out, shows the hour/minute steppers.
    * 'date'     — date-only 'YYYY-MM-DD' in/out (no timezone conversion), hides
@@ -58,17 +58,26 @@ export class DateTimePickerComponent implements OnChanges {
     if (c['value']) this.syncFromValue();
   }
 
-  /** Parse 'YYYY-MM-DD' as a LOCAL midnight Date — `new Date(str)` parses it as
-   *  UTC midnight, which can display as the previous day in negative UTC-offset
-   *  timezones. Only relevant in 'date' mode. */
-  private parseDateOnly(iso: string): Date {
+  /** Parse a date-only string as a LOCAL midnight Date — `new Date(str)` parses it
+   *  as UTC midnight, which can display as the previous day in negative UTC-offset
+   *  timezones. Only relevant in 'date' mode.
+   *
+   *  Tolerates both 'YYYY-MM-DD' and the legacy month-only 'YYYY-MM' (Experience
+   *  entries were stored month-precision by the old settings screen); a missing
+   *  day defaults to the 1st. Returns null for anything unparseable so callers can
+   *  fall back gracefully instead of rendering "Invalid Date"/NaN. */
+  private parseDateOnly(iso: string): Date | null {
     const [y, m, d] = iso.split('-').map(Number);
-    return new Date(y, m - 1, d);
+    if (!y || !m) return null;
+    return new Date(y, m - 1, d || 1);
   }
 
   private syncFromValue(): void {
-    if (this.value) {
-      const d = this.mode === 'date' ? this.parseDateOnly(this.value) : new Date(this.value);
+    const d = this.value
+      ? (this.mode === 'date' ? this.parseDateOnly(this.value) : new Date(this.value))
+      : null;
+
+    if (d && !isNaN(d.getTime())) {
       this.selDate = d;
       this.selHour = this.mode === 'date' ? 9 : d.getHours();
       this.selMinute = this.mode === 'date' ? 0 : d.getMinutes();
@@ -88,11 +97,15 @@ export class DateTimePickerComponent implements OnChanges {
   get displayLabel(): string {
     if (!this.value) return '';
     if (this.mode === 'date') {
-      return this.parseDateOnly(this.value).toLocaleDateString('en-US', {
+      const d = this.parseDateOnly(this.value);
+      if (!d || isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('en-US', {
         day: 'numeric', month: 'short', year: 'numeric',
       });
     }
-    return new Date(this.value).toLocaleString('en-US', {
+    const dt = new Date(this.value);
+    if (isNaN(dt.getTime())) return '';
+    return dt.toLocaleString('en-US', {
       day: 'numeric', month: 'short', year: 'numeric',
       hour: '2-digit', minute: '2-digit', second: '2-digit',
     });
@@ -112,14 +125,83 @@ export class DateTimePickerComponent implements OnChanges {
       this.viewYear = ref.getFullYear();
       this.viewMonth = ref.getMonth();
       this.buildCalendar();
+      this.attachReposition();
+    } else {
+      this.detachReposition();
     }
   }
 
-  close(): void { this.open = false; }
+  close(): void {
+    this.open = false;
+    this.detachReposition();
+  }
+
+  ngOnDestroy(): void { this.detachReposition(); }
 
   @HostListener('document:click', ['$event'])
   onOutsideClick(e: MouseEvent): void {
     if (!this.elRef.nativeElement.contains(e.target)) this.close();
+  }
+
+  // ── Popover positioning ─────────────────────────────────────
+  // The popover is anchored with `position: fixed` and measured coordinates so
+  // it escapes the dialog's `overflow-y:auto` scroll box — otherwise its lower
+  // half (incl. the Confirm button) is clipped inside the modal and needs
+  // scrolling to reach. `reposition()` self-corrects for the containing block:
+  // inside a modal the backdrop's `backdrop-filter` makes IT (not the viewport)
+  // the fixed containing block, so we measure where a fixed origin actually
+  // lands and offset from there.
+
+  private readonly repositionFn = () => this.reposition();
+
+  private attachReposition(): void {
+    if (typeof window === 'undefined') return;
+    requestAnimationFrame(() => this.reposition());
+    window.addEventListener('scroll', this.repositionFn, true);
+    window.addEventListener('resize', this.repositionFn);
+  }
+
+  private detachReposition(): void {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('scroll', this.repositionFn, true);
+    window.removeEventListener('resize', this.repositionFn);
+  }
+
+  private reposition(): void {
+    if (!this.open) return;
+    const host = this.elRef.nativeElement as HTMLElement;
+    const trigger = host.querySelector('.dtp__trigger-row') as HTMLElement | null;
+    const pop = host.querySelector('.dtp__popover') as HTMLElement | null;
+    if (!trigger || !pop) return;
+
+    // Pin to the fixed origin (0,0) first to discover where the containing block
+    // places a fixed element, then offset our target viewport coords from there.
+    pop.style.position = 'fixed';
+    pop.style.margin = '0';
+    pop.style.top = '0';
+    pop.style.left = '0';
+    const origin = pop.getBoundingClientRect();
+
+    const tr = trigger.getBoundingClientRect();
+    const gap = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const pw = pop.offsetWidth;
+    const ph = pop.offsetHeight;
+
+    // Below the trigger by default; flip above when it would overflow the bottom.
+    let top = tr.bottom + gap;
+    if (top + ph > vh - gap) {
+      const above = tr.top - gap - ph;
+      top = above >= gap ? above : Math.max(gap, vh - ph - gap);
+    }
+    // Align left edge to the trigger, clamped into the viewport.
+    let left = tr.left;
+    if (left + pw > vw - gap) left = vw - pw - gap;
+    if (left < gap) left = gap;
+
+    pop.style.top = `${Math.round(top - origin.top)}px`;
+    pop.style.left = `${Math.round(left - origin.left)}px`;
   }
 
   // ── Month navigation ────────────────────────────────────────

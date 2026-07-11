@@ -152,15 +152,20 @@ export class AdminExperienceComponent extends CommonApp {
 
   private _period(start?: string, end?: string, present?: boolean): string {
     if (!start) return '';
-    const s = this._fmtMonth(start);
-    const e = present ? 'Present' : (end ? this._fmtMonth(end) : '');
+    const s = this._fmtDate(start);
+    const e = present ? 'Present' : (end ? this._fmtDate(end) : '');
     return e ? `${s} – ${e}` : s;
   }
 
-  /** Formats 'YYYY-MM-DD' (new date picker) or legacy 'YYYY-MM' as "Mon YYYY". */
-  private _fmtMonth(iso: string): string {
-    const [y, m] = iso.split('-').map(Number);
-    if (!y || !m) return iso;
-    return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  /** Renders a stored date the SAME way the date picker's trigger does, so the
+   *  card and the picker never disagree. Handles both 'YYYY-MM-DD' (new picker)
+   *  and legacy 'YYYY-MM' (day defaults to 1); returns '' for anything invalid
+   *  instead of "Invalid Date". */
+  private _fmtDate(iso: string): string {
+    const [y, m, d] = iso.split('-').map(Number);
+    if (!y || !m) return '';
+    return new Date(y, m - 1, d || 1).toLocaleDateString('en-US', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    });
   }
 }

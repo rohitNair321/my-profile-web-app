@@ -140,91 +140,101 @@
     padding: 12px 16px 0;
   }
 
-  // ── Custom steppers ────────────────────────────────────────────
-  &__time {
+  // ── Custom hour / minute fields ────────────────────────────────
+  &__fields {
     display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px 14px;
+    gap: 10px;
+    padding: 10px 16px 4px;
   }
 
-  &__colon {
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--admin-tc, #E2E8F0);
-    line-height: 1;
-    margin: 0 -2px;
-    padding-bottom: 28px;
-  }
-
-  &__spin {
+  &__field {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 5px;
   }
 
-  &__spin-btn {
+  &__field-box {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 22px;
+    align-items: stretch;
+    width: 100%;
     border: 1.5px solid var(--admin-bdc, #1E293B);
+    border-radius: 10px;
     background: var(--admin-bg-dp, #0B1120);
-    border-radius: 7px;
-    cursor: pointer;
-    color: var(--admin-t2c, #94A3B8);
-    transition: background .12s, border-color .12s, color .12s;
+    overflow: hidden;
+    transition: border-color .15s, box-shadow .15s;
 
-    .material-icons { font-size: 16px; }
-
-    &:hover {
-      background: #10B981;
+    &:focus-within {
       border-color: #10B981;
-      color: #fff;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, .12);
     }
   }
 
-  &__spin-val {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--admin-tc, #E2E8F0);
-    min-width: 44px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.1;
-    letter-spacing: -1px;
-  }
-
-  // Hour/minute value is a real input — type any exact number instead of
-  // only reaching it via repeated stepper clicks.
-  &__spin-input {
+  &__field-input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
     border: none;
     background: transparent;
-    font-family: inherit;
-    padding: 2px 0;
     outline: none;
-    border-radius: 6px;
-    cursor: text;
-    transition: background .12s, box-shadow .12s;
+    font-family: inherit;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--admin-tc, #E2E8F0);
+    text-align: center;
+    padding: 8px 2px 8px 8px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.5px;
 
-    &:hover { background: rgba(255, 255, 255, .04); }
+    /* Hide native number spinners just in case */
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  }
 
-    &:focus {
-      background: rgba(255, 255, 255, .04);
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, .3);
+  &__steppers {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--admin-bdc, #1E293B);
+    flex-shrink: 0;
+
+    button {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      border: none;
+      background: var(--admin-bg-sf, #0F172A);
+      color: var(--admin-t2c, #94A3B8);
+      cursor: pointer;
+      padding: 0;
+      transition: background .12s, color .12s;
+
+      .material-icons { font-size: 16px; }
+
+      &:hover { background: #10B981; color: #fff; }
+      &:first-child { border-bottom: 1px solid var(--admin-bdc, #1E293B); }
     }
   }
 
-  &__spin-unit {
+  &__field-lbl {
     font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .04em;
     color: var(--admin-t3c, #64748B);
-    margin-top: 2px;
+  }
+
+  &__preview {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--admin-t3c, #64748B);
+    padding: 8px 16px 0;
+
+    span { color: #10B981; font-weight: 800; }
   }
 
   // ── Footer ───────────────────────────────────────────────────
@@ -274,7 +284,9 @@
   }
 }
 
+/* Opacity-only (no transform): see date-time-picker — a transform would corrupt
+   the measured popover positioning. */
 @keyframes durpSlide {
-  from { opacity: 0; transform: translateY(-8px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

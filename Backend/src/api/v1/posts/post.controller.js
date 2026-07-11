@@ -2,10 +2,14 @@
 'use strict';
 
 const postService  = require('../../../services/post.service');
+const aiService    = require('../../../services/aiService');
 const ApiResponse  = require('../../../utils/ApiResponse');
+const ApiError     = require('../../../utils/ApiError');
 const catchAsync   = require('../../../utils/catchAsync');
 const crypto       = require('crypto');
 const sseManager   = require('./sse-manager');
+
+const AI_ASSIST_ACTIONS = ['excerpt', 'titles', 'improve', 'seo'];
 
 // ── PUBLIC CONTROLLERS ────────────────────────────────────────
 
@@ -139,6 +143,20 @@ const getByIdAdmin = catchAsync(async (req, res) => {
   res.json(new ApiResponse(200, { post }, 'Post retrieved'));
 });
 
+/**
+ * POST /api/v1/posts/ai-assist
+ * AI writing assistant for the post editor (admin only).
+ * Body: { action: 'excerpt'|'titles'|'improve'|'seo', title, content }
+ */
+const aiAssist = catchAsync(async (req, res) => {
+  const { action, title, content } = req.body;
+  if (!AI_ASSIST_ACTIONS.includes(action)) {
+    throw ApiError.badRequest(`action must be one of: ${AI_ASSIST_ACTIONS.join(', ')}`);
+  }
+  const data = await aiService.assistWithPost({ action, title, content });
+  res.json(new ApiResponse(200, data, 'AI assist generated'));
+});
+
 // ── SSE — real-time scheduler notifications ────────────────────
 const streamSchedulerEvents = (req, res) => {
   res.setHeader('Content-Type',       'text/event-stream');
@@ -165,5 +183,6 @@ module.exports = {
   updateImpressions,
   deletePost,
   uploadCover,
+  aiAssist,
   streamSchedulerEvents,
 };

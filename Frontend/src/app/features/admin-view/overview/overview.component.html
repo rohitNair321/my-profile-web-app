@@ -87,26 +87,26 @@
         </div>
       }
 
-      <a routerLink="/admin/notifications" class="ov-view-all">View all →</a>
+      <a routerLink="/admin/notification" class="ov-view-all">View all →</a>
     </div>
 
   </div>
 
   <!-- Quick actions -->
   <div class="ov-actions">
-    <a routerLink="/admin/profile" class="btn-primary">
+    <a routerLink="/admin/profile" class="ov-action-btn ov-action-btn--primary">
       <span class="material-icons">person</span> Edit Profile
     </a>
-    <a routerLink="/admin/posts" class="btn-ghost">
+    <a routerLink="/admin/posts" class="ov-action-btn">
       <span class="material-icons">article</span> Manage Posts
     </a>
-    <a routerLink="/admin/notification" class="btn-ghost">
+    <a routerLink="/admin/notification" class="ov-action-btn">
       <span class="material-icons">notifications</span> Notifications
       @if ((notifications()?.unreadCount ?? 0) > 0) {
         <span class="ov-action-badge">{{ notifications()?.unreadCount }}</span>
       }
     </a>
-    <a routerLink="/" class="btn-ghost" target="_blank">
+    <a routerLink="/" [queryParams]="{ view: 'public' }" class="ov-action-btn ov-action-btn--outline" target="_blank">
       <span class="material-icons">open_in_new</span> View Site
     </a>
   </div>

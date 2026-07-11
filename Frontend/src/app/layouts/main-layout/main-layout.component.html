@@ -42,6 +42,19 @@
   ═══════════════════════════════════════════════════════════════
 -->
 
+<!-- Preview banner — admin previewing the public site (still logged in) -->
+@if (preview.previewPublic()) {
+  <div class="preview-banner">
+    <span class="preview-banner__label">
+      <i class="material-icons">visibility</i>
+      Previewing the public site as a visitor
+    </span>
+    <button type="button" class="preview-banner__exit" (click)="preview.exit()">
+      <i class="material-icons">logout</i> Exit preview
+    </button>
+  </div>
+}
+
 <div class="app-shell" [attr.data-layout]="appConfig.appConfiguration.type"
   [attr.data-collapsed]="appConfig.appConfiguration.collapsed" [attr.data-mobile]="appConfig.appConfiguration.isMobile"
   [attr.data-theme]="appConfig.appConfiguration.theme">

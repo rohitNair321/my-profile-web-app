@@ -43,7 +43,7 @@
     </button>
 
     <!-- View public site -->
-    <a routerLink="/" class="tb-btn" title="View public site" target="_blank">
+    <a routerLink="/" [queryParams]="{ view: 'public' }" class="tb-btn" title="View public site" target="_blank">
       <span class="material-icons">open_in_new</span>
     </a>
 

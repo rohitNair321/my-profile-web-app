@@ -24,6 +24,7 @@ import { SidebarComponent } from 'src/app/shared/components/sidebar/sidebar.comp
 import { AuthService } from 'src/app/auth/services/auth.service';
 import { SchedulerNotificationService } from 'src/app/core/services/scheduler-notification.service';
 import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
+import { PreviewModeService } from 'src/app/core/services/preview-mode.service';
 import { Subscription } from 'rxjs';
 
 const MOBILE_BREAKPOINT = 900;
@@ -104,6 +105,7 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   private authSvc: AuthService;
   private schedNotifSvc: SchedulerNotificationService;
   private confirmDialog: ConfirmDialogService;
+  readonly preview: PreviewModeService;
   private _schedSub: Subscription | null = null;
 
   constructor(
@@ -115,6 +117,7 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     this.authSvc = injector.get(AuthService);
     this.schedNotifSvc = injector.get(SchedulerNotificationService);
     this.confirmDialog = injector.get(ConfirmDialogService);
+    this.preview = injector.get(PreviewModeService);
 
     this.appConfig.theme.name = 'theme-6';
     this.appConfig.appConfiguration.theme = 'light';
@@ -128,8 +131,10 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     // Layout follows the auth role REACTIVELY: admins get the sidebar, guests
     // (incl. right after logout) get the top navbar. An effect keeps it correct
     // even if the role signal settles after this component is created.
+    // "View public site" preview overrides an admin session to render the guest
+    // shell so the admin can preview the public experience without logging out.
     effect(() => {
-      const isAdmin = this.appService.role() === 'ADMIN';
+      const isAdmin = this.appService.role() === 'ADMIN' && !this.preview.previewPublic();
       this.appConfig.appConfiguration.type = isAdmin ? 'sidebar' : 'navbar';
       this.appConfig.appConfiguration.showUserProfileView = isAdmin;
       this.appConfig.appConfiguration.showNotifications = isAdmin;
@@ -141,6 +146,12 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   get isDark(): boolean { return this.themeService.isDark(); }
 
   ngOnInit(): void {
+    // "View public site" entry point — a new tab opened with ?view=public turns on
+    // the guest-shell preview (persisted so it survives navigation across pages).
+    if (this.route.snapshot.queryParamMap.get('view') === 'public') {
+      this.preview.enable();
+    }
+
     const resolvedId = THEME_NAME_MAP[this.appConfig.theme.name ?? 'theme-5'] ?? 'tron';
     this.themeService.setTheme(resolvedId);
     this.startSessionTimer();

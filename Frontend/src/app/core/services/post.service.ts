@@ -159,6 +159,16 @@ export class PostService {
       .pipe(tap(() => this.invalidateCache()));
   }
 
+  /** AI writing assistant for the editor. Returns raw model text; caller parses per action. */
+  aiAssist(payload: { action: 'excerpt' | 'titles' | 'improve' | 'seo'; title?: string; content?: string }):
+    Observable<{ data: { action: string; result: string } }> {
+    return this.http.post<{ data: { action: string; result: string } }>(
+      `${this.base}/ai-assist`,
+      payload,
+      { withCredentials: true }
+    );
+  }
+
   uploadCover(file: File): Observable<{ data: { url: string; path: string } }> {
     const fd = new FormData();
     fd.append('cover', file);

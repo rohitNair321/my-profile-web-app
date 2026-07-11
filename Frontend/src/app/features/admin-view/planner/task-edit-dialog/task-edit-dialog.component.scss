@@ -16,14 +16,6 @@
   .dtp__trigger { width: 100%; max-width: none; }
 }
 
-// The Estimate picker is the right-hand column of the 2-col row; its popover
-// defaults to anchoring from the trigger's left edge, which can overflow past
-// the dialog's right edge on narrower widths. Anchor it from the right instead.
-.field-row-2 > .field-group:last-child ::ng-deep .durp__popover {
-  left: auto;
-  right: 0;
-}
-
 /* Segmented pills (priority / column) */
 .te-seg {
   display: flex;
