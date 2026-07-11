@@ -21,6 +21,7 @@ import { NewYearAnimationComponent } from 'src/app/core/theme/ThemeAnimationsCom
 import { FooterComponent } from 'src/app/shared/components/footer/footer.component';
 import { NavigationComponent } from 'src/app/shared/components/navigation/navigation.component';
 import { SidebarComponent } from 'src/app/shared/components/sidebar/sidebar.component';
+import { ChatBotComponent } from 'src/app/shared/components/chat-bot/chat-bot.component';
 import { AuthService } from 'src/app/auth/services/auth.service';
 import { SchedulerNotificationService } from 'src/app/core/services/scheduler-notification.service';
 import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
@@ -39,6 +40,7 @@ const MOBILE_BREAKPOINT = 900;
     NavigationComponent,
     SidebarComponent,
     FooterComponent,
+    ChatBotComponent,
     ChristmasAnimationComponent,
     NewYearAnimationComponent,
   ],

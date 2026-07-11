@@ -1,7 +1,7 @@
 /* Host — anchors to the tab bar via position:absolute */
 :host {
   position: absolute;
-  bottom: calc(100% + 14px);
+  bottom: calc(100% + 65px);
   right: 0;
   z-index: 50;
   pointer-events: none;
@@ -70,7 +70,7 @@
 .ctt-tail-outer {
   position: absolute;
   bottom: -7px;
-  right: 28px;
+  right: 15px;
   width: 0;
   height: 0;
   border-left: 7px solid transparent;
@@ -84,7 +84,7 @@
 .ctt-tail-inner {
   position: absolute;
   bottom: -5px;
-  right: 29px;
+  right: 15px;
   width: 0;
   height: 0;
   border-left: 6px solid transparent;

@@ -74,6 +74,17 @@ $transition:      0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
     .cb-window { bottom: auto; top: calc(#{$fab-size} + 12px); }
   }
+
+  // Right edge, vertically centered — window shows as a centered card
+  // (driven by an external trigger; launcher='none' hides the FAB).
+  &--center {
+    top: 50%;
+    bottom: auto;
+    right: $corner-offset;
+    left: auto;
+    transform: translateY(-50%);
+    align-items: flex-end;
+  }
 }
 
 /* =============================================================
@@ -135,6 +146,10 @@ $transition:      0.22s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &:active { transform: scale(0.96); }
+}
+
+.cb-composer__limit-notice {
+  display: flex;
 }
 
 /* =============================================================
@@ -655,6 +670,7 @@ $transition:      0.22s cubic-bezier(0.4, 0, 0.2, 1);
     right:  0 !important;
     left:   0 !important;
     top:    0 !important;
+    transform: none !important;   // reset the right-center vertical centering
 
     flex-direction: column;
     justify-content: flex-end;

@@ -77,6 +77,22 @@ export class AppService {
         );
     }
 
+    /** Admin: draft an AI reply to a contact message (editable before sending). */
+    aiReplyDraft(payload: { name?: string; email?: string; subject?: string; message: string; tone?: string }):
+        Observable<{ success: boolean; reply: string }> {
+        return this.http.post<{ success: boolean; reply: string }>(
+            `${this.apiContactUrl}/ai-reply`, payload, { withCredentials: true }
+        );
+    }
+
+    /** Public: draft a contact-form message for a visitor ("help me write"). */
+    aiComposeMessage(payload: { name?: string; subject?: string }):
+        Observable<{ success: boolean; message: string }> {
+        return this.http.post<{ success: boolean; message: string }>(
+            `${this.apiContactUrl}/ai-compose`, payload
+        );
+    }
+
     getNotifications(): Observable<Notification> {
         if (this.role() === 'ADMIN') {
             return timer(0, 20 * 60 * 1000).pipe(

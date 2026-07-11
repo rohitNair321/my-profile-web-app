@@ -300,6 +300,12 @@ export class PostEditorComponent extends CommonApp implements OnInit, OnDestroy 
     this.aiOpen.update(v => !v);
   }
 
+  /** Inline field icon → open the assist panel and run the action straight away. */
+  quickAi(action: 'excerpt' | 'titles' | 'improve' | 'seo'): void {
+    this.aiOpen.set(true);
+    this.runAi(action);
+  }
+
   runAi(action: 'excerpt' | 'titles' | 'improve' | 'seo'): void {
     if (this.aiAction()) return; // a request is already in flight
     const title   = this.form.get('title')?.value || '';

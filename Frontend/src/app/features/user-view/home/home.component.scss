@@ -2344,3 +2344,46 @@
 
   &:hover { border-color: var(--primary); color: var(--primary); }
 }
+
+/* Contact message — "Write with AI" button */
+.form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.msg-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid color-mix(in srgb, #8B5CF6 35%, transparent);
+  border-radius: 100px;
+  background: color-mix(in srgb, #8B5CF6 10%, transparent);
+  color: #8B5CF6;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  .material-icons { font-size: 0.85rem; }
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, #8B5CF6 18%, transparent);
+    border-color: #8B5CF6;
+  }
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
+.msg-ai-spin {
+  width: 12px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, #8B5CF6 30%, transparent);
+  border-top-color: #8B5CF6;
+  border-radius: 50%;
+  animation: msgAiSpin 0.7s linear infinite;
+}
+@keyframes msgAiSpin { to { transform: rotate(360deg); } }

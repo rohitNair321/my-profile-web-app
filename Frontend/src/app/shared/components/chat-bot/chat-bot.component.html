@@ -26,14 +26,16 @@
 -->
 
 <!-- ── Root container — positions everything in the chosen corner ── -->
-<div class="cb" [class.cb--left]="isLeft()" [class.cb--top]="isTop()" [class.cb--open]="isOpen()">
+<div class="cb" [class.cb--left]="isLeft()" [class.cb--top]="isTop()" [class.cb--center]="isCenter()"
+  [class.cb--open]="isOpen()">
 
   <!-- ── Welcome bubble ──────────────────────────────────────── -->
   @if (showWelcome() && !isOpen()) {
-  <div class="cb-welcome" role="status" aria-live="polite">
+  <!-- <div class="cb-welcome" role="status" aria-live="polite">
     <span class="cb-welcome__emoji">👋</span>
     <span class="cb-welcome__text">Hi! I'm FolioAI — need help?</span>
-  </div>
+  </div> -->
+  <app-chat-tooltip [visible]="true"></app-chat-tooltip>
   }
 
   <!-- ── Chat window ─────────────────────────────────────────── -->
@@ -69,9 +71,9 @@
         </button>
 
         <!-- Close -->
-        <!-- <button class="cb-icon-btn cb-icon-btn--close" (click)="toggleChat()" title="Close" aria-label="Close chat">
+        <button class="cb-icon-btn cb-icon-btn--close" (click)="toggleChat()" title="Close" aria-label="Close chat">
           <span class="material-icons">close</span>
-        </button> -->
+        </button>
       </div>
     </div>
 
@@ -156,7 +158,8 @@
           @if (msg.error && !msg.loading) {
           <div class="cb-msg__bubble cb-msg__bubble--error">
             <span class="material-icons cb-msg__error-icon">error_outline</span>
-            <span>{{ msg.text }} <a href="#contact" (click)="scrollToSection($event, '#contact')" (click)="toggleChat()">Contact Rohit</a> </span>
+            <span>{{ msg.text }} <a href="#contact" (click)="scrollToSection($event, '#contact')"
+                (click)="toggleChat()">Contact Rohit</a> </span>
           </div>
           }
 
@@ -164,17 +167,17 @@
           <!-- User messages: plain text (no markdown needed)       -->
           <!-- Bot messages:  rendered markdown via ngx-markdown     -->
           @if (!msg.loading && !msg.error) {
-            @if (msg.sender === 'user') {
-              <div class="cb-msg__bubble">{{ msg.text }}</div>
-            } @else {
-              <!-- markdown directive renders **bold**, lists, tables, etc. -->
-              <div class="cb-msg__bubble cb-msg__bubble--markdown">
-                <markdown [data]="msg.text" />
-              </div>
-            }
-            <time class="cb-msg__time" [dateTime]="msg.timestamp.toISOString()">
-              {{ msg.timestamp | date:'h:mm a' }}
-            </time>
+          @if (msg.sender === 'user') {
+          <div class="cb-msg__bubble">{{ msg.text }}</div>
+          } @else {
+          <!-- markdown directive renders **bold**, lists, tables, etc. -->
+          <div class="cb-msg__bubble cb-msg__bubble--markdown">
+            <markdown [data]="msg.text" />
+          </div>
+          }
+          <time class="cb-msg__time" [dateTime]="msg.timestamp.toISOString()">
+            {{ msg.timestamp | date:'h:mm a' }}
+          </time>
           }
 
         </div>
@@ -193,16 +196,17 @@
       @if (chatDisabled()) {
       <div class="cb-composer__limit-notice" role="status" aria-live="polite">
         <span class="material-icons" aria-hidden="true">lock_outline</span>
-        <span>Free limit reached. <a href="#/auth/login" (click)="toggleChat()">Log in</a> for unlimited chat.</span>
+        <span>
+          Chat limite reached
+        </span>
       </div>
       }
 
       <!-- Input row -->
       <div class="cb-composer__input-row">
         <textarea #inputRef class="cb-composer__input" [placeholder]="placeholder"
-          [disabled]="isSending() || chatDisabled()" [value]="newMessage()"
-          (input)="newMessage.set(inputRef.value)" (keydown)="onInputKeydown($event)" rows="1"
-          aria-label="Type your message"></textarea>
+          [disabled]="isSending() || chatDisabled()" [value]="newMessage()" (input)="newMessage.set(inputRef.value)"
+          (keydown)="onInputKeydown($event)" rows="1" aria-label="Type your message"></textarea>
         <button class="cb-composer__send" (click)="sendMessage()"
           [disabled]="isSending() || chatDisabled() || !newMessage().trim()" aria-label="Send message">
           @if (isSending()) {
@@ -219,6 +223,7 @@
   }
 
   <!-- ── FAB ──────────────────────────────────────────────────── -->
+  @if (launcher === 'fab') {
   <button class="cb-fab" (click)="toggleChat()" [attr.aria-expanded]="isOpen()" aria-label="Toggle chat assistant">
     @if (isOpen()) {
     <span class="material-icons">close</span>
@@ -226,5 +231,6 @@
     <span class="material-icons">smart_toy</span>
     }
   </button>
+  }
 
 </div>

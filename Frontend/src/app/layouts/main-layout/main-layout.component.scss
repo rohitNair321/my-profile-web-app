@@ -234,6 +234,7 @@
   }
 }
 
+
 .pref-gear-btn {
   width: 40px;
   height: 40px;
@@ -259,6 +260,49 @@
 
 @media (max-width: 900px) {
   .pref-gear-btn { width: 36px; height: 36px; }
+}
+
+/* AI chat trigger — right edge, stacked just above the preferences gear */
+.chat-trigger {
+  position: fixed;
+  top: calc(50% - 48px);
+  right: 0;
+  transform: translateY(-50%);
+  z-index: calc(var(--topbar-z, 1060) + 20);
+  transition: opacity .2s, visibility .2s;
+
+  &--hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.chat-trigger-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px 0 0 10px;
+  border: 1.5px solid var(--border);
+  border-right: none;
+  background: linear-gradient(135deg, #8B5CF6, #6366F1);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: -3px 0 12px rgba(139, 92, 246, .35);
+  transition: box-shadow .2s, translate .2s;
+
+  .material-icons { font-size: 1.2rem; }
+
+  &:hover {
+    box-shadow: -5px 0 18px rgba(139, 92, 246, .5);
+    translate: -3px 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .chat-trigger-btn { width: 36px; height: 36px; }
 }
 
 /* =============================================================

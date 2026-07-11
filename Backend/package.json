@@ -1,6 +1,6 @@
 {
   "name": "portfolio-backend",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Portfolio Backend API with enhanced architecture, AI chat, and comprehensive error handling",
   "main": "index.js",
   "scripts": {

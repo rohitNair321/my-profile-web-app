@@ -2,6 +2,16 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { DecimalPipe } from '@angular/common';
 import { ChatApiService, UsageResponse, SessionSummary } from 'src/app/core/services/chat-api.service';
 
+interface ModelRow {
+  name: string;      // friendly short name
+  provider: string;  // NVIDIA | OpenAI
+  tokens: number;
+  requests: number;
+  cost: number;
+  pct: number;       // share of tokens (for the bar)
+  color: string;
+}
+
 @Component({
   selector: 'app-admin-ai-usage',
   standalone: true,
@@ -21,8 +31,9 @@ export class AdminAiUsageComponent implements OnInit {
   sessions  = signal<SessionSummary[]>([]);
   chartData = signal<number[]>([]);
 
-  roles = signal<{ label: string; pct: number; color: string }[]>([]);
-  stats = signal<{ icon: string; label: string; value: string; color: string }[]>([]);
+  roles  = signal<{ label: string; pct: number; color: string }[]>([]);
+  stats  = signal<{ icon: string; label: string; value: string; color: string }[]>([]);
+  models = signal<ModelRow[]>([]);
 
   get remaining(): number { return this.budget() - this.spent(); }
   get usedPct():   number { return (this.spent() / this.budget()) * 100; }
@@ -87,6 +98,40 @@ export class AdminAiUsageComponent implements OnInit {
     }
 
     this.sessions.set((res.sessions ?? []).slice(0, 5));
+
+    // By model / provider matrix
+    const bm = res.byModel ?? [];
+    const totalTok = bm.reduce((s, m) => s + (m.totalTokens || 0), 0) || 1;
+    const palette = ['#10B981', '#6366F1', '#06B6D4', '#F59E0B', '#8B5CF6', '#EF4444'];
+    this.models.set(
+      bm.map((m, i) => ({
+        name:     this.modelName(m.model),
+        provider: this.modelProvider(m.model),
+        tokens:   m.totalTokens || 0,
+        requests: m.requests || 0,
+        cost:     m.cost || 0,
+        pct:      Math.round((m.totalTokens || 0) / totalTok * 100),
+        color:    palette[i % palette.length],
+      }))
+    );
+  }
+
+  /** "meta/llama-3.3-70b-instruct" → "Llama 3.3 70B" etc. */
+  modelName(model: string): string {
+    const m = (model || '').toLowerCase();
+    if (m.includes('nemotron')) return 'Nemotron 70B';
+    if (m.includes('llama-3.3-70b') || m.includes('llama-3.3')) return 'Llama 3.3 70B';
+    if (m.includes('llama-3.1-8b') || m.includes('8b')) return 'Llama 3.1 8B';
+    if (m.includes('gpt-4o-mini')) return 'GPT-4o mini';
+    if (m.includes('gpt')) return model.replace(/^.*\//, '');
+    return model?.replace(/^.*\//, '') || 'Unknown';
+  }
+
+  modelProvider(model: string): string {
+    const m = (model || '').toLowerCase();
+    if (m.startsWith('gpt') || m.includes('openai')) return 'OpenAI';
+    if (m.includes('llama') || m.includes('nemotron') || m.includes('nvidia')) return 'NVIDIA';
+    return '—';
   }
 
   private _useFallback(): void {
@@ -101,6 +146,7 @@ export class AdminAiUsageComponent implements OnInit {
       { label: 'Admin', pct: 58, color: '#10B981' },
       { label: 'Guest', pct: 42, color: '#6366F1' },
     ]);
+    this.models.set([]);
   }
 
   private _fmtTokens(n: number): string {
