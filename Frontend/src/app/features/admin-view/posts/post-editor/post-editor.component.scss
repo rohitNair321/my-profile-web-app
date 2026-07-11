@@ -890,3 +890,54 @@
   &:hover { opacity: 0.92; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35); }
   &--sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; flex-shrink: 0; }
 }
+
+// ── Inline field AI buttons ───────────────────────────────────
+.editor-title-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .editor-title-input { flex: 1; padding-right: 3rem; }
+}
+
+.field-ai-btn {
+  position: absolute;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: color-mix(in srgb, #8B5CF6 12%, transparent);
+  color: #8B5CF6;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+
+  .material-icons { font-size: 18px; }
+  &:hover:not(:disabled) { background: color-mix(in srgb, #8B5CF6 22%, transparent); transform: scale(1.05); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.field-ai-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid color-mix(in srgb, #8B5CF6 35%, transparent);
+  border-radius: 100px;
+  background: color-mix(in srgb, #8B5CF6 10%, transparent);
+  color: #8B5CF6;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.15s;
+
+  .material-icons { font-size: 0.8rem; }
+  &:hover:not(:disabled) { background: color-mix(in srgb, #8B5CF6 20%, transparent); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}

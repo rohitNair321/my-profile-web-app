@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 
 const CHAT_PROMPTS = [
-  'Chat with AI here ✨',
+  "👋 Hi! I'm FolioAI, Ask here...",
   'How many years of experience does Rohit have?',
   'What tech stack does Rohit use?',
   'Is Rohit open to new opportunities?',

@@ -15,8 +15,6 @@ import { Subject, Subscription, switchMap, take, timer } from 'rxjs';
 import { CommonApp } from 'src/app/core/services/common';
 import { SeoService } from 'src/app/core/services/seo.service';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
-import { ChatBotComponent } from 'src/app/shared/components/chat-bot/chat-bot.component';
-import { ChatTooltipComponent } from 'src/app/shared/components/chat-tooltip/chat-tooltip.component';
 import { PostService, Post } from 'src/app/core/services/post.service';
 import { ConfirmDialogService } from 'src/app/core/services/confirm-dialog.service';
 
@@ -44,8 +42,6 @@ interface HomeData { hero: Hero; aboutTeaser?: AboutTeaser; contact?: ContactInf
     TextareaModule,
     DialogModule,
     TagModule,
-    ChatBotComponent,
-    ChatTooltipComponent,
     RouterLink,
   ],
   templateUrl: './home.component.html',
@@ -142,9 +138,6 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
     },
   ];
 
-  contactTab: 'form' | 'chat' = 'form';
-  setContactTab(tab: 'form' | 'chat'): void { this.contactTab = tab; }
-
   contactForm: FormGroup;
   projectList: any[] = [];
   experienceYears = 5;
@@ -220,6 +213,27 @@ export class HomeComponent extends CommonApp implements OnInit, AfterViewInit, O
   get email() { return this.contactForm.get('email'); }
   get subject() { return this.contactForm.get('subject'); }
   get message() { return this.contactForm.get('message'); }
+
+  // ── AI "help me write" for the contact message ───────────────
+  composingMsg = signal(false);
+
+  generateContactMessage(): void {
+    if (this.composingMsg()) return;
+    this.composingMsg.set(true);
+    this.appService.aiComposeMessage({
+      name:    this.firstName?.value || '',
+      subject: this.subject?.value || '',
+    }).subscribe({
+      next: (res) => {
+        if (res?.message) this.contactForm.patchValue({ message: res.message });
+        this.composingMsg.set(false);
+      },
+      error: (err) => {
+        this.composingMsg.set(false);
+        this.alertService.showAlert(err?.error?.message || 'Could not draft a message. Try again.', 'error');
+      },
+    });
+  }
 
   getMyProfile(): void {
     this.loading.show('Loading profile...');

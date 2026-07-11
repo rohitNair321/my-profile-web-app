@@ -3,7 +3,7 @@
   <div class="page-heading">
     <div>
       <h1 class="page-title">AI Usage</h1>
-      <p class="page-sub">Track your Claude API usage, costs, and sessions.</p>
+      <p class="page-sub">Track AI usage, cost, and how load is balanced across models.</p>
     </div>
   </div>
 
@@ -78,6 +78,36 @@
       }
     </div>
   </div>
+
+  <!-- By model / provider matrix -->
+  @if (models().length) {
+    <div class="admin-card" style="margin-bottom:1.25rem">
+      <div class="admin-card-title">
+        <span class="material-icons" style="color:#8B5CF6">hub</span>
+        By Model &amp; Provider
+      </div>
+      <div class="model-matrix">
+        @for (m of models(); track m.name) {
+          <div class="model-row">
+            <div class="model-row__head">
+              <span class="model-row__name">{{ m.name }}</span>
+              <span class="model-row__provider" [class.is-nvidia]="m.provider === 'NVIDIA'" [class.is-openai]="m.provider === 'OpenAI'">
+                {{ m.provider }}
+              </span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" [style.width.%]="m.pct" [style.background]="m.color"></div>
+            </div>
+            <div class="model-row__stats">
+              <span>{{ m.tokens | number }} tokens</span>
+              <span>{{ m.requests }} req</span>
+              <span class="cost-val">${{ m.cost.toFixed(4) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
 
   <!-- Sessions table -->
   <div class="admin-card">

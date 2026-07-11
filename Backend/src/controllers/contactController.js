@@ -1,6 +1,7 @@
 const { supabase } = require('../db/supabaseClient');
 const axios = require('axios');
 const validator = require('validator');
+const aiService = require('../services/aiService');
 
 //#region Submit Contact Form
 async function submitContactForm(req, res) {
@@ -143,4 +144,28 @@ async function deleteContactMessage(req, res) {
 }
 // #endregion
 
-module.exports = { submitContactForm, getNotifications, markAsRead, deleteContactMessage };
+//#region AI reply draft (admin)
+async function aiReplyDraft(req, res) {
+  try {
+    const { name, email, subject, message, tone } = req.body || {};
+    const { result } = await aiService.generateContactReply({ name, email, subject, message, tone });
+    return res.status(200).json({ success: true, reply: result });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ message: error.message || 'Failed to draft reply' });
+  }
+}
+// #endregion
+
+//#region AI compose message (public contact form "help me write")
+async function aiComposeMessage(req, res) {
+  try {
+    const { name, subject } = req.body || {};
+    const { result } = await aiService.composeContactMessage({ name, subject });
+    return res.status(200).json({ success: true, message: result });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ message: error.message || 'Failed to draft message' });
+  }
+}
+// #endregion
+
+module.exports = { submitContactForm, getNotifications, markAsRead, deleteContactMessage, aiReplyDraft, aiComposeMessage };

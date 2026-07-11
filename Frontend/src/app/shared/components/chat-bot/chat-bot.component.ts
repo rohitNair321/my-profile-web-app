@@ -15,10 +15,11 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommonApp } from 'src/app/core/services/common';
 import { MarkdownComponent } from 'ngx-markdown';
+import { ChatTooltipComponent } from '../chat-tooltip/chat-tooltip.component';
 
 // ── Types ─────────────────────────────────────────────────────
 
-export type ChatPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+export type ChatPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'right-center';
 
 export interface ChatMessage {
   id: string;
@@ -52,7 +53,8 @@ function uid(): string {
 @Component({
   selector: 'app-chat-bot',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, MarkdownComponent],
+  imports: [CommonModule, FormsModule, DatePipe, MarkdownComponent, 
+    ChatTooltipComponent,],
   templateUrl: './chat-bot.component.html',
   styleUrls: ['./chat-bot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,6 +67,10 @@ export class ChatBotComponent extends CommonApp implements OnInit, OnDestroy {
   @Input() placeholder = 'Ask about Rohit…';
   /** When true: renders the chat window directly (no FAB, no positioning). */
   @Input() inline = false;
+  /** 'fab' (default) shows the built-in launcher; 'none' hides it so an external
+   *  button (e.g. a right-edge trigger in the layout) can drive open/close via
+   *  the public `toggleChat()` / `isOpen()`. */
+  @Input() launcher: 'fab' | 'none' = 'fab';
 
   // ── Template refs ────────────────────────────────────────────
   @ViewChild('messagesEnd') private messagesEnd!: ElementRef<HTMLDivElement>;
@@ -102,6 +108,8 @@ export class ChatBotComponent extends CommonApp implements OnInit, OnDestroy {
   /** Side that the FAB + window anchor to. */
   isLeft = computed(() => this.position.includes('left'));
   isTop  = computed(() => this.position.includes('top'));
+  /** Right edge, vertically centered — window appears as a centered card. */
+  isCenter = computed(() => this.position === 'right-center');
 
   // ── Cleanup ──────────────────────────────────────────────────
   private _scrollEffect = effect(() => {

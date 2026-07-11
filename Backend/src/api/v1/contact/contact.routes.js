@@ -110,4 +110,49 @@ router.put('/notifications/:id/read', verifyToken, requireAdmin, contactControll
  */
 router.delete('/delete/:id', verifyToken, requireAdmin, contactController.deleteContactMessage);
 
+/**
+ * @swagger
+ * /api/v1/contact/ai-reply:
+ *   post:
+ *     summary: Draft an AI reply to a contact message (Admin only)
+ *     tags: [Contact]
+ *     security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [message]
+ *             properties:
+ *               name:    { type: string }
+ *               email:   { type: string }
+ *               subject: { type: string }
+ *               message: { type: string }
+ *               tone:    { type: string, example: professional }
+ *     responses:
+ *       200: { description: "Returns { success, reply }" }
+ *       400: { description: Empty message }
+ */
+router.post('/ai-reply', verifyToken, requireAdmin, contactController.aiReplyDraft);
+
+/**
+ * @swagger
+ * /api/v1/contact/ai-compose:
+ *   post:
+ *     summary: Draft a contact message for a visitor ("help me write")
+ *     tags: [Contact]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:    { type: string }
+ *               subject: { type: string }
+ *     responses:
+ *       200: { description: "Returns { success, message }" }
+ */
+router.post('/ai-compose', apiLimiter, contactController.aiComposeMessage);
+
 module.exports = router;

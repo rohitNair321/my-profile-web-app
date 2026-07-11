@@ -191,13 +191,19 @@
           <div class="editor-pane">
 
             <!-- Title -->
-            <input
-              formControlName="title"
-              type="text"
-              class="editor-title-input"
-              [class.editor-title-input--error]="titleError"
-              placeholder="Post title…"
-            />
+            <div class="editor-title-wrap">
+              <input
+                formControlName="title"
+                type="text"
+                class="editor-title-input"
+                [class.editor-title-input--error]="titleError"
+                placeholder="Post title…"
+              />
+              <button type="button" class="field-ai-btn" title="Suggest titles with AI"
+                (click)="quickAi('titles')" [disabled]="!!aiAction()">
+                <span class="material-icons">auto_awesome</span>
+              </button>
+            </div>
             @if (titleError) {
               <p class="field-error">Title is required (min 3 characters)</p>
             }
@@ -277,7 +283,13 @@
               <h3 class="seo-section__title">Post Settings</h3>
 
               <div class="field">
-                <label class="field__label">Excerpt <span class="field__hint">(preview text)</span></label>
+                <label class="field__label">
+                  Excerpt <span class="field__hint">(preview text)</span>
+                  <button type="button" class="field-ai-inline" title="Generate excerpt with AI"
+                    (click)="quickAi('excerpt')" [disabled]="!!aiAction()">
+                    <span class="material-icons">auto_awesome</span> AI
+                  </button>
+                </label>
                 <textarea
                   formControlName="excerpt"
                   class="field__textarea"

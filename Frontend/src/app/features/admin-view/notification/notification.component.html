@@ -77,6 +77,43 @@
                 <span>{{ note.email }}</span>
               </div>
               <p class="notif-message">{{ note.message }}</p>
+
+              <!-- AI reply draft -->
+              @if (aiReplyFor() !== note.id) {
+                <button type="button" class="ai-reply-trigger" (click)="draftAiReply(note, $event)">
+                  <span class="material-icons">auto_awesome</span> AI draft reply
+                </button>
+              } @else {
+                <div class="ai-reply-box">
+                  <div class="ai-reply-box__head">
+                    <span class="ai-reply-box__label">
+                      <span class="material-icons">auto_awesome</span> AI reply — edit before sending
+                    </span>
+                    <button type="button" class="ai-reply-box__close" (click)="closeAiReply($event)" title="Close">
+                      <span class="material-icons">close</span>
+                    </button>
+                  </div>
+
+                  @if (aiReplyLoading()) {
+                    <div class="ai-reply-loading"><span class="ai-reply-spin"></span> Drafting a reply…</div>
+                  } @else {
+                    <textarea class="ai-reply-text" rows="6"
+                      [ngModel]="aiReplyText()" (ngModelChange)="aiReplyText.set($event)"
+                      placeholder="AI reply will appear here…"></textarea>
+                    <div class="ai-reply-actions">
+                      <button type="button" class="ai-reply-btn ai-reply-btn--ghost" (click)="draftAiReply(note, $event)">
+                        <span class="material-icons">refresh</span> Regenerate
+                      </button>
+                      <button type="button" class="ai-reply-btn ai-reply-btn--ghost" (click)="copyAiReply($event)">
+                        <span class="material-icons">content_copy</span> Copy
+                      </button>
+                      <button type="button" class="ai-reply-btn ai-reply-btn--primary" (click)="sendAiReply(note, $event)">
+                        <span class="material-icons">send</span> Send email
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           }
         </div>
