@@ -113,10 +113,11 @@ async function fetchLogsByTask(taskIds) {
   return byTask;
 }
 
-async function listTasks() {
+async function listTasks(ownerId) {
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
+    .eq('owner_id', ownerId)
     .order('position', { ascending: true })
     .order('created_at', { ascending: true });
   if (error) throw ApiError.internal('Failed to fetch tasks');
@@ -126,9 +127,9 @@ async function listTasks() {
   return rows.map(r => serializeTask(r, logsByTask[r.id] ?? []));
 }
 
-async function getTask(id) {
+async function getTask(id, ownerId) {
   const { data, error } = await supabase
-    .from('tasks').select('*').eq('id', id).single();
+    .from('tasks').select('*').eq('id', id).eq('owner_id', ownerId).single();
   if (error || !data) throw ApiError.notFound('Task not found');
 
   const logsByTask = await fetchLogsByTask([id]);
@@ -137,7 +138,7 @@ async function getTask(id) {
 
 // ── Writes ────────────────────────────────────────────────────────
 
-async function createTask(payload) {
+async function createTask(payload, ownerId) {
   const patch = validatePatch({
     title:       payload.title,
     description: payload.description ?? '',
@@ -149,39 +150,40 @@ async function createTask(payload) {
   });
 
   const { data, error } = await supabase
-    .from('tasks').insert(toDbRow(patch)).select('*').single();
+    .from('tasks').insert({ ...toDbRow(patch), owner_id: ownerId }).select('*').single();
   if (error) throw ApiError.internal('Failed to create task: ' + error.message);
   return serializeTask(data, []);
 }
 
-async function updateTask(id, payload) {
+async function updateTask(id, payload, ownerId) {
   const patch = validatePatch({ ...payload });
   const row = toDbRow(patch);
   if (Object.keys(row).length === 0) throw ApiError.badRequest('No valid fields to update');
   row.updated_at = new Date().toISOString();
 
   const { data, error } = await supabase
-    .from('tasks').update(row).eq('id', id).select('*').single();
+    .from('tasks').update(row).eq('id', id).eq('owner_id', ownerId).select('*').single();
   if (error || !data) throw ApiError.notFound('Task not found');
 
   const logsByTask = await fetchLogsByTask([id]);
   return serializeTask(data, logsByTask[id] ?? []);
 }
 
-async function deleteTask(id) {
-  const { error } = await supabase.from('tasks').delete().eq('id', id);
+async function deleteTask(id, ownerId) {
+  const { error } = await supabase.from('tasks').delete().eq('id', id).eq('owner_id', ownerId);
   if (error) throw ApiError.internal('Failed to delete task');
 }
 
-async function moveTask(id, column, position) {
+async function moveTask(id, column, position, ownerId) {
   validatePatch({ column, ...(position !== undefined ? { position } : {}) });
 
-  // Moving a running task to Done stops its timer
+  // Moving a running task to Done stops its timer (scoped to the owner)
   if (column === 'done') {
     await supabase
       .from('task_time_logs')
       .update({ stopped_at: new Date().toISOString() })
       .eq('task_id', id)
+      .eq('owner_id', ownerId)
       .is('stopped_at', null);
   }
 
@@ -189,25 +191,26 @@ async function moveTask(id, column, position) {
   if (position !== undefined) row.position = position;
 
   const { data, error } = await supabase
-    .from('tasks').update(row).eq('id', id).select('*').single();
+    .from('tasks').update(row).eq('id', id).eq('owner_id', ownerId).select('*').single();
   if (error || !data) throw ApiError.notFound('Task not found');
 
   const logsByTask = await fetchLogsByTask([id]);
   return serializeTask(data, logsByTask[id] ?? []);
 }
 
-// ── Timer — server owns time, one running log across ALL tasks ────
+// ── Timer — server owns time, one running log per OWNER ───────────
 
-async function startTimer(id) {
-  // Ensure task exists first
+async function startTimer(id, ownerId) {
+  // Ensure the task exists and belongs to this owner
   const { data: task, error: taskErr } = await supabase
-    .from('tasks').select('id, column').eq('id', id).single();
+    .from('tasks').select('id, column').eq('id', id).eq('owner_id', ownerId).single();
   if (taskErr || !task) throw ApiError.notFound('Task not found');
 
-  // Find any running log
+  // Find this owner's running log(s)
   const { data: runningLogs, error: runErr } = await supabase
     .from('task_time_logs')
     .select('id, task_id')
+    .eq('owner_id', ownerId)
     .is('stopped_at', null);
   if (runErr) throw ApiError.internal('Failed to check running timers');
 
@@ -215,7 +218,7 @@ async function startTimer(id) {
     throw ApiError.conflict('ALREADY_RUNNING');
   }
 
-  // Auto-stop the other running task (at most one exists via unique index)
+  // Auto-stop the owner's other running task (at most one via per-owner index)
   let autoStopped = null;
   for (const log of runningLogs ?? []) {
     await supabase
@@ -227,7 +230,7 @@ async function startTimer(id) {
 
   const { error: insErr } = await supabase
     .from('task_time_logs')
-    .insert({ task_id: id, started_at: new Date().toISOString(), stopped_at: null });
+    .insert({ task_id: id, owner_id: ownerId, started_at: new Date().toISOString(), stopped_at: null });
   if (insErr) throw ApiError.internal('Failed to start timer: ' + insErr.message);
 
   // Auto-move To Do → In Progress (mirrors frontend rule)
@@ -235,17 +238,18 @@ async function startTimer(id) {
     await supabase
       .from('tasks')
       .update({ column: 'prog', updated_at: new Date().toISOString() })
-      .eq('id', id);
+      .eq('id', id).eq('owner_id', ownerId);
   }
 
-  return { task: await getTask(id), autoStopped };
+  return { task: await getTask(id, ownerId), autoStopped };
 }
 
-async function stopTimer(id) {
+async function stopTimer(id, ownerId) {
   const { data: running, error } = await supabase
     .from('task_time_logs')
     .select('id')
     .eq('task_id', id)
+    .eq('owner_id', ownerId)
     .is('stopped_at', null);
   if (error) throw ApiError.internal('Failed to check running timer');
   if (!running || running.length === 0) throw ApiError.conflict('NOT_RUNNING');
@@ -256,13 +260,53 @@ async function stopTimer(id) {
     .eq('id', running[0].id);
   if (updErr) throw ApiError.internal('Failed to stop timer');
 
-  return getTask(id);
+  return getTask(id, ownerId);
 }
 
-async function getActiveTimer() {
+/**
+ * The owner's single running-timer task, enriched with overdue state — powers
+ * the dashboard "Recent Activity" todo row and the planner banner.
+ * Returns null when no timer is running for this owner.
+ */
+async function getInProgressAlert(ownerId) {
   const { data, error } = await supabase
     .from('task_time_logs')
     .select('task_id, started_at')
+    .eq('owner_id', ownerId)
+    .is('stopped_at', null)
+    .limit(1);
+  if (error) throw ApiError.internal('Failed to fetch in-progress alert');
+
+  const log = data?.[0];
+  if (!log) return null;
+
+  const { data: task, error: taskErr } = await supabase
+    .from('tasks')
+    .select('id, title, due_date')
+    .eq('id', log.task_id)
+    .eq('owner_id', ownerId)
+    .single();
+  if (taskErr || !task) return null;
+
+  // Date-only compare — a task due *today* is not yet overdue.
+  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const overdue = !!task.due_date && task.due_date < todayStr;
+
+  return {
+    taskId:    task.id,
+    title:     task.title,
+    dueDate:   task.due_date ?? null,
+    startedAt: ms(log.started_at),
+    status:    overdue ? 'overdue' : 'in_progress',
+    overdue,
+  };
+}
+
+async function getActiveTimer(ownerId) {
+  const { data, error } = await supabase
+    .from('task_time_logs')
+    .select('task_id, started_at')
+    .eq('owner_id', ownerId)
     .is('stopped_at', null)
     .limit(1);
   if (error) throw ApiError.internal('Failed to fetch active timer');
@@ -271,14 +315,15 @@ async function getActiveTimer() {
   return log ? { taskId: log.task_id, startedAt: ms(log.started_at) } : null;
 }
 
-async function deleteLog(taskId, logId) {
+async function deleteLog(taskId, logId, ownerId) {
   const { error } = await supabase
     .from('task_time_logs')
     .delete()
     .eq('id', logId)
-    .eq('task_id', taskId);
+    .eq('task_id', taskId)
+    .eq('owner_id', ownerId);
   if (error) throw ApiError.internal('Failed to delete time log');
-  return getTask(taskId);
+  return getTask(taskId, ownerId);
 }
 
 module.exports = {
@@ -291,5 +336,6 @@ module.exports = {
   startTimer,
   stopTimer,
   getActiveTimer,
+  getInProgressAlert,
   deleteLog,
 };

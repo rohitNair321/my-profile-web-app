@@ -45,7 +45,7 @@ async function login(email, password) {
     // Fetch user from database
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, email, password_hash, role, is_active')
+      .select('id, email, password_hash, role, is_active, must_change_password')
       .eq('email', email)
       .single();
 
@@ -88,6 +88,8 @@ async function login(email, password) {
         id: user.id,
         email: user.email,
         role: user.role,
+        // First-login flag — frontend forces an in-app password reset when true.
+        mustChangePassword: user.must_change_password === true,
       },
     };
   } catch (error) {
@@ -253,10 +255,10 @@ async function updatePassword(email, currentPassword, newPassword) {
 
     const nowIso = new Date().toISOString();
 
-    // Update password_hash and updated_at (columns that are guaranteed to exist)
+    // Update password_hash + updated_at, and clear the first-login reset flag.
     const { error: updateError } = await supabase
       .from('users')
-      .update({ password_hash: hashedPassword, updated_at: nowIso })
+      .update({ password_hash: hashedPassword, updated_at: nowIso, must_change_password: false })
       .eq('id', user.id);
 
     if (updateError) {

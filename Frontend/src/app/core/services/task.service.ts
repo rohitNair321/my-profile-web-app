@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environments';
 import {
-  Task, TaskColumn, isRunning,
+  Task, TaskColumn, InProgressAlert, isRunning,
 } from 'src/app/features/admin-view/planner/models/task.model';
 
 interface Envelope<T> { data: T; }
@@ -110,6 +110,13 @@ export class TaskService {
       next: r => this._applyTask(r.data),
       error: () => this.refresh(),
     });
+  }
+
+  /** The running-timer task + overdue state for the dashboard Recent Activity card */
+  getInProgressAlert(): Observable<InProgressAlert | null> {
+    return this.http.get<Envelope<InProgressAlert | null>>(
+      `${this.baseUrl}/in-progress-alert`, { withCredentials: true }
+    ).pipe(map(r => r.data));
   }
 
   /** Restore the running timer's live chip on app load */

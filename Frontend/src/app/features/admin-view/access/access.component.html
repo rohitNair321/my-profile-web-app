@@ -1,0 +1,122 @@
+<div class="page-wrap">
+
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">Access</h1>
+      <p class="page-sub">Provision users and grant them access to admin pages.</p>
+    </div>
+  </div>
+
+  <!-- One-time credential reveal -->
+  @if (revealed(); as cred) {
+    <div class="acc-reveal">
+      <div class="acc-reveal__head">
+        <span class="material-icons">vpn_key</span>
+        <span>Temporary password — shown once</span>
+        <button type="button" class="acc-reveal__close" (click)="dismissReveal()" title="Dismiss">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="acc-reveal__body">
+        <div>User <strong>{{ cred.email }}</strong> was created and emailed these credentials.</div>
+        <div class="acc-reveal__pw">
+          <code>{{ cred.tempPassword }}</code>
+          <button type="button" class="acc-btn acc-btn--ghost" (click)="copyPassword()">
+            <span class="material-icons">content_copy</span> Copy
+          </button>
+        </div>
+        <div class="acc-reveal__note">They must reset it on first sign-in.</div>
+      </div>
+    </div>
+  }
+
+  <!-- Create user -->
+  <div class="admin-card acc-card">
+    <div class="admin-card-title">
+      <span class="material-icons" style="color:#10B981">person_add</span> Add User
+    </div>
+
+    <div class="acc-form">
+      <div class="acc-field">
+        <label>Email</label>
+        <input type="email" [(ngModel)]="newEmail" placeholder="user@example.com" autocomplete="off" />
+      </div>
+      <div class="acc-field">
+        <label>Role</label>
+        <select [(ngModel)]="newRole">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="acc-pages-label">Grant pages</div>
+    <div class="acc-pages">
+      @for (p of pages(); track p.key) {
+        <label class="acc-chip" [class.acc-chip--on]="isNewPageOn(p.key)">
+          <input type="checkbox" [checked]="isNewPageOn(p.key)" (change)="toggleNewPage(p.key)" />
+          {{ p.label }}
+        </label>
+      }
+    </div>
+
+    <button type="button" class="acc-btn acc-btn--primary" [disabled]="saving()" (click)="createUser()">
+      <span class="material-icons">send</span> {{ saving() ? 'Creating…' : 'Create & Send Access' }}
+    </button>
+  </div>
+
+  <!-- Users -->
+  <div class="admin-card acc-card">
+    <div class="admin-card-title">
+      <span class="material-icons" style="color:#6366F1">group</span> Users
+    </div>
+
+    @if (loading()) {
+      <div class="acc-empty">Loading…</div>
+    } @else {
+      @for (u of users(); track u.id) {
+        <div class="acc-user" [class.acc-user--disabled]="!u.is_active">
+          <div class="acc-user__main">
+            <div class="acc-user__email">{{ u.email }}</div>
+            <div class="acc-user__meta">
+              <span class="acc-role acc-role--{{ u.role }}">{{ u.role }}</span>
+              <span class="acc-status">{{ u.is_active ? 'active' : 'disabled' }}</span>
+              <span class="acc-user__pages">{{ u.pages.length }} page(s)</span>
+            </div>
+          </div>
+          <div class="acc-user__actions">
+            @if (editingId() !== u.id) {
+              <button type="button" class="acc-btn acc-btn--ghost" (click)="startEdit(u)">
+                <span class="material-icons">tune</span> Access
+              </button>
+            }
+            <button type="button" class="acc-btn acc-btn--ghost" (click)="toggleActive(u)">
+              <span class="material-icons">{{ u.is_active ? 'block' : 'check_circle' }}</span>
+              {{ u.is_active ? 'Disable' : 'Enable' }}
+            </button>
+          </div>
+
+          @if (editingId() === u.id) {
+            <div class="acc-user__editor">
+              <div class="acc-pages">
+                @for (p of pages(); track p.key) {
+                  <label class="acc-chip" [class.acc-chip--on]="isEditPageOn(p.key)">
+                    <input type="checkbox" [checked]="isEditPageOn(p.key)" (change)="toggleEditPage(p.key)" />
+                    {{ p.label }}
+                  </label>
+                }
+              </div>
+              <div class="acc-editor-actions">
+                <button type="button" class="acc-btn acc-btn--primary" (click)="saveEdit(u)">Save</button>
+                <button type="button" class="acc-btn acc-btn--ghost" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="acc-empty">No users yet.</div>
+      }
+    }
+  </div>
+
+</div>

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { TaskService } from 'src/app/core/services/task.service';
-import { Task, TaskColumn, TaskPriority } from './models/task.model';
+import { Task, TaskColumn, TaskPriority, isRunning } from './models/task.model';
 import { TaskCardComponent } from './task-card/task-card.component';
 import { TaskDetailDialogComponent } from './task-detail-dialog/task-detail-dialog.component';
 import { TaskEditDialogComponent } from './task-edit-dialog/task-edit-dialog.component';
@@ -49,6 +49,21 @@ export class PlannerComponent {
   ];
 
   filter = signal<PriorityFilter>('all');
+
+  // In-progress banner — the running-timer task, dismissible per task id
+  private dismissedTaskId = signal<string | null>(null);
+  inProgressBanner = computed(() => {
+    const running = this.taskService.tasks().find(isRunning);
+    if (!running || this.dismissedTaskId() === running.id) return null;
+    const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const overdue = !!running.dueDate && running.dueDate < todayStr;
+    return { taskId: running.id, title: running.title, overdue };
+  });
+
+  dismissBanner(): void {
+    const b = this.inProgressBanner();
+    if (b) this.dismissedTaskId.set(b.taskId);
+  }
 
   private filtered = computed(() => {
     const f = this.filter();

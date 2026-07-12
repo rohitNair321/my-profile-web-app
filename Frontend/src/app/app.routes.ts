@@ -49,6 +49,13 @@ export const routes: Routes = [
           import('./features/user-view/posts/post-detail/post-detail.component')
             .then(m => m.PostDetailComponent),
       },
+      // ── Public portfolio for a specific owner (multi-tenant) ──
+      {
+        path: 'u/:id',
+        loadComponent: () =>
+          import('./features/user-view/public-portfolio/public-portfolio.component')
+            .then(m => m.PublicPortfolioComponent),
+      },
     ],
   },
 
@@ -107,6 +114,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin-view/planner/planner.component').then(m => m.PlannerComponent),
         data: { roles: ['ADMIN'] },
+      },
+
+      // ── Access console (super admin only) ─────────────
+      {
+        path: 'access',
+        canActivate: [tokenGuard],
+        loadComponent: () =>
+          import('./features/admin-view/access/access.component').then(m => m.AccessComponent),
+        data: { roles: ['SUPERADMIN'], pageKey: 'access' },
       },
 
       // ── Settings (moved to admin-view) ───────────────

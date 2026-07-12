@@ -24,7 +24,7 @@
 
   <!-- Navigation items -->
   <nav class="admin-sidenav__nav" aria-label="Admin navigation">
-    @for (item of navItems; track item.key) {
+    @for (item of visibleNavItems(); track item.key) {
       <a [routerLink]="item.route"
          class="admin-sidenav__link"
          routerLinkActive="admin-sidenav__link--active"

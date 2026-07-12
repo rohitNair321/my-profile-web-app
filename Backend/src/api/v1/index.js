@@ -13,6 +13,7 @@ const activityRoutes  = require('./activity/activity.routes');
 const storageRoutes   = require('./storage/storage.routes');
 const healthRoutes    = require('./health/health.routes');
 const taskRoutes      = require('./tasks/task.routes');
+const accessRoutes    = require('./access/access.routes');
 
 // Mount routes
 router.use('/auth',      authRoutes);
@@ -25,6 +26,7 @@ router.use('/activity',  activityRoutes);
 router.use('/storage',   storageRoutes);
 router.use('/health',    healthRoutes);
 router.use('/tasks',     taskRoutes);
+router.use('/access',    accessRoutes);
 
 // API v1 health check
 router.get('/health', (req, res) => {

@@ -8,9 +8,11 @@ import {
   OnInit,
   Output,
   computed,
+  inject,
 } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonApp } from 'src/app/core/services/common';
+import { AccessApiService } from 'src/app/core/services/access-api.service';
 
 export interface AdminNavItem {
   icon: string;
@@ -35,6 +37,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { icon: 'bar_chart', label: 'Analytics', route: '/admin/analytics', key: 'analytics' },
   { icon: 'security', label: 'Security', route: '/admin/security', key: 'security' },
   { icon: 'share', label: 'Social Links', route: '/admin/social', key: 'social' },
+  { icon: 'admin_panel_settings', label: 'Access', route: '/admin/access', key: 'access' },
 ];
 
 @Component({
@@ -54,7 +57,25 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
   @Output() logout = new EventEmitter<void>();
 
   readonly navItems = ADMIN_NAV_ITEMS;
+  private accessApi = inject(AccessApiService);
   notifications = computed(() => this.appService.notifications());
+
+  /**
+   * Role-aware sidebar:
+   *  - SUPERADMIN → every item (incl. Access console)
+   *  - ADMIN      → every item except the Access console
+   *  - USER       → only pages granted to them
+   */
+  visibleNavItems = computed(() => {
+    const role = this.appService.role();
+    if (role === 'SUPERADMIN') return this.navItems;
+    if (role === 'USER') {
+      const allowed = new Set(this.appService.accessiblePages());
+      return this.navItems.filter(i => i.key !== 'access' && allowed.has(i.key));
+    }
+    // ADMIN (and any legacy/transient state) → full admin nav minus Access.
+    return this.navItems.filter(i => i.key !== 'access');
+  });
 
   /**
    * On mobile the sidebar is an off-canvas drawer and must ALWAYS render
@@ -76,7 +97,13 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
     super(injector);
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    // Populate the accessible-page set (drives USER-tier sidebar filtering).
+    this.accessApi.getMyPages().subscribe({
+      next: a => this.appService.setAccessiblePages(a.pages),
+      error: () => { /* non-admin or transient — leave as-is */ },
+    });
+  }
   ngOnDestroy(): void { }
 
   toggleCollapse(): void {

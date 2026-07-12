@@ -27,11 +27,22 @@ function verifyToken(req, res, next) {
 }
 
 /**
- * ADMIN ONLY middleware
+ * ADMIN middleware — a super admin is a superset of admin, so it passes too.
  */
 function requireAdmin(req, res, next) {
-  if (!req.user || req.user.role !== 'admin') {
+  const role = req.user?.role;
+  if (role !== 'admin' && role !== 'superadmin') {
     return res.status(403).json({ message: 'Admin access required' });
+  }
+  next();
+}
+
+/**
+ * SUPER ADMIN ONLY middleware
+ */
+function requireSuperAdmin(req, res, next) {
+  if (req.user?.role !== 'superadmin') {
+    return res.status(403).json({ message: 'Super admin access required' });
   }
   next();
 }
@@ -64,5 +75,6 @@ function optionalAuth(req, res, next) {
 module.exports = {
   verifyToken,
   requireAdmin,
+  requireSuperAdmin,
   optionalAuth
 };

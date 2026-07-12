@@ -78,7 +78,7 @@ function htmlToPlainText(html = '') {
 class PostService {
 
   // ── GET ALL PUBLISHED ────────────────────────────────────────
-  async getAllPublished({ page = 1, limit = 12, tag = null, search = null } = {}) {
+  async getAllPublished({ page = 1, limit = 12, tag = null, search = null, ownerId = null } = {}) {
     const from   = (page - 1) * limit;
     const to     = from + limit - 1;
     const nowIso = new Date().toISOString();
@@ -93,8 +93,9 @@ class PostService {
       .order('published_at', { ascending: false, nullsFirst: false })
       .range(from, to);
 
-    if (tag)    query = query.contains('tags', [tag]);
-    if (search) query = query.ilike('title', `%${search}%`);
+    if (ownerId) query = query.eq('owner_id', ownerId);
+    if (tag)     query = query.contains('tags', [tag]);
+    if (search)  query = query.ilike('title', `%${search}%`);
 
     const { data, error, count } = await query;
     if (error) throw ApiError.internal(error.message);
@@ -118,14 +119,17 @@ class PostService {
   }
 
   // ── GET BY SLUG ──────────────────────────────────────────────
-  async getBySlug(slug) {
+  async getBySlug(slug, ownerId = null) {
     const nowIso = new Date().toISOString();
-    const { data, error } = await supabase
+    let query = supabase
       .from('posts')
       .select('*')
       .eq('slug', slug)
-      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${nowIso})`)
-      .maybeSingle();
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${nowIso})`);
+
+    if (ownerId) query = query.eq('owner_id', ownerId);
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) throw ApiError.internal(error.message);
     if (!data)  throw ApiError.notFound('Post not found');
@@ -142,9 +146,9 @@ class PostService {
   }
 
   // ── GET FEATURED ─────────────────────────────────────────────
-  async getFeatured(limit = 3) {
+  async getFeatured(limit = 3, ownerId = null) {
     const nowIso = new Date().toISOString();
-    const { data, error } = await supabase
+    let query = supabase
       .from('posts')
       .select('id, title, slug, excerpt, cover_image_url, tags, read_time, published_at, scheduled_at')
       .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${nowIso})`)
@@ -152,12 +156,15 @@ class PostService {
       .order('published_at', { ascending: false })
       .limit(limit);
 
+    if (ownerId) query = query.eq('owner_id', ownerId);
+
+    const { data, error } = await query;
     if (error) throw ApiError.internal(error.message);
     return data ?? [];
   }
 
   // ── GET ALL (ADMIN) ──────────────────────────────────────────
-  async getAllAdmin({ page = 1, limit = 20, status = null } = {}) {
+  async getAllAdmin({ page = 1, limit = 20, status = null, ownerId = null } = {}) {
     const from = (page - 1) * limit;
     const to   = from + limit - 1;
 
@@ -167,7 +174,8 @@ class PostService {
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    if (status) query = query.eq('status', status);
+    if (ownerId) query = query.eq('owner_id', ownerId);
+    if (status)  query = query.eq('status', status);
 
     const { data, error, count } = await query;
     if (error) throw ApiError.internal(error.message);
@@ -176,7 +184,7 @@ class PostService {
   }
 
   // ── CREATE ───────────────────────────────────────────────────
-  async create(body) {
+  async create(body, ownerId = null) {
     if (!body.title) throw ApiError.badRequest('title is required');
     if (!body.content) throw ApiError.badRequest('content is required');
     validatePostSizes(body);
@@ -210,6 +218,7 @@ class PostService {
       impressions:     body.impressions      || 0,
       scheduled_at:    isScheduledFuture ? body.scheduled_at : null,
       published_at:    (!isScheduledFuture && body.status === 'published') ? now.toISOString() : null,
+      ...(ownerId ? { owner_id: ownerId } : {}),
     };
 
     const { data, error } = await supabase
@@ -223,8 +232,8 @@ class PostService {
   }
 
   // ── UPDATE ───────────────────────────────────────────────────
-  async update(id, body) {
-    const existing = await this._findById(id);
+  async update(id, body, ownerId = null) {
+    const existing = await this._findById(id, ownerId);
     validatePostSizes(body);
     const updates  = { ...body };
 
@@ -262,28 +271,22 @@ class PostService {
       if (existing.status === 'scheduled') updates.scheduled_at = null;
     }
 
-    const { data, error } = await supabase
-      .from('posts')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+    let uq = supabase.from('posts').update(updates).eq('id', id);
+    if (ownerId) uq = uq.eq('owner_id', ownerId);
+    const { data, error } = await uq.select().single();
 
     if (error) throw mapDbError(error);
     return data;
   }
 
   // ── UPDATE IMPRESSIONS ───────────────────────────────────────
-  async updateImpressions(id, impressions) {
+  async updateImpressions(id, impressions, ownerId = null) {
     const imp = Number(impressions);
     if (isNaN(imp) || imp < 0) throw ApiError.badRequest('impressions must be a non-negative number');
 
-    const { data, error } = await supabase
-      .from('posts')
-      .update({ impressions: imp })
-      .eq('id', id)
-      .select('id, impressions')
-      .single();
+    let uq = supabase.from('posts').update({ impressions: imp }).eq('id', id);
+    if (ownerId) uq = uq.eq('owner_id', ownerId);
+    const { data, error } = await uq.select('id, impressions').single();
 
     if (error) throw ApiError.internal(error.message);
     if (!data)  throw ApiError.notFound('Post not found');
@@ -315,9 +318,11 @@ class PostService {
   }
 
   // ── DELETE ───────────────────────────────────────────────────
-  async delete(id) {
-    await this._findById(id); // throws 404 if not found
-    const { error } = await supabase.from('posts').delete().eq('id', id);
+  async delete(id, ownerId = null) {
+    await this._findById(id, ownerId); // throws 404 if not found / not owned
+    let dq = supabase.from('posts').delete().eq('id', id);
+    if (ownerId) dq = dq.eq('owner_id', ownerId);
+    const { error } = await dq;
     if (error) throw ApiError.internal(error.message);
 
     // Fire-and-forget: purge this post's scheduler activity events so a deleted
@@ -352,17 +357,15 @@ class PostService {
   }
 
   // ── GET BY ID (ADMIN) ────────────────────────────────────────
-  async getById(id) {
-    return this._findById(id);
+  async getById(id, ownerId = null) {
+    return this._findById(id, ownerId);
   }
 
   // ── PRIVATE HELPERS ──────────────────────────────────────────
-  async _findById(id) {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+  async _findById(id, ownerId = null) {
+    let query = supabase.from('posts').select('*').eq('id', id);
+    if (ownerId) query = query.eq('owner_id', ownerId);
+    const { data, error } = await query.maybeSingle();
 
     if (error) throw ApiError.internal(error.message);
     if (!data)  throw ApiError.notFound('Post not found');

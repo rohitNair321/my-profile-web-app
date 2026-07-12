@@ -22,6 +22,19 @@
     </div>
   </div>
 
+  <!-- In-progress banner -->
+  @if (inProgressBanner(); as b) {
+    <div class="plnr-banner" [class.plnr-banner--due]="b.overdue" [class.plnr-banner--ok]="!b.overdue">
+      <span class="material-icons plnr-banner__ic">{{ b.overdue ? 'warning' : 'timer' }}</span>
+      <span class="plnr-banner__text">
+        <strong>{{ b.title }}</strong> {{ b.overdue ? 'is in progress and overdue' : 'is in progress' }}
+      </span>
+      <button type="button" class="plnr-banner__close" (click)="dismissBanner()" title="Dismiss">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  }
+
   <!-- Kanban board -->
   <div class="planner-grid">
     @for (col of columns; track col.id) {

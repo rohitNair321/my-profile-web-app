@@ -4,7 +4,18 @@ import { EMPTY, map, Observable, of, switchMap, tap, timer } from "rxjs";
 import { LocalStorageService } from "src/app/shared/services/local-storage.service";
 import { environment } from "src/environments/environments";
 
-export type UserRole = 'ADMIN' | 'GUEST' | null;
+export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'USER' | 'GUEST' | null;
+
+/** Map a backend role string ('admin'|'superadmin'|'user'|'guest') to a UserRole. */
+export function mapBackendRole(raw?: string | null): UserRole {
+  switch ((raw || '').toLowerCase()) {
+    case 'superadmin': return 'SUPERADMIN';
+    case 'admin':      return 'ADMIN';
+    case 'user':       return 'USER';
+    default:           return 'GUEST';
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class AppService {
 
@@ -28,8 +39,13 @@ export class AppService {
     // persisted to localStorage (XSS hardening). Role is restored via /auth/init.
     token = signal<string | null>(null);
 
+    // Page keys the signed-in user may access (drives the admin sidebar / guard
+    // for USER-tier accounts). Populated from GET /api/v1/access/my-pages.
+    accessiblePages = signal<string[]>([]);
+    setAccessiblePages(pages: string[]): void { this.accessiblePages.set(pages ?? []); }
+
     hasValidToken(): boolean {
-        return this.role() === 'ADMIN';
+        return this.role() === 'ADMIN' || this.role() === 'SUPERADMIN';
     }
 
 
@@ -45,6 +61,17 @@ export class AppService {
                 map(r => r.profile || null),
                 tap(p => this._profile.set(p))
             );
+    }
+
+    /**
+     * Fetch a specific owner's public profile (multi-tenant /u/:id view).
+     * Does NOT touch the cached `_profile` signal — keeps the primary
+     * portfolio's state intact while viewing another owner.
+     */
+    getPublicProfile(ownerId: string): Observable<Profile | null> {
+        return this.http.get<{ profile: Profile | null }>(
+            `${this.apiProfileUrl}`, { params: { owner: ownerId }, withCredentials: true }
+        ).pipe(map(r => r.profile || null));
     }
 
     updateProfile(formData: FormData): Observable<Profile> {

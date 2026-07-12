@@ -1,0 +1,96 @@
+.acc-card { margin-bottom: 1.5rem; }
+
+// ── One-time credential reveal ────────────────────────────────
+.acc-reveal {
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--warning, #F59E0B) 35%, transparent);
+  background: color-mix(in oklab, var(--warning, #F59E0B) 10%, transparent);
+  padding: 1rem 1.125rem;
+  margin-bottom: 1.5rem;
+}
+.acc-reveal__head {
+  display: flex; align-items: center; gap: .5rem;
+  font-weight: 700; font-size: .85rem; color: var(--warning, #F59E0B);
+  .material-icons { font-size: 1.05rem; }
+  .acc-reveal__close {
+    margin-left: auto; background: transparent; border: none; cursor: pointer;
+    color: currentColor; opacity: .8; display: flex; padding: .2rem;
+    .material-icons { font-size: 1rem; }
+    &:hover { opacity: 1; }
+  }
+}
+.acc-reveal__body { margin-top: .625rem; font-size: .82rem; color: var(--admin-tc, #E2E8F0); }
+.acc-reveal__pw {
+  display: flex; align-items: center; gap: .625rem; margin: .5rem 0;
+  code {
+    font-family: 'Space Mono', monospace; font-size: .95rem; letter-spacing: 1px;
+    background: rgba(0,0,0,.25); padding: .35rem .6rem; border-radius: 8px;
+  }
+}
+.acc-reveal__note { font-size: .72rem; color: var(--admin-t3c, #64748B); }
+
+// ── Form ──────────────────────────────────────────────────────
+.acc-form { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.acc-field {
+  display: flex; flex-direction: column; gap: .35rem; flex: 1; min-width: 180px;
+  label { font-size: .72rem; font-weight: 600; color: var(--admin-t3c, #64748B); }
+  input, select {
+    background: var(--admin-bg-dp, #0B1120);
+    border: 1px solid var(--admin-bdc, #1E293B);
+    border-radius: 9px; padding: .55rem .7rem; color: var(--admin-tc, #E2E8F0);
+    font-size: .85rem;
+    &:focus { outline: none; border-color: #10B981; }
+  }
+}
+
+.acc-pages-label { font-size: .72rem; font-weight: 600; color: var(--admin-t3c, #64748B); margin-bottom: .5rem; }
+.acc-pages { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.acc-chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .78rem; color: var(--admin-t2c, #94A3B8);
+  border: 1px solid var(--admin-bdc, #1E293B); border-radius: 9999px;
+  padding: .3rem .7rem; cursor: pointer; transition: all .15s;
+  input { accent-color: #10B981; }
+  &--on { color: #10B981; border-color: rgba(16,185,129,.5); background: rgba(16,185,129,.1); }
+}
+
+// ── Buttons ───────────────────────────────────────────────────
+.acc-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .8rem; font-weight: 600; border-radius: 9px; cursor: pointer;
+  padding: .5rem .9rem; border: 1px solid var(--admin-bdc, #1E293B);
+  background: var(--admin-bg-s2, #1E293B); color: var(--admin-t2c, #94A3B8);
+  transition: all .15s;
+  .material-icons { font-size: 1rem; }
+  &:hover { color: var(--admin-tc, #E2E8F0); }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+  &--primary {
+    background: linear-gradient(135deg, #10B981, #059669); color: #fff; border-color: transparent;
+    &:hover { color: #fff; box-shadow: 0 6px 18px rgba(16,185,129,.35); }
+  }
+  &--ghost { background: transparent; }
+}
+
+// ── User rows ─────────────────────────────────────────────────
+.acc-user {
+  display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+  padding: .75rem 0; border-top: 1px solid var(--admin-bdc, #1E293B);
+  &:first-of-type { border-top: none; }
+  &--disabled { opacity: .55; }
+}
+.acc-user__main { flex: 1; min-width: 0; }
+.acc-user__email { font-size: .85rem; font-weight: 600; color: var(--admin-tc, #E2E8F0); }
+.acc-user__meta { display: flex; gap: .5rem; align-items: center; margin-top: 3px; font-size: .72rem; color: var(--admin-t3c, #64748B); }
+.acc-user__actions { display: flex; gap: .5rem; }
+.acc-user__editor { flex-basis: 100%; margin-top: .5rem; }
+.acc-editor-actions { display: flex; gap: .5rem; }
+
+.acc-role {
+  text-transform: capitalize; font-weight: 700; padding: .1rem .45rem; border-radius: 6px;
+  &--admin { color: #6366F1; background: rgba(99,102,241,.14); }
+  &--user  { color: #06B6D4; background: rgba(6,182,212,.14); }
+  &--superadmin { color: #F59E0B; background: rgba(245,158,11,.14); }
+}
+.acc-status { text-transform: capitalize; }
+
+.acc-empty { padding: 1.5rem 0; text-align: center; color: var(--admin-t3c, #64748B); font-size: .82rem; }

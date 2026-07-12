@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { catchError, debounceTime, forkJoin, map, mergeMap, Observable, of, tap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environments/environments';
-import { AppService, UserRole } from 'src/app/core/services/app.service';
+import { AppService, UserRole, mapBackendRole } from 'src/app/core/services/app.service';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { Router } from '@angular/router';
 export interface RegisterRequest {
@@ -26,6 +26,8 @@ export class AuthService {
   public appService = inject(AppService);
 
   role = signal<UserRole>(null);
+  // Set on login when the account must reset its temp password before proceeding.
+  mustChangePassword = signal<boolean>(false);
 private readonly apiV1BaseUrl = environment.baseUrl + '/api/v1/auth';
   private httpOptions = {
     withCredentials: true
@@ -57,8 +59,10 @@ private readonly apiV1BaseUrl = environment.baseUrl + '/api/v1/auth';
         // anything there is readable by any XSS payload.
         this.token.set(res.data.token);
         this.user.set(res.data.user);
-        this.role.set(res.data.user.role === 'admin' ? 'ADMIN' : 'GUEST');
-        this.appService.setRole(res.data.user.role === 'admin' ? 'ADMIN' : 'GUEST');
+        const role = mapBackendRole(res.data.user.role);
+        this.role.set(role);
+        this.appService.setRole(role);
+        this.mustChangePassword.set(res.data.user.mustChangePassword === true);
       })
     );
   }
@@ -73,8 +77,8 @@ initiateApp(): Observable<any> {
     tap((res: any) => {
       // Backend returns standardized response format
       const data = res.data || res;
-      const role: UserRole = data.role === 'admin' ? 'ADMIN' : 'GUEST';
-      
+      const role: UserRole = mapBackendRole(data.role);
+
       // Update local state
       this.role.set(role);
       this.appService.setRole(role);
