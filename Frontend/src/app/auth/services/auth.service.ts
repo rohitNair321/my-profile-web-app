@@ -1,9 +1,12 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, Injector, signal } from '@angular/core';
 import { catchError, debounceTime, forkJoin, map, mergeMap, Observable, of, tap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environments/environments';
 import { AppService, UserRole, mapBackendRole } from 'src/app/core/services/app.service';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
+import { PostService } from 'src/app/core/services/post.service';
+import { TaskService } from 'src/app/core/services/task.service';
+import { ThemeService } from 'src/app/core/theme/theme.service';
 import { Router } from '@angular/router';
 export interface RegisterRequest {
   name: string;
@@ -23,7 +26,25 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private localStorageService = inject(LocalStorageService);
   private router = inject(Router);
+  private injector = inject(Injector);
   public appService = inject(AppService);
+
+  /**
+   * Wipe ALL user-scoped in-memory state so nothing leaks across a login/logout
+   * in the same tab. Services are fetched lazily via the injector so this call
+   * never eagerly instantiates them at app bootstrap.
+   */
+  private clearSessionData(): void {
+    // Whether the session being torn down had admin data worth clearing. Checked
+    // BEFORE the role is overwritten so we don't needlessly instantiate the
+    // admin-only TaskService (its ctor fetches /tasks) for a guest→user login.
+    const hadPrivilegedSession = this.role() === 'ADMIN' || this.role() === 'SUPERADMIN';
+
+    this.appService.resetUserScopedState();
+    this.injector.get(PostService).reset();   // cache-only, no network
+    this.injector.get(ThemeService).reset();  // always already instantiated
+    if (hadPrivilegedSession) this.injector.get(TaskService).reset();
+  }
 
   role = signal<UserRole>(null);
   // Set on login when the account must reset its temp password before proceeding.
@@ -54,6 +75,10 @@ private readonly apiV1BaseUrl = environment.baseUrl + '/api/v1/auth';
   login(payload: LoginRequest): Observable<any> {
     return this.http.post<any>(`${this.apiV1BaseUrl}/login`, payload, this.httpOptions).pipe(
       map((res) => {
+        // Clear any previous user's cached data BEFORE adopting the new identity
+        // (SPA login does not reload the app, so singletons would otherwise leak).
+        this.clearSessionData();
+
         // Token kept in-memory only; the httpOnly cookie set by the backend is
         // the persistent credential. Never write the JWT to localStorage —
         // anything there is readable by any XSS payload.
@@ -78,6 +103,9 @@ initiateApp(): Observable<any> {
       // Backend returns standardized response format
       const data = res.data || res;
       const role: UserRole = mapBackendRole(data.role);
+
+      // Server-driven layout config (init is the first call on startup)
+      this.appService.setAppConfiguration(data.appConfiguration ?? null);
 
       // Update local state
       this.role.set(role);
@@ -143,7 +171,7 @@ initiateApp(): Observable<any> {
     this.role.set(null);
     this.token.set(null);
     this.appService.setRole('GUEST');
-    this.appService._profile.set(null);
+    this.clearSessionData();      // profile, notifications, access, config, posts, tasks, theme
     this.localStorageService.clear();
   }
 

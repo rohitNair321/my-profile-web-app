@@ -20,6 +20,7 @@ export interface AdminNavItem {
   route: string;
   key: string;
   badge?: boolean;
+  children?: AdminNavItem[]; // optional sub-menu
 }
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
@@ -62,20 +63,27 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
 
   /**
    * Role-aware sidebar:
-   *  - SUPERADMIN → every item (incl. Access console)
-   *  - ADMIN      → every item except the Access console
-   *  - USER       → only pages granted to them
+   *  - SUPERADMIN → every item + sub-menu (full access to the console)
+   *  - ADMIN / USER → only the pages/sub-menus granted to them (rest hidden)
    */
   visibleNavItems = computed(() => {
-    const role = this.appService.role();
-    if (role === 'SUPERADMIN') return this.navItems;
-    if (role === 'USER') {
-      const allowed = new Set(this.appService.accessiblePages());
-      return this.navItems.filter(i => i.key !== 'access' && allowed.has(i.key));
-    }
-    // ADMIN (and any legacy/transient state) → full admin nav minus Access.
-    return this.navItems.filter(i => i.key !== 'access');
+    if (this.appService.role() === 'SUPERADMIN') return this.navItems;
+    const allowed = new Set(this.appService.accessiblePages());
+    return this._filterByAccess(this.navItems, allowed);
   });
+
+  /** Keep items whose key is granted; keep a parent if any child survives. */
+  private _filterByAccess(items: AdminNavItem[], allowed: Set<string>): AdminNavItem[] {
+    const out: AdminNavItem[] = [];
+    for (const item of items) {
+      if (item.key === 'access') continue; // super-admin-only console
+      const kids = item.children ? this._filterByAccess(item.children, allowed) : undefined;
+      if (allowed.has(item.key) || (kids && kids.length)) {
+        out.push(kids ? { ...item, children: kids } : item);
+      }
+    }
+    return out;
+  }
 
   /**
    * On mobile the sidebar is an off-canvas drawer and must ALWAYS render

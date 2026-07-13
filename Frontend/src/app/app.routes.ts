@@ -250,7 +250,9 @@ export const routes: Routes = [
         canActivate: [tokenGuard],
         loadComponent: () =>
           import('./features/admin-view/security/security.component').then(m => m.AdminSecurityComponent),
-        data: { roles: ['ADMIN'] },
+        // Self-service password page — any authenticated role (a provisioned USER
+        // is redirected here for the mandatory first-login password reset).
+        data: { roles: ['SUPERADMIN', 'ADMIN', 'USER'] },
       },
       {
         path: 'social',

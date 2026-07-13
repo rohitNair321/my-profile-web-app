@@ -37,6 +37,13 @@ export class TaskService {
     }
   }
 
+  /** Clear cached tasks — call on login/logout so users never see each other's data. */
+  reset(): void {
+    this._tasks.set([]);
+    this.loaded.set(false);
+    this.loading.set(false);
+  }
+
   refresh(): void {
     this.loading.set(true);
     this.http.get<Envelope<Task[]>>(this.baseUrl, { withCredentials: true }).subscribe({

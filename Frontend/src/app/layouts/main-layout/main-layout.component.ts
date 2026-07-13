@@ -130,13 +130,14 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     this.appConfig.appConfiguration.showAgentChat = true;
     this.appConfig.appConfiguration.isMobile = this._isMobile();
 
-    // Layout follows the auth role REACTIVELY: admins get the sidebar, guests
-    // (incl. right after logout) get the top navbar. An effect keeps it correct
-    // even if the role signal settles after this component is created.
+    // Layout follows the auth role REACTIVELY: admin-tier users get the sidebar,
+    // guests (incl. right after logout) get the top navbar. An effect keeps it
+    // correct even if the role signal settles after this component is created.
     // "View public site" preview overrides an admin session to render the guest
     // shell so the admin can preview the public experience without logging out.
     effect(() => {
-      const isAdmin = this.appService.role() === 'ADMIN' && !this.preview.previewPublic();
+      const role = this.appService.role();
+      const isAdmin = (role === 'ADMIN' || role === 'SUPERADMIN') && !this.preview.previewPublic();
       this.appConfig.appConfiguration.type = isAdmin ? 'sidebar' : 'navbar';
       this.appConfig.appConfiguration.showUserProfileView = isAdmin;
       this.appConfig.appConfiguration.showNotifications = isAdmin;

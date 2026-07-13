@@ -44,6 +44,11 @@ export class AppService {
     accessiblePages = signal<string[]>([]);
     setAccessiblePages(pages: string[]): void { this.accessiblePages.set(pages ?? []); }
 
+    // Server-driven layout config from GET /api/v1/auth/init (called first, on
+    // startup). `isMobile` is NOT server-driven — the shell sets it at runtime.
+    appConfiguration = signal<Record<string, any> | null>(null);
+    setAppConfiguration(cfg: Record<string, any> | null): void { this.appConfiguration.set(cfg ?? null); }
+
     hasValidToken(): boolean {
         return this.role() === 'ADMIN' || this.role() === 'SUPERADMIN';
     }
@@ -94,6 +99,18 @@ export class AppService {
 
     setLocalProfile(profile: Profile | null) {
         this._profile.set(profile);
+    }
+
+    /**
+     * Wipe every user-scoped signal so no data leaks across a login/logout on
+     * the same tab (SPA navigation does NOT reload the app). Call on both login
+     * and logout. Role is handled separately by the caller.
+     */
+    resetUserScopedState(): void {
+        this._profile.set(null);
+        this._notifications.set(null);
+        this.accessiblePages.set([]);
+        this.appConfiguration.set(null);
     }
 
     sendContactMessage(formData: any): Observable<any> {

@@ -9,6 +9,13 @@
 } @else if (profile(); as p) {
   <div class="pp-wrap">
 
+    @if (isDummy()) {
+      <div class="pp-sample">
+        <span class="material-icons">info</span>
+        Sample preview — this portfolio hasn’t been set up yet.
+      </div>
+    }
+
     <!-- Identity header -->
     <header class="pp-hero">
       <div class="pp-avatar">

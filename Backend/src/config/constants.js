@@ -35,9 +35,14 @@ module.exports = {
 
   // User Roles
   USER_ROLES: {
+    SUPER_ADMIN: 'superadmin',
     ADMIN: 'admin',
+    USER: 'user',
     GUEST: 'guest',
   },
+
+  // Roles that satisfy an "admin" gate (super admin is a superset of admin).
+  ADMIN_TIER_ROLES: ['admin', 'superadmin'],
 
   // Cookie Settings
   COOKIE: {

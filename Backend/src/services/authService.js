@@ -99,6 +99,27 @@ async function login(email, password) {
 }
 
 /**
+ * Build the layout `appConfiguration` for the frontend shell.
+ * Server-driven fields only — `isMobile` is deliberately omitted because it is
+ * a client runtime value (viewport width), not server configuration.
+ */
+function buildAppConfiguration(role) {
+  const isAdminTier = role === 'admin' || role === 'superadmin';
+  return {
+    type:                isAdminTier ? 'sidebar' : 'navbar',
+    theme:               'light',
+    sidebarPosition:     'left',
+    logoLocationHeader:  false,
+    collapsed:           isAdminTier,   // admin sidebar starts icon-only
+    showSidebarToggle:   isAdminTier,
+    showAgentChat:       isAdminTier,
+    showUserProfileView: isAdminTier,
+    showNotifications:   isAdminTier,
+    isFixed:             true,
+  };
+}
+
+/**
  * Initialize app data (for frontend startup)
  */
 async function initAppData(user) {
@@ -121,6 +142,7 @@ async function initAppData(user) {
       role,
       email,
       appData: data || null,
+      appConfiguration: buildAppConfiguration(role),
     };
   } catch (error) {
     logger.error('initAppData error:', error);

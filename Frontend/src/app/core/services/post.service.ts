@@ -82,6 +82,9 @@ export class PostService {
     this._slugCache.clear();
   }
 
+  /** Public cache reset — call on login/logout so cached posts don't leak across users. */
+  reset(): void { this.invalidateCache(); }
+
   // ── PUBLIC ─────────────────────────────────────────────────
 
   getAll(params: { page?: number; limit?: number; tag?: string; search?: string; owner?: string } = {}): Observable<{ data: PostsResponse }> {

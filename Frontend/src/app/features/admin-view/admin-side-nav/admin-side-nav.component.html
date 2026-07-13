@@ -42,6 +42,23 @@
           <span class="admin-sidenav__label">{{ item.label }}</span>
         }
       </a>
+
+      <!-- Sub-menu (rendered when an item has granted children) -->
+      @if (item.children?.length && !effectiveCollapsed) {
+        <div class="admin-sidenav__submenu">
+          @for (child of item.children; track child.key) {
+            <a [routerLink]="child.route"
+               class="admin-sidenav__link admin-sidenav__sublink"
+               routerLinkActive="admin-sidenav__link--active"
+               (click)="onNavClick()">
+              <span class="admin-sidenav__icon-wrap">
+                <span class="material-icons admin-sidenav__icon">{{ child.icon }}</span>
+              </span>
+              <span class="admin-sidenav__label">{{ child.label }}</span>
+            </a>
+          }
+        </div>
+      }
     }
   </nav>
 
