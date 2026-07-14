@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const ApiError = require('../utils/ApiError');
 const logger = require('../config/logger');
-const { USER_ROLES, COOKIE } = require('../config/constants');
+const { USER_ROLES, ADMIN_TIER_ROLES, COOKIE } = require('../config/constants');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const PROFILE_OWNER_ID = process.env.PROFILE_OWNER_ID;
@@ -53,12 +53,22 @@ const verifyToken = (req, res, next) => {
 };
 
 /**
- * Require ADMIN role
- * Must be used after verifyToken
+ * Require ADMIN-tier role (admin OR super admin — super admin ⊇ admin).
+ * Must be used after verifyToken.
  */
 const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== USER_ROLES.ADMIN) {
+  if (!req.user || !ADMIN_TIER_ROLES.includes(req.user.role)) {
     return next(ApiError.forbidden('Admin access required'));
+  }
+  next();
+};
+
+/**
+ * Require SUPER ADMIN role. Must be used after verifyToken.
+ */
+const requireSuperAdmin = (req, res, next) => {
+  if (req.user?.role !== USER_ROLES.SUPER_ADMIN) {
+    return next(ApiError.forbidden('Super admin access required'));
   }
   next();
 };
@@ -145,8 +155,8 @@ const optionalAuth = (req, res, next) => {
  * Creates guest ID cookie if it doesn't exist
  */
 const ensureGuestId = (req, res, next) => {
-  // If admin, skip guest ID check
-  if (req.user?.role === USER_ROLES.ADMIN) {
+  // Authenticated admin-tier users don't need a guest ID
+  if (ADMIN_TIER_ROLES.includes(req.user?.role)) {
     return next();
   }
 
@@ -173,6 +183,7 @@ const ensureGuestId = (req, res, next) => {
 module.exports = {
   verifyToken,
   requireAdmin,
+  requireSuperAdmin,
   optionalAuth,
   ensureGuestId,
 };

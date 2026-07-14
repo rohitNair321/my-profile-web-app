@@ -3,6 +3,10 @@
 
 const postService  = require('../../../services/post.service');
 const aiService    = require('../../../services/aiService');
+<<<<<<< HEAD
+=======
+const { resolveOwnerId } = require('../../../services/tenancy/ownerContext');
+>>>>>>> feature/application-upgrade-v20
 const ApiResponse  = require('../../../utils/ApiResponse');
 const ApiError     = require('../../../utils/ApiError');
 const catchAsync   = require('../../../utils/catchAsync');
@@ -11,6 +15,14 @@ const sseManager   = require('./sse-manager');
 
 const AI_ASSIST_ACTIONS = ['excerpt', 'titles', 'improve', 'seo'];
 
+<<<<<<< HEAD
+=======
+// Public reads target a portfolio owner (?owner=, else the primary owner);
+// admin reads/writes are scoped to the authenticated user's own portfolio.
+const publicOwner = (req) => resolveOwnerId({ user: req.user, requestedOwner: req.query.owner });
+const adminOwner  = (req) => resolveOwnerId({ user: req.user });
+
+>>>>>>> feature/application-upgrade-v20
 // ── PUBLIC CONTROLLERS ────────────────────────────────────────
 
 /**
@@ -20,10 +32,11 @@ const AI_ASSIST_ACTIONS = ['excerpt', 'titles', 'improve', 'seo'];
 const getAllPublished = catchAsync(async (req, res) => {
   const { page = 1, limit = 12, tag, search } = req.query;
   const result = await postService.getAllPublished({
-    page:   Number(page),
-    limit:  Number(limit),
-    tag:    tag    || null,
-    search: search || null,
+    page:    Number(page),
+    limit:   Number(limit),
+    tag:     tag    || null,
+    search:  search || null,
+    ownerId: publicOwner(req),
   });
   res.json(new ApiResponse(200, result, 'Posts retrieved'));
 });
@@ -34,7 +47,7 @@ const getAllPublished = catchAsync(async (req, res) => {
  */
 const getFeatured = catchAsync(async (req, res) => {
   const limit  = Number(req.query.limit) || 3;
-  const posts  = await postService.getFeatured(limit);
+  const posts  = await postService.getFeatured(limit, publicOwner(req));
   res.json(new ApiResponse(200, { posts }, 'Featured posts retrieved'));
 });
 
@@ -43,7 +56,7 @@ const getFeatured = catchAsync(async (req, res) => {
  * Returns a single published post by its URL slug.
  */
 const getBySlug = catchAsync(async (req, res) => {
-  const post = await postService.getBySlug(req.params.slug);
+  const post = await postService.getBySlug(req.params.slug, publicOwner(req));
   res.json(new ApiResponse(200, { post }, 'Post retrieved'));
 });
 
@@ -73,9 +86,10 @@ const trackView = catchAsync(async (req, res) => {
 const getAllAdmin = catchAsync(async (req, res) => {
   const { page = 1, limit = 20, status } = req.query;
   const result = await postService.getAllAdmin({
-    page:   Number(page),
-    limit:  Number(limit),
-    status: status || null,
+    page:    Number(page),
+    limit:   Number(limit),
+    status:  status || null,
+    ownerId: adminOwner(req),
   });
   res.json(new ApiResponse(200, result, 'All posts retrieved'));
 });
@@ -85,7 +99,7 @@ const getAllAdmin = catchAsync(async (req, res) => {
  * Create a new post. Supports draft or published immediately.
  */
 const create = catchAsync(async (req, res) => {
-  const post = await postService.create(req.body);
+  const post = await postService.create(req.body, adminOwner(req));
   res.status(201).json(new ApiResponse(201, { post }, 'Post created'));
 });
 
@@ -94,7 +108,7 @@ const create = catchAsync(async (req, res) => {
  * Full or partial update of an existing post.
  */
 const update = catchAsync(async (req, res) => {
-  const post = await postService.update(req.params.id, req.body);
+  const post = await postService.update(req.params.id, req.body, adminOwner(req));
   res.json(new ApiResponse(200, { post }, 'Post updated'));
 });
 
@@ -104,7 +118,7 @@ const update = catchAsync(async (req, res) => {
  */
 const updateImpressions = catchAsync(async (req, res) => {
   const { impressions } = req.body;
-  const result = await postService.updateImpressions(req.params.id, impressions);
+  const result = await postService.updateImpressions(req.params.id, impressions, adminOwner(req));
   res.json(new ApiResponse(200, result, 'Impressions updated'));
 });
 
@@ -113,7 +127,7 @@ const updateImpressions = catchAsync(async (req, res) => {
  * Permanently delete a post.
  */
 const deletePost = catchAsync(async (req, res) => {
-  await postService.delete(req.params.id);
+  await postService.delete(req.params.id, adminOwner(req));
   res.json(new ApiResponse(200, {}, 'Post deleted'));
 });
 
@@ -139,7 +153,7 @@ const uploadCover = catchAsync(async (req, res) => {
  * Returns a single post (any status) — avoids fetching the whole admin list to edit one post.
  */
 const getByIdAdmin = catchAsync(async (req, res) => {
-  const post = await postService.getById(req.params.id);
+  const post = await postService.getById(req.params.id, adminOwner(req));
   res.json(new ApiResponse(200, { post }, 'Post retrieved'));
 });
 

@@ -6,6 +6,18 @@ export interface TaskTimeLog {
   stoppedAt: number | null; // null = currently running
 }
 
+export type InProgressStatus = 'in_progress' | 'overdue';
+
+/** The single running-timer task surfaced on the dashboard + planner banner */
+export interface InProgressAlert {
+  taskId: string;
+  title: string;
+  dueDate: string | null;
+  startedAt: number;
+  status: InProgressStatus;
+  overdue: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;

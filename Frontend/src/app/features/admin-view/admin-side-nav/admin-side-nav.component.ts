@@ -8,9 +8,11 @@ import {
   OnInit,
   Output,
   computed,
+  inject,
 } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonApp } from 'src/app/core/services/common';
+import { AccessApiService } from 'src/app/core/services/access-api.service';
 
 export interface AdminNavItem {
   icon: string;
@@ -18,6 +20,7 @@ export interface AdminNavItem {
   route: string;
   key: string;
   badge?: boolean;
+  children?: AdminNavItem[]; // optional sub-menu
 }
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
@@ -35,6 +38,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { icon: 'bar_chart', label: 'Analytics', route: '/admin/analytics', key: 'analytics' },
   { icon: 'security', label: 'Security', route: '/admin/security', key: 'security' },
   { icon: 'share', label: 'Social Links', route: '/admin/social', key: 'social' },
+  { icon: 'admin_panel_settings', label: 'Access', route: '/admin/access', key: 'access' },
 ];
 
 @Component({
@@ -54,7 +58,32 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
   @Output() logout = new EventEmitter<void>();
 
   readonly navItems = ADMIN_NAV_ITEMS;
+  private accessApi = inject(AccessApiService);
   notifications = computed(() => this.appService.notifications());
+
+  /**
+   * Role-aware sidebar:
+   *  - SUPERADMIN → every item + sub-menu (full access to the console)
+   *  - ADMIN / USER → only the pages/sub-menus granted to them (rest hidden)
+   */
+  visibleNavItems = computed(() => {
+    if (this.appService.role() === 'SUPERADMIN') return this.navItems;
+    const allowed = new Set(this.appService.accessiblePages());
+    return this._filterByAccess(this.navItems, allowed);
+  });
+
+  /** Keep items whose key is granted; keep a parent if any child survives. */
+  private _filterByAccess(items: AdminNavItem[], allowed: Set<string>): AdminNavItem[] {
+    const out: AdminNavItem[] = [];
+    for (const item of items) {
+      if (item.key === 'access') continue; // super-admin-only console
+      const kids = item.children ? this._filterByAccess(item.children, allowed) : undefined;
+      if (allowed.has(item.key) || (kids && kids.length)) {
+        out.push(kids ? { ...item, children: kids } : item);
+      }
+    }
+    return out;
+  }
 
   /**
    * On mobile the sidebar is an off-canvas drawer and must ALWAYS render
@@ -76,7 +105,13 @@ export class AdminSideNavComponent extends CommonApp implements OnInit, OnDestro
     super(injector);
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    // Populate the accessible-page set (drives USER-tier sidebar filtering).
+    this.accessApi.getMyPages().subscribe({
+      next: a => this.appService.setAccessiblePages(a.pages),
+      error: () => { /* non-admin or transient — leave as-is */ },
+    });
+  }
   ngOnDestroy(): void { }
 
   toggleCollapse(): void {

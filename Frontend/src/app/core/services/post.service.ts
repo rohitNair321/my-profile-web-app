@@ -82,9 +82,12 @@ export class PostService {
     this._slugCache.clear();
   }
 
+  /** Public cache reset — call on login/logout so cached posts don't leak across users. */
+  reset(): void { this.invalidateCache(); }
+
   // ── PUBLIC ─────────────────────────────────────────────────
 
-  getAll(params: { page?: number; limit?: number; tag?: string; search?: string } = {}): Observable<{ data: PostsResponse }> {
+  getAll(params: { page?: number; limit?: number; tag?: string; search?: string; owner?: string } = {}): Observable<{ data: PostsResponse }> {
     const key = JSON.stringify(params);
     const cached = this._listCache.get(key);
     if (cached) return of({ data: cached });
@@ -99,11 +102,14 @@ export class PostService {
       .pipe(tap(r => { if (r?.data) this._listCache.set(key, r.data); }));
   }
 
-  getBySlug(slug: string): Observable<{ data: { post: Post } }> {
-    const cached = this._slugCache.get(slug);
+  getBySlug(slug: string, owner?: string): Observable<{ data: { post: Post } }> {
+    const key = owner ? `${slug}|${owner}` : slug;
+    const cached = this._slugCache.get(key);
     if (cached) return of({ data: { post: cached } });
-    return this.http.get<{ data: { post: Post } }>(`${this.base}/slug/${slug}`)
-      .pipe(tap(r => { if (r?.data?.post) this._slugCache.set(slug, r.data.post); }));
+    let params = new HttpParams();
+    if (owner) params = params.set('owner', owner);
+    return this.http.get<{ data: { post: Post } }>(`${this.base}/slug/${slug}`, { params })
+      .pipe(tap(r => { if (r?.data?.post) this._slugCache.set(key, r.data.post); }));
   }
 
   getFeatured(limit = 3): Observable<{ data: { posts: Post[] } }> {

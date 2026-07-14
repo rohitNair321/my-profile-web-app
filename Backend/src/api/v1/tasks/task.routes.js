@@ -43,6 +43,19 @@ router.get('/timer/active', taskController.activeTimer);
 
 /**
  * @swagger
+ * /api/v1/tasks/in-progress-alert:
+ *   get:
+ *     summary: The running-timer task with overdue state, or null (admin only)
+ *     tags: [Tasks]
+ *     security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: "{ taskId, title, dueDate, startedAt, status: 'in_progress'|'overdue', overdue } or null"
+ */
+router.get('/in-progress-alert', taskController.inProgressAlert);
+
+/**
+ * @swagger
  * /api/v1/tasks:
  *   post:
  *     summary: Create a task (admin only)

@@ -137,6 +137,17 @@ $adm-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ── Navigation ────────────────────────────────────────────────
+.admin-sidenav__submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.1rem 0 0.25rem 0.9rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--admin-bdc, #1E293B);
+
+  .admin-sidenav__sublink { font-size: 0.82rem; }
+}
+
 .admin-sidenav__nav {
   flex: 1;
   overflow-y: auto;

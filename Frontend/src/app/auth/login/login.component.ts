@@ -56,7 +56,18 @@ export class LoginComponent extends CommonApp implements OnInit {
     this.authService.login(this.form.value).subscribe({
       next: () => {
         this.loading.hide();
-        this.appService.setRole('ADMIN');
+        // First login with a provisioned temp password → force an in-app reset.
+        if (this.authService.mustChangePassword()) {
+          this.router.navigate(['/admin/security'], { queryParams: { firstLogin: 1 } });
+          return;
+        }
+        // Role-aware landing: admins → dashboard; a USER's home is their own
+        // public portfolio (shows placeholder content until they fill it in).
+        if (this.authService.role() === 'USER') {
+          const uid = this.authService.user()?.id;
+          this.router.navigate(uid ? ['/u', uid] : ['/']);
+          return;
+        }
         this.router.navigate(['/admin/overview']);
       },
       error: () => {

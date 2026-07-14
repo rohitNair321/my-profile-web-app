@@ -4,12 +4,25 @@ import { RouterModule } from '@angular/router';
 import { CommonApp } from 'src/app/core/services/common';
 import { ChatApiService, UsageResponse } from 'src/app/core/services/chat-api.service';
 import { ActivityApiService, ActivityFeedItem } from 'src/app/core/services/activity-api.service';
-import { SchedulerNotificationService } from 'src/app/core/services/scheduler-notification.service';
+import { TaskService } from 'src/app/core/services/task.service';
+import { InProgressAlert } from 'src/app/features/admin-view/planner/models/task.model';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
 interface StatCard { icon: string; label: string; value: string; color: string; }
+
+/** A single row in the dashboard "Recent Activity" card */
+interface ActivityRow {
+  kind: 'todo' | 'post_published' | 'post_failed';
+  icon: string;
+  iconColor: string;
+  text: string;
+  time: string | null;
+  route: string;
+}
 
 @Component({
   selector: 'app-overview',
@@ -22,7 +35,7 @@ interface StatCard { icon: string; label: string; value: string; color: string; 
 export class OverviewComponent extends CommonApp implements OnInit, AfterViewInit, OnDestroy {
   private chatApi     = inject(ChatApiService);
   private activityApi = inject(ActivityApiService);
-  private schedSvc    = inject(SchedulerNotificationService);
+  private taskService = inject(TaskService);
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   private _chart: Chart | null = null;
@@ -33,16 +46,16 @@ export class OverviewComponent extends CommonApp implements OnInit, AfterViewIni
   stats     = signal<StatCard[]>(this._placeholderStats());
   chartData = signal<number[]>([65, 48, 72, 58, 81, 63, 77, 55, 69, 84, 71, 60, 88, 74]);
 
-  // Scheduler notifications
-  schedNotifs  = signal<ActivityFeedItem[]>([]);
-  schedVisible = signal(false);
+  // Recent Activity card — todo (in-progress) + post/scheduler events
+  activityRows = signal<ActivityRow[]>([]);
+  activityLoaded = signal(false);
 
   constructor(public override injector: Injector) {
     super(injector);
   }
 
   ngOnInit(): void {
-    this._checkSchedulerNotifications();
+    this._loadActivity();
     this.chatApi.getUsage({ range: '30d' }).subscribe({
       next: (res: UsageResponse) => {
         const s    = res.summary;
@@ -122,41 +135,63 @@ export class OverviewComponent extends CommonApp implements OnInit, AfterViewIni
     return ((first?.[0] ?? '') + (last?.[0] ?? '')).toUpperCase();
   }
 
-  private _checkSchedulerNotifications(): void {
-    if (this.appService.role() !== 'ADMIN') return;
+  /** Build the Recent Activity feed: in-progress todo (top) + recent post/scheduler events */
+  private _loadActivity(): void {
+    if (!this.appService.isAdminTier()) return;
 
-    this.activityApi.getSchedulerEvents(20).subscribe({
-      next: d => {
-        // Only surface events we haven't shown before (id-based, clock-skew proof).
-        const unseen = this.schedSvc.filterUnseen(d.items ?? []);
-        if (unseen.length > 0) {
-          this.schedNotifs.set(unseen);
-          this.schedVisible.set(true);
-          // Showing the panel = seen. These exact events never notify again;
-          // only a newly-scheduled post (new id) will reappear.
-          this.schedSvc.markSeen(unseen.map(i => i.id));
-        }
-      },
-      error: () => {},
+    forkJoin({
+      todo:   this.taskService.getInProgressAlert().pipe(catchError(() => of(null))),
+      events: this.activityApi.getSchedulerEvents(6).pipe(catchError(() => of({ items: [] as ActivityFeedItem[], total: 0, page: 1, limit: 6 }))),
+    }).subscribe(({ todo, events }) => {
+      const rows: ActivityRow[] = [];
+
+      if (todo) rows.push(this._todoRow(todo));
+
+      for (const item of events.items ?? []) {
+        rows.push(this._eventRow(item));
+      }
+
+      this.activityRows.set(rows);
+      this.activityLoaded.set(true);
     });
   }
 
-  dismissSchedulerNotifs(): void {
-    this.schedSvc.markSeen(this.schedNotifs().map(i => i.id));
-    this.schedVisible.set(false);
-    this.schedNotifs.set([]);
+  private _todoRow(a: InProgressAlert): ActivityRow {
+    return {
+      kind:      'todo',
+      icon:      a.overdue ? 'warning' : 'timer',
+      iconColor: a.overdue ? 'var(--warning, #F59E0B)' : 'var(--success, #10B981)',
+      text:      a.overdue
+        ? `"${a.title}" is in progress and overdue`
+        : `"${a.title}" is in progress`,
+      time:      null,
+      route:     '/admin/planner',
+    };
   }
 
-  schedNotifIcon(type: string): string {
-    return type === 'scheduled_post_published' ? 'check_circle' : 'error_outline';
-  }
-
-  schedNotifMessage(item: ActivityFeedItem): string {
+  private _eventRow(item: ActivityFeedItem): ActivityRow {
     const title = item.meta?.['title'] ?? 'A scheduled post';
-    if (item.event_type === 'scheduled_post_published') {
-      return `"${title}" was published successfully.`;
-    }
-    return `"${title}" failed to publish. Check server logs.`;
+    const ok = item.event_type === 'scheduled_post_published';
+    return {
+      kind:      ok ? 'post_published' : 'post_failed',
+      icon:      ok ? 'check_circle' : 'error_outline',
+      iconColor: ok ? 'var(--success, #10B981)' : '#EF4444',
+      text:      ok ? `"${title}" was published` : `"${title}" failed to publish`,
+      time:      this._relTime(item.created_at),
+      route:     '/admin/posts',
+    };
+  }
+
+  private _relTime(iso: string | null): string | null {
+    if (!iso) return null;
+    const diffMs = Date.now() - new Date(iso).getTime();
+    if (isNaN(diffMs)) return null;
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1)   return 'just now';
+    if (min < 60)  return `${min}m ago`;
+    const h = Math.floor(min / 60);
+    if (h < 24)    return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
   }
 
   private _placeholderStats(): StatCard[] {

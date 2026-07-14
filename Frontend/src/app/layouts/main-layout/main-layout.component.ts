@@ -130,6 +130,7 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     this.appConfig.appConfiguration.showAgentChat = true;
     this.appConfig.appConfiguration.isMobile = this._isMobile();
 
+<<<<<<< HEAD
     // Layout follows the auth role REACTIVELY: admins get the sidebar, guests
     // (incl. right after logout) get the top navbar. An effect keeps it correct
     // even if the role signal settles after this component is created.
@@ -137,9 +138,24 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
     // shell so the admin can preview the public experience without logging out.
     effect(() => {
       const isAdmin = this.appService.role() === 'ADMIN' && !this.preview.previewPublic();
+=======
+    // Layout follows the auth role REACTIVELY: admin-tier users get the sidebar,
+    // guests (incl. right after logout) get the top navbar. An effect keeps it
+    // correct even if the role signal settles after this component is created.
+    // "View public site" preview overrides an admin session to render the guest
+    // shell so the admin can preview the public experience without logging out.
+    effect(() => {
+      const role = this.appService.role();
+      const isAdmin = (role === 'ADMIN' || role === 'SUPERADMIN') && !this.preview.previewPublic();
+      // Per-owner section flags come from /auth/init (appConfiguration); default
+      // to "on" for admins when unset. `type` stays structural (role-driven).
+      const cfg = this.appService.appConfiguration() ?? {};
+>>>>>>> feature/application-upgrade-v20
       this.appConfig.appConfiguration.type = isAdmin ? 'sidebar' : 'navbar';
-      this.appConfig.appConfiguration.showUserProfileView = isAdmin;
-      this.appConfig.appConfiguration.showNotifications = isAdmin;
+      this.appConfig.appConfiguration.showUserProfileView = isAdmin && (cfg['showUserProfileView'] ?? true);
+      this.appConfig.appConfiguration.showNotifications   = isAdmin && (cfg['showNotifications'] ?? true);
+      this.appConfig.appConfiguration.showAgentChat       = cfg['showAgentChat'] ?? true;
+      this.appConfig.appConfiguration.showSidebarToggle   = cfg['showSidebarToggle'] ?? true;
     });
   }
 
@@ -266,7 +282,7 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   }
 
   private _connectSchedulerNotifications(): void {
-    if (!this.isBrowser || this.appService.role() !== 'ADMIN') return;
+    if (!this.isBrowser || !this.appService.isAdminTier()) return;
     this.schedNotifSvc.connect();
     this._schedSub = this.schedNotifSvc.published$.subscribe(event => {
       this.alertService.showAlert(
@@ -277,7 +293,7 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   }
 
   private _checkPasswordExpiry(): void {
-    if (this.appService.role() !== 'ADMIN') return;
+    if (!this.appService.isAdminTier()) return;
     this.authSvc.getPasswordStatus().subscribe({
       next: s => {
         this.pwdDaysLeft.set(s.daysUntilExpiry);
@@ -322,7 +338,8 @@ export class MainLayoutComponent extends CommonApp implements OnInit, OnDestroy 
   private _sessionTimerHandle: ReturnType<typeof setTimeout> | null = null;
 
   startSessionTimer() {
-    if (this.appService.role() !== 'ADMIN' && this.isBrowser) {
+    // Guest-only "session expiring" nudge — must not fire for admin-tier users.
+    if (!this.appService.isAdminTier() && this.isBrowser) {
       this._sessionTimerHandle = setTimeout(() => {
         this.confirmDialog.info(
           'Your session is about to expire. Refresh to continue browsing.',

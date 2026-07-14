@@ -98,7 +98,12 @@ const resetPassword = catchAsync(async (req, res) => {
  * @access  Private
  */
 const updatePassword = catchAsync(async (req, res) => {
-  const { email, currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
+
+  // SECURITY: always change the password of the AUTHENTICATED user (from the
+  // JWT), never an email supplied in the request body. This also fixes the case
+  // where the client sent the profile's content email instead of the account's.
+  const email = req.user.email;
 
   const result = await authService.updatePassword(
     email,

@@ -8,27 +8,6 @@
     </div>
   </div>
 
-  <!-- Scheduler notifications -->
-  @if (schedVisible() && schedNotifs().length > 0) {
-    <div class="sched-notif-panel">
-      <div class="sched-notif-header">
-        <span class="material-icons">schedule_send</span>
-        <span>Post Scheduler</span>
-        <button class="sched-notif-close" type="button" (click)="dismissSchedulerNotifs()" title="Dismiss">
-          <span class="material-icons">close</span>
-        </button>
-      </div>
-      @for (item of schedNotifs(); track item.id) {
-        <div class="sched-notif-item"
-          [class.sched-notif-item--ok]="item.event_type === 'scheduled_post_published'"
-          [class.sched-notif-item--err]="item.event_type === 'scheduled_post_failed'">
-          <span class="material-icons sched-notif-ic">{{ schedNotifIcon(item.event_type) }}</span>
-          <span>{{ schedNotifMessage(item) }}</span>
-        </div>
-      }
-    </div>
-  }
-
   <!-- Stat cards -->
   <div class="ov-stats">
     @for (s of stats(); track s.label) {
@@ -90,6 +69,32 @@
       <a routerLink="/admin/notification" class="ov-view-all">View all →</a>
     </div>
 
+  </div>
+
+  <!-- Recent activity -->
+  <div class="admin-card ov-activity">
+    <div class="admin-card-title">
+      <span class="material-icons" style="color:#F59E0B">bolt</span>
+      Recent Activity
+    </div>
+
+    @for (row of activityRows(); track $index) {
+      <div class="ov-act" [class.ov-act--border]="!$last">
+        <span class="material-icons ov-act__ic" [style.color]="row.iconColor">{{ row.icon }}</span>
+        <div class="ov-act__body">
+          <div class="ov-act__text">{{ row.text }}</div>
+          @if (row.time) { <div class="ov-act__time">{{ row.time }}</div> }
+        </div>
+        <a [routerLink]="row.route" class="ov-act__view">
+          View <span class="material-icons">chevron_right</span>
+        </a>
+      </div>
+    } @empty {
+      <div class="ov-notif-empty">
+        <span class="material-icons">history</span>
+        <span>No recent activity</span>
+      </div>
+    }
   </div>
 
   <!-- Quick actions -->

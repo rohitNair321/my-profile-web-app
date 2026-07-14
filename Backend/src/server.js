@@ -243,6 +243,34 @@ process.on('SIGINT', () => {
 // ============================================
 // START SERVER
 // ============================================
+/**
+ * Warn loudly (never exit) if PROFILE_OWNER_ID doesn't resolve to a real user.
+ * This value is the fallback owner for public reads and for contact-form
+ * submissions, so a mismatch makes owner-scoped queries return empty.
+ */
+async function verifyProfileOwnerId() {
+  try {
+    const ownerId = process.env.PROFILE_OWNER_ID;
+    const { data: owner } = await _supabase
+      .from('users').select('id, email, role').eq('id', ownerId).maybeSingle();
+
+    if (owner) {
+      logger.info(`👤 PROFILE_OWNER_ID → ${owner.email} (${owner.role})`);
+      return;
+    }
+
+    const { data: sa } = await _supabase
+      .from('users').select('id, email').eq('role', 'superadmin')
+      .order('created_at', { ascending: true }).limit(1).maybeSingle();
+
+    logger.warn('⚠️  PROFILE_OWNER_ID does not match any users.id — owner-scoped reads ' +
+      '(contact inbox, public posts/profile) will return nothing for that owner.');
+    if (sa) logger.warn(`⚠️  Expected super admin id: ${sa.id} (${sa.email}). Set PROFILE_OWNER_ID to this in .env.`);
+  } catch (err) {
+    logger.warn('PROFILE_OWNER_ID verification skipped:', err.message);
+  }
+}
+
 const server = app.listen(PORT, '0.0.0.0', async () => {
   logger.info('='.repeat(50));
   logger.info(`✅ Server started successfully`);
@@ -256,6 +284,11 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
 
   // Test database connection on startup
   await testConnection();
+
+  // Owner-model sanity check: PROFILE_OWNER_ID is the default owner for public
+  // reads AND for contact submissions. If it isn't a real users.id, owner-scoped
+  // reads (contact inbox, public posts/profile) silently return nothing.
+  await verifyProfileOwnerId();
 
   // Start post scheduler (promotes scheduled posts to published on time)
   startScheduler();

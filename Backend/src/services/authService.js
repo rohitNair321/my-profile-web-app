@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { supabase } = require('../config/database');
 const ApiError = require('../utils/ApiError');
 const logger = require('../config/logger');
+const { defaultMailService } = require('./mailService');
 const { JWT, COOKIE, PASSWORD_RESET } = require('../config/constants');
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -45,7 +46,7 @@ async function login(email, password) {
     // Fetch user from database
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, email, password_hash, role, is_active')
+      .select('id, email, password_hash, role, is_active, must_change_password')
       .eq('email', email)
       .single();
 
@@ -88,12 +89,46 @@ async function login(email, password) {
         id: user.id,
         email: user.email,
         role: user.role,
+        // First-login flag — frontend forces an in-app password reset when true.
+        mustChangePassword: user.must_change_password === true,
       },
     };
   } catch (error) {
     logger.error('Login error:', error);
     throw error;
   }
+}
+
+// Per-owner toggleable section flags (set via the Access console).
+const APP_CONFIG_FLAGS = ['showSidebarToggle', 'showAgentChat', 'showUserProfileView', 'showNotifications'];
+
+/**
+ * Build the layout `appConfiguration` for the frontend shell.
+ * Server-driven fields only — `isMobile` is deliberately omitted because it is
+ * a client runtime value (viewport width), not server configuration.
+ * `overrides` is the owner's persisted `users.app_config` (only the whitelisted
+ * boolean flags are honoured).
+ */
+function buildAppConfiguration(role, overrides = null) {
+  const isAdminTier = role === 'admin' || role === 'superadmin';
+  const cfg = {
+    type:                isAdminTier ? 'sidebar' : 'navbar',
+    theme:               'light',
+    sidebarPosition:     'left',
+    logoLocationHeader:  false,
+    collapsed:           isAdminTier,   // admin sidebar starts icon-only
+    showSidebarToggle:   isAdminTier,
+    showAgentChat:       isAdminTier,
+    showUserProfileView: isAdminTier,
+    showNotifications:   isAdminTier,
+    isFixed:             true,
+  };
+  if (overrides && typeof overrides === 'object') {
+    for (const k of APP_CONFIG_FLAGS) {
+      if (typeof overrides[k] === 'boolean') cfg[k] = overrides[k];
+    }
+  }
+  return cfg;
 }
 
 /**
@@ -105,12 +140,11 @@ async function initAppData(user) {
     const role = user?.role || 'guest';
     const email = user?.email || null;
 
-    // Fetch profile themes
-    const { data } = await supabase
-      .from('profiles')
-      .select('themes, currenttheme')
-      .eq('id', userId)
-      .maybeSingle();
+    // Fetch profile themes + this account's per-owner layout config in parallel
+    const [{ data }, { data: acct }] = await Promise.all([
+      supabase.from('profiles').select('themes, currenttheme').eq('id', userId).maybeSingle(),
+      supabase.from('users').select('app_config').eq('id', userId).maybeSingle(),
+    ]);
 
     logger.info('App initialized', { userId, role });
 
@@ -119,6 +153,7 @@ async function initAppData(user) {
       role,
       email,
       appData: data || null,
+      appConfiguration: buildAppConfiguration(role, acct?.app_config),
     };
   } catch (error) {
     logger.error('initAppData error:', error);
@@ -157,9 +192,21 @@ async function forgotPassword(email) {
       expiresAt,
     });
 
-    console.log(
-      `[RESET_PASSWORD_OTP] email=${user.email} otp=${otp} expiresInMinutes=${PASSWORD_RESET.OTP_EXPIRY_MINUTES}`
-    );
+    // Email the OTP (fire-and-forget — never block or leak failure to the client).
+    defaultMailService
+      .sendPasswordResetOtp({
+        to: user.email,
+        otp,
+        expiresInMinutes: PASSWORD_RESET.OTP_EXPIRY_MINUTES,
+      })
+      .catch((err) => logger.error('Failed to send reset OTP email', { userId: user.id, error: err.message }));
+
+    // Dev convenience only — never print the OTP in production.
+    if (!isProduction) {
+      console.log(
+        `[RESET_PASSWORD_OTP] email=${user.email} otp=${otp} expiresInMinutes=${PASSWORD_RESET.OTP_EXPIRY_MINUTES}`
+      );
+    }
 
     logger.info('Password reset requested', {
       userId: user.id,
@@ -168,7 +215,7 @@ async function forgotPassword(email) {
     });
 
     return {
-      message: 'If this email exists, a reset OTP has been generated. Check the server console.',
+      message: 'If this email exists, a reset code has been sent.',
     };
   } catch (error) {
     logger.error('forgotPassword error:', error);
@@ -253,10 +300,10 @@ async function updatePassword(email, currentPassword, newPassword) {
 
     const nowIso = new Date().toISOString();
 
-    // Update password_hash and updated_at (columns that are guaranteed to exist)
+    // Update password_hash + updated_at, and clear the first-login reset flag.
     const { error: updateError } = await supabase
       .from('users')
-      .update({ password_hash: hashedPassword, updated_at: nowIso })
+      .update({ password_hash: hashedPassword, updated_at: nowIso, must_change_password: false })
       .eq('id', user.id);
 
     if (updateError) {

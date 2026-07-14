@@ -1,0 +1,89 @@
+@if (isLoading()) {
+  <div class="pp-state">Loading portfolio…</div>
+} @else if (notFound()) {
+  <div class="pp-state">
+    <span class="material-icons">person_off</span>
+    <p>This portfolio isn’t available.</p>
+    <a routerLink="/" class="pp-link">← Back home</a>
+  </div>
+} @else if (profile(); as p) {
+  <div class="pp-wrap">
+
+    @if (isDummy()) {
+      <div class="pp-sample">
+        <span class="material-icons">info</span>
+        Sample preview — this portfolio hasn’t been set up yet.
+      </div>
+    }
+
+    <!-- Identity header -->
+    <header class="pp-hero">
+      <div class="pp-avatar">
+        @if (p.avatar_url) {
+          <img [src]="p.avatar_url" [alt]="p.full_name || 'Avatar'" />
+        } @else {
+          <span class="pp-avatar__initials">{{ initials(p) }}</span>
+        }
+      </div>
+      <div class="pp-hero__body">
+        <h1 class="pp-name">{{ p.full_name || 'Portfolio' }}</h1>
+        @if (p.about_role) { <p class="pp-role">{{ p.about_role }}</p> }
+        <div class="pp-meta">
+          @if (p.location) { <span><span class="material-icons">place</span>{{ p.location }}</span> }
+          @if (p.open_to_work) { <span class="pp-badge">Open to work</span> }
+        </div>
+        <div class="pp-social">
+          @if (p.linkedin) { <a [href]="p.linkedin" target="_blank" rel="noopener">LinkedIn</a> }
+          @if (p.github)   { <a [href]="p.github"   target="_blank" rel="noopener">GitHub</a> }
+          @if (p.website)  { <a [href]="p.website"  target="_blank" rel="noopener">Website</a> }
+        </div>
+      </div>
+    </header>
+
+    <!-- Bio -->
+    @if (p.short_bio || p.description) {
+      <section class="pp-card">
+        <h2 class="pp-h2">About</h2>
+        <p class="pp-bio">{{ p.short_bio || p.description }}</p>
+      </section>
+    }
+
+    <!-- Skills -->
+    @if (p.skills?.length) {
+      <section class="pp-card">
+        <h2 class="pp-h2">Skills</h2>
+        <div class="pp-chips">
+          @for (s of p.skills; track s) { <span class="pp-chip">{{ s }}</span> }
+        </div>
+      </section>
+    }
+
+    <!-- Experience -->
+    @if (p.experiences?.length) {
+      <section class="pp-card">
+        <h2 class="pp-h2">Experience</h2>
+        @for (e of p.experiences; track $index) {
+          <div class="pp-exp">
+            <div class="pp-exp__role">{{ e.role }} <span class="pp-exp__at">· {{ e.company }}</span></div>
+            <div class="pp-exp__period">{{ expPeriod(e) }}</div>
+            @if (e.description) { <p class="pp-exp__desc">{{ e.description }}</p> }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Recent posts -->
+    @if (posts().length) {
+      <section class="pp-card">
+        <h2 class="pp-h2">Recent Posts</h2>
+        @for (post of posts(); track post.id) {
+          <a class="pp-post" [routerLink]="['/posts', post.slug]" [queryParams]="{ owner: profile()?.id }">
+            <div class="pp-post__title">{{ post.title }}</div>
+            @if (post.excerpt) { <div class="pp-post__excerpt">{{ post.excerpt }}</div> }
+          </a>
+        }
+      </section>
+    }
+
+  </div>
+}

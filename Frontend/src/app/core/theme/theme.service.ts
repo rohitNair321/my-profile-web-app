@@ -90,6 +90,15 @@ export class ThemeService {
     });
   }
 
+  /** Reset theme to defaults + clear persistence — call on login/logout so one
+   *  user's theme never carries into another's session. */
+  reset(): void {
+    this.localStorageService.removeItem(this.THEME_KEY);
+    this.localStorageService.removeItem(this.DARK_KEY);
+    this.isDark.set(false);
+    this.currentThemeId.set('basic');
+  }
+
   // A computed signal that returns the full object of the active theme
   activeTheme = computed(() => {
     return this.themeRegistry.get(this.currentThemeId());

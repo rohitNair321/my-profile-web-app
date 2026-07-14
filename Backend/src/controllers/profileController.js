@@ -3,6 +3,7 @@
 const { supabase } = require('../db/supabaseClient');
 const { v4: uuidv4 } = require('uuid');
 const { logActivity } = require('../services/activityService');
+const { resolveOwnerId } = require('../services/tenancy/ownerContext');
 
 const BUCKET = process.env.ASSET_BUCKET || 'assets';
 const RESUME_EXPIRY_SECONDS = Number(process.env.RESUME_SIGNED_URL_EXPIRY || 600);
@@ -65,7 +66,9 @@ async function upsertProfileRow(userId, payload) {
 //#region GET /api/profile/me getMyProfile
 async function getMyProfile(req, res) {
   try {
-    const userId = req.user.id;
+    // Public read: an explicit ?owner= wins (viewing another portfolio, e.g. /u/:id);
+    // otherwise the authenticated user's own profile, or the primary owner for guests.
+    const userId = req.query.owner || resolveOwnerId({ user: req.user });
     const { data, error } = await supabase
       .from('profiles')
       .select('*')

@@ -2,6 +2,10 @@ const { supabase } = require('../db/supabaseClient');
 const axios = require('axios');
 const validator = require('validator');
 const aiService = require('../services/aiService');
+<<<<<<< HEAD
+=======
+const { resolveOwnerId } = require('../services/tenancy/ownerContext');
+>>>>>>> feature/application-upgrade-v20
 
 //#region Submit Contact Form
 async function submitContactForm(req, res) {
@@ -24,10 +28,14 @@ async function submitContactForm(req, res) {
       return res.status(400).json({ message: 'Missing fields.' });
     }
 
+    // Route the message to the portfolio owner it was submitted from
+    // (?owner=/body.owner for a /u/:id form), else the primary owner.
+    const ownerId = resolveOwnerId({ user: req.user, requestedOwner: req.body?.owner || req.query?.owner });
+
     const { error: dbError } = await supabase
       .from('contact_messages')
       .insert([{
-        profile_id: process.env.PROFILE_OWNER_ID,
+        profile_id: ownerId,
         first_name: firstName, last_name: lastName, email, message,
         ip_address: req.headers['x-forwarded-for']?.split(',')[0] || req.ip,
         user_agent: req.headers['user-agent']
@@ -72,7 +80,8 @@ async function submitContactForm(req, res) {
 //#region Get Notifications 
 async function getNotifications(req, res) {
   try {
-    const response = await fetchFormattedNotifications();
+    const ownerId = resolveOwnerId({ user: req.user });
+    const response = await fetchFormattedNotifications(ownerId);
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -83,20 +92,19 @@ async function getNotifications(req, res) {
 //#region Mark Notification as Read
 async function markAsRead(req, res) {
   const { id } = req.params;
+  const ownerId = resolveOwnerId({ user: req.user });
 
   try {
-    // 1. Update the specific message
+    // Update the message — scoped to this admin's own inbox
     const { error: updateError } = await supabase
       .from('contact_messages')
       .update({ is_read: true })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('profile_id', ownerId);
 
     if (updateError) throw updateError;
 
-    // 2. Fetch the updated list using the helper
-    const updatedData = await fetchFormattedNotifications();
-
-    // 3. Return the full updated state
+    const updatedData = await fetchFormattedNotifications(ownerId);
     return res.status(200).json(updatedData);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -104,11 +112,12 @@ async function markAsRead(req, res) {
 }
 // #endregion
 
-//#region Helper to fetch and format notifications
-async function fetchFormattedNotifications() {
+//#region Helper to fetch and format notifications (scoped to one owner)
+async function fetchFormattedNotifications(ownerId) {
   const { data, error } = await supabase
     .from('contact_messages')
     .select('*')
+    .eq('profile_id', ownerId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -124,19 +133,18 @@ async function fetchFormattedNotifications() {
 // #region Delete Contact Message
 async function deleteContactMessage(req, res) {
   const { id } = req.params;
+  const ownerId = resolveOwnerId({ user: req.user });
 
   try {
     const { error } = await supabase
       .from('contact_messages')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('profile_id', ownerId);
 
     if (error) throw error;
 
-    // 2. Fetch the updated list using the helper
-    const updatedData = await fetchFormattedNotifications();
-
-    // 3. Return the full updated state
+    const updatedData = await fetchFormattedNotifications(ownerId);
     return res.status(200).json(updatedData);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -148,7 +156,12 @@ async function deleteContactMessage(req, res) {
 async function aiReplyDraft(req, res) {
   try {
     const { name, email, subject, message, tone } = req.body || {};
+<<<<<<< HEAD
     const { result } = await aiService.generateContactReply({ name, email, subject, message, tone });
+=======
+    const ownerId = resolveOwnerId({ user: req.user }); // admin's own persona
+    const { result } = await aiService.generateContactReply({ name, email, subject, message, tone, ownerId });
+>>>>>>> feature/application-upgrade-v20
     return res.status(200).json({ success: true, reply: result });
   } catch (error) {
     return res.status(error.statusCode || 500).json({ message: error.message || 'Failed to draft reply' });
@@ -160,7 +173,13 @@ async function aiReplyDraft(req, res) {
 async function aiComposeMessage(req, res) {
   try {
     const { name, subject } = req.body || {};
+<<<<<<< HEAD
     const { result } = await aiService.composeContactMessage({ name, subject });
+=======
+    // The visitor is contacting a specific portfolio owner (?owner= on /u/:id).
+    const ownerId = resolveOwnerId({ user: req.user, requestedOwner: req.body?.owner || req.query?.owner });
+    const { result } = await aiService.composeContactMessage({ name, subject, ownerId });
+>>>>>>> feature/application-upgrade-v20
     return res.status(200).json({ success: true, message: result });
   } catch (error) {
     return res.status(error.statusCode || 500).json({ message: error.message || 'Failed to draft message' });

@@ -3,7 +3,8 @@ const chatService = require('../../../services/chatService');
 const ApiResponse = require('../../../utils/ApiResponse');
 const ApiError = require('../../../utils/ApiError');
 const catchAsync = require('../../../utils/catchAsync');
-const { USER_ROLES } = require('../../../config/constants');
+const { USER_ROLES, ADMIN_TIER_ROLES } = require('../../../config/constants');
+const { resolveOwnerId } = require('../../../services/tenancy/ownerContext');
 const { supabase } = require('../../../config/database');
 const logger = require('../../../config/logger');
 
@@ -191,9 +192,12 @@ function zeroBlock() {
 const getChatStats = catchAsync(async (req, res) => {
   const user = req.user;
 
-  if (user.role !== USER_ROLES.ADMIN) {
+  if (!ADMIN_TIER_ROLES.includes(user.role)) {
     throw ApiError.forbidden('Admin access required');
   }
+
+  // Scope usage to this admin's own portfolio (ai_usage.user_id = owner)
+  const ownerId = resolveOwnerId({ user });
 
   const range = req.query.range || '7d';
   const startDate = getStartDate(range);
@@ -201,6 +205,7 @@ const getChatStats = catchAsync(async (req, res) => {
   let query = supabase
     .from('ai_usage')
     .select('created_at, model, input_tokens, output_tokens, total_tokens, session_id, role, is_guest')
+    .eq('user_id', ownerId)
     .order('created_at', { ascending: true });
 
   if (startDate) {
@@ -305,10 +310,11 @@ const getChatStats = catchAsync(async (req, res) => {
     .sort((a, b) => b.cost - a.cost)
     .slice(0, 20);
 
-  // All-time totals (ignores range filter)
+  // All-time totals (ignores range filter, still owner-scoped)
   const { data: allRows } = await supabase
     .from('ai_usage')
-    .select('input_tokens, output_tokens, total_tokens, model');
+    .select('input_tokens, output_tokens, total_tokens, model')
+    .eq('user_id', ownerId);
 
   let atInput = 0, atOutput = 0, atAll = 0, atCost = 0, atReqs = 0;
   (allRows ?? []).forEach(r => {
@@ -343,9 +349,10 @@ const getChatStats = catchAsync(async (req, res) => {
 const getBalance = catchAsync(async (req, res) => {
   const user = req.user;
 
-  if (user.role !== USER_ROLES.ADMIN) {
+  if (!ADMIN_TIER_ROLES.includes(user.role)) {
     throw ApiError.forbidden('Admin access required');
   }
+  const ownerId = resolveOwnerId({ user });
 
   try {
     const openaiRes = await fetch('https://api.openai.com/v1/organization/usage/costs', {
@@ -373,10 +380,11 @@ const getBalance = catchAsync(async (req, res) => {
     logger.warn('OpenAI balance API unavailable, falling back to Supabase calculation', err.message);
   }
 
-  // Fallback: calculate from our own usage data
+  // Fallback: calculate from our own usage data (owner-scoped)
   const { data: rows } = await supabase
     .from('ai_usage')
-    .select('input_tokens, output_tokens, model');
+    .select('input_tokens, output_tokens, model')
+    .eq('user_id', ownerId);
 
   const totalSpent = (rows ?? []).reduce(
     (sum, r) => sum + calcCost(r.input_tokens, r.output_tokens, r.model), 0

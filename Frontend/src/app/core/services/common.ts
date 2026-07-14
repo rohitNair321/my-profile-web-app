@@ -45,7 +45,7 @@ export abstract class CommonApp {
       new MenuItem({ label: 'Experience', key: 'experience', href: '#experience', icon: 'work_history' }),
       new MenuItem({ label: 'Projects', key: 'projects', href: '#projects', icon: 'work' }),
       new MenuItem({ label: 'Contact', key: 'contact', href: '#contact', icon: 'mail' }),
-      new MenuItem({ label: 'Posts', key: 'posts', routerLink: '/posts', icon: 'article', isHide: true }),
+      // 'Posts' is intentionally hidden from the public menu (re-add here to restore).
       new MenuItem({
         label: 'Resume', icon: 'download', action: true, key: 'resume', tooltip: 'Download Resume', actions: (event) => {
           this.downloadResume(event);

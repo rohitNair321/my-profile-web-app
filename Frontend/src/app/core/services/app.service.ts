@@ -4,7 +4,18 @@ import { EMPTY, map, Observable, of, switchMap, tap, timer } from "rxjs";
 import { LocalStorageService } from "src/app/shared/services/local-storage.service";
 import { environment } from "src/environments/environments";
 
-export type UserRole = 'ADMIN' | 'GUEST' | null;
+export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'USER' | 'GUEST' | null;
+
+/** Map a backend role string ('admin'|'superadmin'|'user'|'guest') to a UserRole. */
+export function mapBackendRole(raw?: string | null): UserRole {
+  switch ((raw || '').toLowerCase()) {
+    case 'superadmin': return 'SUPERADMIN';
+    case 'admin':      return 'ADMIN';
+    case 'user':       return 'USER';
+    default:           return 'GUEST';
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class AppService {
 
@@ -28,8 +39,27 @@ export class AppService {
     // persisted to localStorage (XSS hardening). Role is restored via /auth/init.
     token = signal<string | null>(null);
 
+    // Page keys the signed-in user may access (drives the admin sidebar / guard
+    // for USER-tier accounts). Populated from GET /api/v1/access/my-pages.
+    accessiblePages = signal<string[]>([]);
+    setAccessiblePages(pages: string[]): void { this.accessiblePages.set(pages ?? []); }
+
+    // Server-driven layout config from GET /api/v1/auth/init (called first, on
+    // startup). `isMobile` is NOT server-driven — the shell sets it at runtime.
+    appConfiguration = signal<Record<string, any> | null>(null);
+    setAppConfiguration(cfg: Record<string, any> | null): void { this.appConfiguration.set(cfg ?? null); }
+
+    /**
+     * ADMIN-tier = admin OR super admin (super admin is a superset of admin).
+     * ALWAYS use this instead of `role() === 'ADMIN'`, which silently excludes
+     * the super admin and disables admin features for the portfolio owner.
+     */
+    isAdminTier(): boolean {
+        return this.role() === 'ADMIN' || this.role() === 'SUPERADMIN';
+    }
+
     hasValidToken(): boolean {
-        return this.role() === 'ADMIN';
+        return this.isAdminTier();
     }
 
 
@@ -45,6 +75,17 @@ export class AppService {
                 map(r => r.profile || null),
                 tap(p => this._profile.set(p))
             );
+    }
+
+    /**
+     * Fetch a specific owner's public profile (multi-tenant /u/:id view).
+     * Does NOT touch the cached `_profile` signal — keeps the primary
+     * portfolio's state intact while viewing another owner.
+     */
+    getPublicProfile(ownerId: string): Observable<Profile | null> {
+        return this.http.get<{ profile: Profile | null }>(
+            `${this.apiProfileUrl}`, { params: { owner: ownerId }, withCredentials: true }
+        ).pipe(map(r => r.profile || null));
     }
 
     updateProfile(formData: FormData): Observable<Profile> {
@@ -67,6 +108,18 @@ export class AppService {
 
     setLocalProfile(profile: Profile | null) {
         this._profile.set(profile);
+    }
+
+    /**
+     * Wipe every user-scoped signal so no data leaks across a login/logout on
+     * the same tab (SPA navigation does NOT reload the app). Call on both login
+     * and logout. Role is handled separately by the caller.
+     */
+    resetUserScopedState(): void {
+        this._profile.set(null);
+        this._notifications.set(null);
+        this.accessiblePages.set([]);
+        this.appConfiguration.set(null);
     }
 
     sendContactMessage(formData: any): Observable<any> {
@@ -94,7 +147,7 @@ export class AppService {
     }
 
     getNotifications(): Observable<Notification> {
-        if (this.role() === 'ADMIN') {
+        if (this.isAdminTier()) {
             return timer(0, 20 * 60 * 1000).pipe(
                 switchMap(() => this.http.get<Notification>(`${this.apiContactUrl}/notifications`, {withCredentials: true})),
                 map(notification => notification || null),
@@ -124,7 +177,7 @@ export class AppService {
 
     // A simple check to see if we should allow entry to the app
     isAuthorized(): boolean {
-        return this.role() === 'ADMIN' || this.role() === 'GUEST';
+        return !!this.role(); // any resolved role (superadmin/admin/user/guest)
     }
 
     intialAppState() {

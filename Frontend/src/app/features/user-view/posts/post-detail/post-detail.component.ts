@@ -33,15 +33,17 @@ export class PostDetailComponent extends CommonApp implements OnInit, OnDestroy 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const slug = params['slug'];
-      if (slug) this.loadPost(slug);
+      // Optional ?owner= scopes the lookup to a specific portfolio (multi-tenant /u/:id links)
+      const owner = this.route.snapshot.queryParamMap.get('owner') ?? undefined;
+      if (slug) this.loadPost(slug, owner);
     });
   }
 
-  loadPost(slug: string): void {
+  loadPost(slug: string, owner?: string): void {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.postService.getBySlug(slug).pipe(takeUntil(this.destroy$)).subscribe({
+    this.postService.getBySlug(slug, owner).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         const post = res.data.post;
         this.post.set(post);
