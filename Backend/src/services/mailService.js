@@ -69,7 +69,22 @@ function createMailService({ transporter, from } = {}) {
 
       await tx.sendMail({ from: sender, to, subject, text });
     },
+
+    /** Email a password-reset OTP. SECURITY: the OTP is never logged. */
+    async sendPasswordResetOtp({ to, otp, expiresInMinutes }) {
+      const subject = 'Your password reset code';
+      const text = [
+        `Your password reset code is: ${otp}`,
+        '',
+        `It expires in ${expiresInMinutes} minutes.`,
+        "If you didn't request this, you can safely ignore this email.",
+      ].join('\n');
+      await tx.sendMail({ from: sender, to, subject, text });
+    },
   };
 }
 
-module.exports = { createMailService, buildEnvTransport };
+// Shared default instance (env-configured transport) for app-wide use.
+const defaultMailService = createMailService();
+
+module.exports = { createMailService, buildEnvTransport, defaultMailService };

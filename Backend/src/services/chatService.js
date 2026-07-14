@@ -3,7 +3,7 @@ const { supabase } = require('../config/database');
 const { askAI } = require('./aiService');
 const ApiError = require('../utils/ApiError');
 const logger = require('../config/logger');
-const { RATE_LIMIT, USER_ROLES } = require('../config/constants');
+const { RATE_LIMIT, USER_ROLES, ADMIN_TIER_ROLES } = require('../config/constants');
 const { v4: uuidv4 } = require('uuid');
 
 const PROFILE_OWNER_ID = process.env.PROFILE_OWNER_ID;
@@ -53,7 +53,7 @@ async function checkGuestLimit(guestId) {
  */
 async function sendChatMessage({ message, sessionId, userId, role, guestId, userIp }) {
   try {
-    const isAdmin = role === USER_ROLES.ADMIN;
+    const isAdmin = ADMIN_TIER_ROLES.includes(role); // admin OR superadmin
 
     // Check guest limit
     if (!isAdmin && guestId) {
@@ -190,8 +190,8 @@ async function getChatSessions({ userId, role, guestId }) {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (role === USER_ROLES.ADMIN) {
-      // Admin sees all sessions for this user_id
+    if (ADMIN_TIER_ROLES.includes(role)) {
+      // Admin/super admin sees all sessions for their own portfolio (user_id)
       query = query.eq('user_id', userId);
     } else {
       // Guest sees only their sessions

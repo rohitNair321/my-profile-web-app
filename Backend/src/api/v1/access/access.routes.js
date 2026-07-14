@@ -103,4 +103,31 @@ router.patch('/users/:id/access', accessController.updateAccess);
  */
 router.patch('/users/:id/status', accessController.setStatus);
 
+/**
+ * @swagger
+ * /api/v1/access/users/{id}/config:
+ *   patch:
+ *     summary: Set which admin sections a user sees (super admin)
+ *     tags: [Access]
+ *     security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               config:
+ *                 type: object
+ *                 properties:
+ *                   showSidebarToggle:   { type: boolean }
+ *                   showAgentChat:       { type: boolean }
+ *                   showUserProfileView: { type: boolean }
+ *                   showNotifications:   { type: boolean }
+ *     responses:
+ *       200: { description: Updated config }
+ */
+router.patch('/users/:id/config', accessController.setConfig);
+
 module.exports = router;

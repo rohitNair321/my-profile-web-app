@@ -56,10 +56,21 @@ function createUserRepository(supabase) {
     async listUsers() {
       const { data, error } = await supabase
         .from(USERS)
-        .select('id, email, role, is_active, last_login, created_at')
+        .select('id, email, role, is_active, last_login, created_at, app_config')
         .order('created_at', { ascending: true });
       if (error) throw ApiError.internal('Failed to list users');
       return data ?? [];
+    },
+
+    async setAppConfig(userId, appConfig) {
+      const { data, error } = await supabase
+        .from(USERS)
+        .update({ app_config: appConfig })
+        .eq('id', userId)
+        .select('id, app_config')
+        .single();
+      if (error || !data) throw ApiError.notFound('User not found');
+      return data;
     },
 
     async getGrantedKeys(userId) {

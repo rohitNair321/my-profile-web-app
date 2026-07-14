@@ -49,8 +49,17 @@ export class AppService {
     appConfiguration = signal<Record<string, any> | null>(null);
     setAppConfiguration(cfg: Record<string, any> | null): void { this.appConfiguration.set(cfg ?? null); }
 
-    hasValidToken(): boolean {
+    /**
+     * ADMIN-tier = admin OR super admin (super admin is a superset of admin).
+     * ALWAYS use this instead of `role() === 'ADMIN'`, which silently excludes
+     * the super admin and disables admin features for the portfolio owner.
+     */
+    isAdminTier(): boolean {
         return this.role() === 'ADMIN' || this.role() === 'SUPERADMIN';
+    }
+
+    hasValidToken(): boolean {
+        return this.isAdminTier();
     }
 
 
@@ -138,7 +147,7 @@ export class AppService {
     }
 
     getNotifications(): Observable<Notification> {
-        if (this.role() === 'ADMIN') {
+        if (this.isAdminTier()) {
             return timer(0, 20 * 60 * 1000).pipe(
                 switchMap(() => this.http.get<Notification>(`${this.apiContactUrl}/notifications`, {withCredentials: true})),
                 map(notification => notification || null),
@@ -168,7 +177,7 @@ export class AppService {
 
     // A simple check to see if we should allow entry to the app
     isAuthorized(): boolean {
-        return this.role() === 'ADMIN' || this.role() === 'GUEST';
+        return !!this.role(); // any resolved role (superadmin/admin/user/guest)
     }
 
     intialAppState() {

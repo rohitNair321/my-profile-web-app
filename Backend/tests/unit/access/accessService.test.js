@@ -16,6 +16,7 @@ function makeRepo(overrides = {}) {
     getGrantedKeysForUsers: jest.fn().mockResolvedValue({}),
     replaceGrants: jest.fn(async (_id, keys) => keys),
     setActive: jest.fn(async (id, isActive) => ({ id, is_active: isActive })),
+    setAppConfig: jest.fn(async (id, cfg) => ({ id, app_config: cfg })),
     ...overrides,
   };
 }
@@ -108,6 +109,27 @@ describe('accessService.updateAccess', () => {
     expect(repo.getById).toHaveBeenCalledWith('u1');
     expect(repo.replaceGrants).toHaveBeenCalledWith('u1', ['planner', 'analytics'], SUPER.id);
     expect(res).toEqual({ userId: 'u1', pages: ['planner', 'analytics'] });
+  });
+});
+
+describe('accessService.updateUserConfig', () => {
+  it('persists only whitelisted boolean flags and drops unknown/non-boolean keys', async () => {
+    const repo = makeRepo();
+    const svc = build(repo, makeMail());
+    await svc.updateUserConfig({
+      userId: 'u1',
+      config: { showNotifications: false, showAgentChat: true, hackerFlag: true, showSidebarToggle: 'yes' },
+    });
+    expect(repo.getById).toHaveBeenCalledWith('u1');
+    expect(repo.setAppConfig).toHaveBeenCalledWith('u1', { showNotifications: false, showAgentChat: true });
+  });
+
+  it('404s when the user does not exist', async () => {
+    const repo = makeRepo({ getById: jest.fn().mockRejectedValue(Object.assign(new Error('nf'), { statusCode: 404 })) });
+    const svc = build(repo, makeMail());
+    await expect(svc.updateUserConfig({ userId: 'nope', config: {} }))
+      .rejects.toMatchObject({ statusCode: 404 });
+    expect(repo.setAppConfig).not.toHaveBeenCalled();
   });
 });
 

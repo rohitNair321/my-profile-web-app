@@ -7,9 +7,16 @@ import { environment } from 'src/environments/environments';
 export interface GrantablePage {
   key: string; label: string; route: string; scope: string; grantable: boolean;
 }
+export interface SectionConfig {
+  showSidebarToggle?: boolean;
+  showAgentChat?: boolean;
+  showUserProfileView?: boolean;
+  showNotifications?: boolean;
+}
 export interface ManagedUser {
   id: string; email: string; role: string; is_active: boolean;
   last_login: string | null; created_at: string; pages: string[];
+  app_config?: SectionConfig | null;
 }
 export interface ProvisionResult { user: ManagedUser; tempPassword: string; }
 export interface MyAccess { role: string; pages: string[]; }
@@ -45,5 +52,10 @@ export class AccessApiService {
   setStatus(id: string, isActive: boolean): Observable<ManagedUser> {
     return this.http.patch<{ data: ManagedUser }>(
       `${this.baseUrl}/users/${id}/status`, { isActive }, this.opts).pipe(map(r => r.data));
+  }
+
+  updateConfig(id: string, config: SectionConfig): Observable<{ id: string; app_config: SectionConfig }> {
+    return this.http.patch<{ data: { id: string; app_config: SectionConfig } }>(
+      `${this.baseUrl}/users/${id}/config`, { config }, this.opts).pipe(map(r => r.data));
   }
 }

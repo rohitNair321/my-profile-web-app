@@ -90,6 +90,11 @@
                 <span class="material-icons">tune</span> Access
               </button>
             }
+            @if (configId() !== u.id) {
+              <button type="button" class="acc-btn acc-btn--ghost" (click)="startConfig(u)">
+                <span class="material-icons">view_quilt</span> Sections
+              </button>
+            }
             <button type="button" class="acc-btn acc-btn--ghost" (click)="toggleActive(u)">
               <span class="material-icons">{{ u.is_active ? 'block' : 'check_circle' }}</span>
               {{ u.is_active ? 'Disable' : 'Enable' }}
@@ -109,6 +114,24 @@
               <div class="acc-editor-actions">
                 <button type="button" class="acc-btn acc-btn--primary" (click)="saveEdit(u)">Save</button>
                 <button type="button" class="acc-btn acc-btn--ghost" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+          }
+
+          @if (configId() === u.id) {
+            <div class="acc-user__editor">
+              <div class="acc-pages-label">Visible admin sections</div>
+              <div class="acc-pages">
+                @for (f of sectionFlags; track f.key) {
+                  <label class="acc-chip" [class.acc-chip--on]="isConfigOn(f.key)">
+                    <input type="checkbox" [checked]="isConfigOn(f.key)" (change)="toggleConfigFlag(f.key)" />
+                    {{ f.label }}
+                  </label>
+                }
+              </div>
+              <div class="acc-editor-actions">
+                <button type="button" class="acc-btn acc-btn--primary" (click)="saveConfig(u)">Save</button>
+                <button type="button" class="acc-btn acc-btn--ghost" (click)="cancelConfig()">Cancel</button>
               </div>
             </div>
           }

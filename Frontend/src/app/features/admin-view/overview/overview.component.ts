@@ -137,7 +137,7 @@ export class OverviewComponent extends CommonApp implements OnInit, AfterViewIni
 
   /** Build the Recent Activity feed: in-progress todo (top) + recent post/scheduler events */
   private _loadActivity(): void {
-    if (this.appService.role() !== 'ADMIN') return;
+    if (!this.appService.isAdminTier()) return;
 
     forkJoin({
       todo:   this.taskService.getInProgressAlert().pipe(catchError(() => of(null))),

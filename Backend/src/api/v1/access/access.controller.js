@@ -60,4 +60,13 @@ const setStatus = catchAsync(async (req, res) => {
   res.json(new ApiResponse(200, user, 'User status updated'));
 });
 
-module.exports = { listPages, myPages, listUsers, createUser, updateAccess, setStatus };
+/** PATCH /api/v1/access/users/:id/config — per-owner section visibility */
+const setConfig = catchAsync(async (req, res) => {
+  const result = await defaultAccessService.updateUserConfig({
+    userId: req.params.id,
+    config: req.body?.config ?? req.body ?? {},
+  });
+  res.json(new ApiResponse(200, result, 'User layout config updated'));
+});
+
+module.exports = { listPages, myPages, listUsers, createUser, updateAccess, setStatus, setConfig };

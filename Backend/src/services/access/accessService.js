@@ -13,6 +13,8 @@ const { getPages, getGrantablePages } = require('./pageRegistry');
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ASSIGNABLE_ROLES = [policy.ROLES.ADMIN, policy.ROLES.USER];
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
+// Layout sections a super admin can toggle per user (which admin UI is shown).
+const APP_CONFIG_FLAGS = ['showSidebarToggle', 'showAgentChat', 'showUserProfileView', 'showNotifications'];
 
 /**
  * Access & User-Provisioning service (orchestration / business logic).
@@ -117,6 +119,19 @@ function createAccessService({
     /** Enable / disable a user account. */
     async setUserActive({ userId, isActive }) {
       return repository.setActive(userId, !!isActive);
+    },
+
+    /**
+     * Set a user's per-owner layout config (which admin sections are shown).
+     * Only whitelisted boolean flags are persisted.
+     */
+    async updateUserConfig({ userId, config }) {
+      const clean = {};
+      for (const k of APP_CONFIG_FLAGS) {
+        if (typeof config?.[k] === 'boolean') clean[k] = config[k];
+      }
+      await repository.getById(userId); // 404 if the user doesn't exist
+      return repository.setAppConfig(userId, clean);
     },
   };
 }

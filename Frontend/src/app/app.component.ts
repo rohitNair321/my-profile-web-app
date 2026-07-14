@@ -38,8 +38,8 @@ export class AppComponent extends CommonApp {
   @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent): void {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
-      // Only open modal if not already logged in as admin
-      if (this.authService.role() !== 'ADMIN') {
+      // Only open modal if not already logged in as an admin-tier user
+      if (!this.appService.isAdminTier()) {
         e.preventDefault();
         this.showLoginModal.set(true);
       }

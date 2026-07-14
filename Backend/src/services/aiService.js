@@ -107,63 +107,71 @@ function logUsage({ completion, model, feature, role, isGuest, sessionId, userId
     .then(({ error }) => { if (error) logger.warn('ai_usage insert failed', { error: error.message }); });
 }
 
-// ── Caches (10-min TTL to avoid a DB hit per request) ────────────────────────
-let _profileCache = null;
-let _profileCachedAt = 0;
-let _postsCache = null;
-let _postsCachedAt = 0;
+// ── Per-owner caches (10-min TTL to avoid a DB hit per request) ──────────────
+// Multi-tenant: the AI persona is the OWNER whose portfolio the chat is about,
+// so profile + grounding posts are cached PER owner id.
+const PROFILE_OWNER_ID = process.env.PROFILE_OWNER_ID;
 const CACHE_TTL_MS = 10 * 60 * 1000;
+const _profileCache = new Map(); // ownerId -> { data, at }
+const _postsCache   = new Map(); // ownerId -> { data, at }
 
-async function getProfile() {
+// Safe fallback so buildSystemPrompt never dereferences a null profile (e.g. a
+// freshly-provisioned owner who hasn't saved a profile yet).
+const EMPTY_PROFILE = { full_name: 'the portfolio owner', experiences: [], skills: [], open_to_work: false, email: '' };
+
+async function getProfile(ownerId) {
+  const id = ownerId || PROFILE_OWNER_ID;
   const now = Date.now();
-  if (_profileCache && now - _profileCachedAt < CACHE_TTL_MS) {
-    return _profileCache;
-  }
+  const hit = _profileCache.get(id);
+  if (hit && now - hit.at < CACHE_TTL_MS) return hit.data;
+
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .limit(1)
-    .single();
+    .eq('id', id)
+    .maybeSingle();
   if (error) throw error;
-  _profileCache = data;
-  _profileCachedAt = now;
-  return data;
+
+  const profile = data || EMPTY_PROFILE;
+  _profileCache.set(id, { data: profile, at: now });
+  return profile;
 }
 
-/** Recent published posts, used to GROUND the chat (RAG-lite) so it can answer
- *  about articles/topics from real content instead of guessing. Title + excerpt
- *  + tags only, capped small to keep token cost low. Never throws — grounding is
- *  best-effort, so a posts failure must not break the chat. */
-async function getRecentPosts() {
+/** Recent published posts for one owner, used to GROUND the chat (RAG-lite) so
+ *  it can answer about articles/topics from real content instead of guessing.
+ *  Title + excerpt + tags only, capped small to keep token cost low. Never
+ *  throws — grounding is best-effort, so a posts failure must not break the chat. */
+async function getRecentPosts(ownerId) {
+  const id = ownerId || PROFILE_OWNER_ID;
   const now = Date.now();
-  if (_postsCache && now - _postsCachedAt < CACHE_TTL_MS) {
-    return _postsCache;
-  }
+  const hit = _postsCache.get(id);
+  if (hit && now - hit.at < CACHE_TTL_MS) return hit.data;
+
   try {
     const { data, error } = await supabase
       .from('posts')
       .select('title, excerpt, tags, slug, published_at')
+      .eq('owner_id', id)
       .eq('status', 'published')
       .order('published_at', { ascending: false })
       .limit(6);
-    if (error) { logger.warn('getRecentPosts failed', { error: error.message }); return _postsCache || []; }
-    _postsCache = data || [];
-    _postsCachedAt = now;
-    return _postsCache;
+    if (error) { logger.warn('getRecentPosts failed', { error: error.message }); return hit?.data || []; }
+    const posts = data || [];
+    _postsCache.set(id, { data: posts, at: now });
+    return posts;
   } catch (e) {
     logger.warn('getRecentPosts threw', { error: e.message });
-    return _postsCache || [];
+    return hit?.data || [];
   }
 }
 
-/** Force-expire the caches (call after admin profile/post updates) */
-function invalidateProfileCache() {
-  _profileCache = null;
-  _profileCachedAt = 0;
+/** Force-expire caches (call after profile/post updates). Pass an ownerId to
+ *  clear just that owner; omit to clear everyone. */
+function invalidateProfileCache(ownerId) {
+  if (ownerId) _profileCache.delete(ownerId); else _profileCache.clear();
 }
-function invalidatePostsCache() {
-  _postsCache = null;
-  _postsCachedAt = 0;
+function invalidatePostsCache(ownerId) {
+  if (ownerId) _postsCache.delete(ownerId); else _postsCache.clear();
 }
 
 // ── Main AI call ──────────────────────────────────────────────────────────────
@@ -185,7 +193,8 @@ async function askAI(
   isGuest,
   conversationHistory = []
 ) {
-  const [profile, posts] = await Promise.all([getProfile(), getRecentPosts()]);
+  // Persona = the OWNER whose portfolio this chat is about (userId).
+  const [profile, posts] = await Promise.all([getProfile(userId), getRecentPosts(userId)]);
   const systemPrompt = buildSystemPrompt(profile, role, posts);
 
   // Map stored messages to OpenAI roles; cap at last 8 messages (4 turns)
@@ -376,14 +385,14 @@ async function assistWithPost({ action, title = '', content = '' } = {}) {
  * @param {{ name?:string, email?:string, subject?:string, message:string, tone?:string }} input
  * @returns {Promise<{ result:string }>}
  */
-async function generateContactReply({ name = '', email = '', subject = '', message = '', tone = 'professional' } = {}) {
+async function generateContactReply({ name = '', email = '', subject = '', message = '', tone = 'professional', ownerId } = {}) {
   if (!message || !String(message).trim()) {
     const err = new Error('The original message is empty — nothing to reply to.');
     err.statusCode = 400;
     throw err;
   }
 
-  const profile = await getProfile().catch(() => ({}));
+  const profile = await getProfile(ownerId).catch(() => ({}));
   const senderName = name || 'there';
   const signOff = profile.full_name || 'Rohit';
 
@@ -420,8 +429,8 @@ async function generateContactReply({ name = '', email = '', subject = '', messa
  * @param {{ name?:string, subject?:string }} input
  * @returns {Promise<{ result:string }>}
  */
-async function composeContactMessage({ name = '', subject = '' } = {}) {
-  const profile = await getProfile().catch(() => ({}));
+async function composeContactMessage({ name = '', subject = '', ownerId } = {}) {
+  const profile = await getProfile(ownerId).catch(() => ({}));
   const owner = profile.full_name || 'Rohit';
 
   const system =

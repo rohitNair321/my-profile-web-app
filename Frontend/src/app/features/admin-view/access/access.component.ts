@@ -1,7 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AccessApiService, GrantablePage, ManagedUser } from 'src/app/core/services/access-api.service';
+import { AccessApiService, GrantablePage, ManagedUser, SectionConfig } from 'src/app/core/services/access-api.service';
 import { AlertService } from 'src/app/core/services/alert.service';
+
+/** Admin sections a super admin can show/hide per user. */
+const SECTION_FLAGS: { key: keyof SectionConfig; label: string }[] = [
+  { key: 'showNotifications',   label: 'Notifications' },
+  { key: 'showUserProfileView', label: 'Profile menu' },
+  { key: 'showAgentChat',       label: 'AI Chat' },
+  { key: 'showSidebarToggle',   label: 'Sidebar toggle' },
+];
 
 /**
  * Access console (super admin) — provision users by email and grant them a
@@ -35,6 +43,11 @@ export class AccessComponent implements OnInit {
   // Inline per-user access editing
   editingId = signal<string | null>(null);
   editPages = signal<Set<string>>(new Set());
+
+  // Inline per-user section-visibility editing
+  readonly sectionFlags = SECTION_FLAGS;
+  configId = signal<string | null>(null);
+  editConfig = signal<SectionConfig>({});
 
   ngOnInit(): void {
     this.loading.set(true);
@@ -114,4 +127,30 @@ export class AccessComponent implements OnInit {
 
   isEditPageOn(key: string): boolean { return this.editPages().has(key); }
   isNewPageOn(key: string): boolean { return this.newPages().has(key); }
+
+  // ── Section visibility ─────────────────────────────────────────
+  startConfig(u: ManagedUser): void {
+    this.configId.set(u.id);
+    this.editConfig.set({ ...(u.app_config ?? {}) });
+  }
+
+  toggleConfigFlag(key: keyof SectionConfig): void {
+    this.editConfig.update(c => ({ ...c, [key]: !c[key] }));
+  }
+
+  isConfigOn(key: keyof SectionConfig): boolean { return !!this.editConfig()[key]; }
+
+  cancelConfig(): void { this.configId.set(null); }
+
+  saveConfig(u: ManagedUser): void {
+    const config = this.editConfig();
+    this.api.updateConfig(u.id, config).subscribe({
+      next: () => {
+        this.users.update(list => list.map(x => x.id === u.id ? { ...x, app_config: config } : x));
+        this.configId.set(null);
+        this.alert.success('Sections updated');
+      },
+      error: err => this.alert.error(err?.error?.message ?? 'Failed to update sections'),
+    });
+  }
 }
