@@ -173,10 +173,6 @@ function invalidateProfileCache(ownerId) {
 function invalidatePostsCache(ownerId) {
   if (ownerId) _postsCache.delete(ownerId); else _postsCache.clear();
 }
-function invalidatePostsCache() {
-  _postsCache = null;
-  _postsCachedAt = 0;
-}
 
 // ── Main AI call ──────────────────────────────────────────────────────────────
 /**
