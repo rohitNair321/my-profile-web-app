@@ -298,7 +298,7 @@ const server = app.listen(PORT, '0.0.0.0', async () => {
 
   // Keep-warm self-ping (only active in production with a public URL configured)
   if (process.env.NODE_ENV === 'production') {
-    startKeepWarm();
+    // startKeepWarm();
   }
 });
 

@@ -153,7 +153,7 @@ function run(): void {
     console.log(`✅ Node Express server listening on http://localhost:${port}`);
     console.log(`📦 Environment: ${process.env['NODE_ENV'] || 'development'}`);
     console.log(`🌐 Allowed hosts: ${ALLOWED_HOSTS.join(', ')}`);
-    startKeepWarm();
+    // startKeepWarm();
   });
 
   httpServer.setTimeout(60000);
